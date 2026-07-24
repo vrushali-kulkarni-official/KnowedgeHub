@@ -1,0 +1,867 @@
+BM25 is one of the most important retrieval algorithms used in production RAG systems. It is the foundation behind many search engines and is often used as the **sparse retrieval** component in hybrid search.
+
+The short answer to your question:
+
+> **No, BM25 does not inherently understand that "broken item" and "damaged item" mean the same thing.**
+>
+> BM25 is primarily a keyword-based statistical matching algorithm, not a semantic understanding algorithm.
+>
+> However, depending on preprocessing, stemming, synonyms, query expansion, and hybrid search, it may still retrieve the correct chunk.
+
+Let's dive deep.
+
+---
+
+# First: What problem does BM25 solve?
+
+Suppose you have documents:
+
+```text
+Doc1:
+Refund policy for damaged products.
+
+Doc2:
+How to reset your password.
+
+Doc3:
+Money-back guarantee for defective items.
+```
+
+User asks:
+
+```text
+money back for broken item
+```
+
+We need to determine:
+
+```text
+Which document is most relevant?
+```
+
+BM25 computes a relevance score for each document.
+
+Higher score = More relevant.
+
+---
+
+# Historical Background
+
+Before BM25, search engines used TF-IDF.
+
+TF-IDF had issues:
+
+* Repeated words could dominate scores.
+* Long documents unfairly got higher scores.
+* Ranking wasn't ideal.
+
+Researchers developed:
+
+```text
+Okapi BM25
+```
+
+around the 1990s.
+
+Today:
+
+* Elasticsearch
+* OpenSearch
+* Lucene
+
+all use BM25 by default.
+
+---
+
+# BM25 is NOT Semantic Search
+
+BM25 only sees:
+
+```text
+words/tokens
+```
+
+It does not see:
+
+```text
+meaning
+```
+
+Example:
+
+Query:
+
+```text
+broken item refund
+```
+
+Document:
+
+```text
+damaged product refund
+```
+
+BM25 sees:
+
+Query terms:
+broken
+item
+refund
+
+Document terms:
+damaged
+product
+refund
+
+````
+
+Only:
+
+```text
+refund
+````
+
+matches.
+
+BM25 does not know:
+
+```text
+broken = damaged
+item = product
+```
+
+unless extra mechanisms are added.
+
+---
+
+# BM25 Working Pipeline
+
+Let's go step by step.
+
+---
+
+## Step 1: Tokenization
+
+Query:
+
+```text
+money back for broken item
+```
+
+Becomes:
+
+```python
+[
+ "money",
+ "back",
+ "broken",
+ "item"
+]
+```
+
+---
+
+Document:
+
+```text
+Refund policy for damaged products.
+```
+
+Becomes:
+
+```python
+[
+ "refund",
+ "policy",
+ "damaged",
+ "products"
+]
+```
+
+---
+
+# Step 2: Remove Stopwords
+
+Words like:
+
+```text
+for
+the
+a
+an
+is
+are
+```
+
+are usually removed.
+
+Query becomes:
+
+```python
+[
+ "money",
+ "back",
+ "broken",
+ "item"
+]
+```
+
+---
+
+# Step 3: Calculate Score
+
+BM25 looks at every query term.
+
+For each term:
+
+```text
+money
+back
+broken
+item
+```
+
+it asks:
+
+```text
+Does this term appear in the document?
+```
+
+If yes:
+
+```text
+increase score
+```
+
+If no:
+
+```text
+add nothing
+```
+
+---
+
+# Core BM25 Components
+
+There are three major factors.
+
+---
+
+## 1. Term Frequency (TF)
+
+How many times does the term occur?
+
+Example:
+
+Document:
+
+```text
+refund refund refund refund
+```
+
+Query:
+
+```text
+refund
+```
+
+More occurrences generally mean more relevance.
+
+But BM25 prevents abuse.
+
+---
+
+Instead of:
+
+```text
+1 occurrence = 1 point
+
+100 occurrences = 100 points
+```
+
+BM25 uses saturation:
+
+```text
+1 occurrence = big gain
+
+2 occurrence = smaller gain
+
+3 occurrence = even smaller gain
+```
+
+Eventually it levels off.
+
+---
+
+Example:
+
+```text
+refund
+```
+
+appearing:
+
+| Count | Contribution      |
+| ----- | ----------------- |
+| 1     | High              |
+| 2     | Higher            |
+| 10    | Slightly higher   |
+| 100   | Almost same as 10 |
+
+This prevents keyword stuffing.
+
+---
+
+# 2. IDF (Inverse Document Frequency)
+
+This is the magic part.
+
+---
+
+Imagine:
+
+```text
+100,000 documents
+```
+
+Word:
+
+```text
+the
+```
+
+appears in:
+
+```text
+99,999 docs
+```
+
+Not useful.
+
+---
+
+Word:
+
+```text
+refund
+```
+
+appears in:
+
+```text
+200 docs
+```
+
+Very useful.
+
+---
+
+Word:
+
+```text
+cryptocurrency
+```
+
+appears in:
+
+```text
+10 docs
+```
+
+Extremely useful.
+
+---
+
+IDF rewards rare words.
+
+---
+
+Example:
+
+Query:
+
+```text
+refund cryptocurrency
+```
+
+Document A:
+
+```text
+refund refund refund
+```
+
+Document B:
+
+```text
+cryptocurrency
+```
+
+BM25 may rank B higher because:
+
+```text
+cryptocurrency
+```
+
+is much more informative.
+
+---
+
+# 3. Document Length Normalization
+
+Without normalization:
+
+```text
+100-word doc
+```
+
+would always lose to
+
+```text
+10,000-word doc
+```
+
+because longer docs contain more words.
+
+---
+
+BM25 compensates.
+
+Example:
+
+Doc A:
+
+```text
+100 words
+```
+
+Doc B:
+
+```text
+10,000 words
+```
+
+Both contain:
+
+```text
+refund
+```
+
+BM25 gives extra credit to the shorter doc because the match is more concentrated.
+
+---
+
+# Example Calculation
+
+Query:
+
+```text
+refund damaged product
+```
+
+Document:
+
+```text
+refund policy for damaged products
+```
+
+BM25 computes roughly:
+
+```text
+refund score
++
+damaged score
++
+product score
+```
+
+after applying:
+
+```text
+TF
+IDF
+Length normalization
+```
+
+Result:
+
+```text
+7.2
+```
+
+Another document:
+
+```text
+refund available
+```
+
+might score:
+
+```text
+2.1
+```
+
+Thus first document ranks higher.
+
+---
+
+# Your Example
+
+Query:
+
+```text
+money back for broken item
+```
+
+Document:
+
+```text
+refund policy for damaged products
+```
+
+---
+
+Pure BM25 sees:
+
+Query terms:
+
+```text
+money
+back
+broken
+item
+```
+
+Document terms:
+
+```text
+refund
+policy
+damaged
+products
+```
+
+Matches:
+
+```text
+none
+```
+
+or maybe:
+
+```text
+back ↔ refund
+```
+
+if special preprocessing exists.
+
+---
+
+Result:
+
+```text
+Very low score
+```
+
+or
+
+```text
+No retrieval
+```
+
+---
+
+# Then how do real-world systems handle this?
+
+Production systems rarely use raw BM25 alone.
+
+They use:
+
+```text
+BM25
++
+Synonym Expansion
++
+Hybrid Search
++
+Embeddings
+```
+
+---
+
+# Method 1: Synonym Dictionaries
+
+Search engine maintains:
+
+```text
+broken -> damaged
+broken -> defective
+
+item -> product
+item -> goods
+
+money back -> refund
+```
+
+Query:
+
+```text
+broken item
+```
+
+expands to:
+
+```text
+broken damaged defective
+item product goods
+```
+
+Now BM25 can match.
+
+---
+
+# Method 2: Stemming
+
+Words are reduced to root forms.
+
+Example:
+
+```text
+damage
+damaged
+damaging
+```
+
+become:
+
+```text
+damag
+```
+
+Similarly:
+
+```text
+refund
+refunds
+refunded
+```
+
+become:
+
+```text
+refund
+```
+
+This improves matching.
+
+---
+
+# Method 3: Query Expansion via LLM
+
+Modern RAG often does:
+
+User query:
+
+```text
+money back for broken item
+```
+
+LLM generates:
+
+```text
+refund for damaged product
+refund policy
+return policy
+defective item refund
+```
+
+BM25 searches all variants.
+
+This significantly boosts recall.
+
+---
+
+# Method 4: Dense Retrieval (Embeddings)
+
+This is where semantics enter.
+
+Embedding model sees:
+
+```text
+broken item
+```
+
+and
+
+```text
+damaged product
+```
+
+as semantically similar.
+
+Vectors become close.
+
+---
+
+Example:
+
+Query vector:
+
+```text
+broken item refund
+```
+
+Document vector:
+
+```text
+damaged product refund
+```
+
+Cosine similarity:
+
+```text
+0.89
+```
+
+High similarity.
+
+Dense retrieval finds it.
+
+BM25 might not.
+
+---
+
+# Hybrid Search
+
+Production RAG usually combines:
+
+```text
+BM25
++
+Embedding Search
+```
+
+Example:
+
+Query:
+
+```text
+money back for broken item
+```
+
+BM25 finds:
+
+```text
+refund
+```
+
+related chunks.
+
+Embedding search finds:
+
+```text
+damaged product
+defective item
+return policy
+```
+
+related chunks.
+
+Results are merged using:
+
+* RRF (Reciprocal Rank Fusion)
+* Weighted Fusion
+* Learning to Rank
+
+This gives much better retrieval.
+
+---
+
+# What Actually Happens in Production?
+
+A typical retrieval pipeline:
+
+```text
+User Query
+      │
+      ▼
+Query Understanding
+      │
+      ├─ BM25 Search
+      │
+      ├─ Dense Vector Search
+      │
+      ├─ Query Expansion
+      │
+      └─ Synonym Expansion
+      │
+      ▼
+Fusion (RRF)
+      │
+      ▼
+Reranker
+      │
+      ▼
+Top Chunks
+      │
+      ▼
+LLM
+```
+
+---
+
+# Final Answer to Your Example
+
+Query:
+
+```text
+money back for broken item
+```
+
+Chunk:
+
+```text
+Customers may request a refund for damaged products.
+```
+
+### Pure BM25
+
+May perform poorly because:
+
+```text
+money back ≠ refund
+broken ≠ damaged
+item ≠ product
+```
+
+BM25 does not naturally understand these semantic relationships.
+
+---
+
+### BM25 + Stemming
+
+Still probably misses:
+
+```text
+broken ↔ damaged
+money back ↔ refund
+```
+
+because they are different words.
+
+---
+
+### BM25 + Synonym Expansion
+
+Likely retrieves the chunk successfully.
+
+---
+
+### Dense Retrieval (Embeddings)
+
+Very likely retrieves it because the meanings are similar.
+
+---
+
+### Hybrid Search (Production RAG)
+
+Almost certainly retrieves it because BM25 contributes exact keyword signals while embeddings contribute semantic understanding. This is why most production-grade RAG systems use **hybrid retrieval rather than BM25 alone**.

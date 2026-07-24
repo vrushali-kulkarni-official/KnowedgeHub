@@ -1,0 +1,338 @@
+# q: how to use langchain docling to load json into document for further chunking and embading
+
+If your goal is:
+
+**JSON file → LangChain `Document` objects → Chunking → Embeddings → Vector Store**
+
+then you usually **don't need Docling**.
+
+Docling is mainly designed for:
+
+* PDFs
+* Word documents (`.docx`)
+* PowerPoint (`.pptx`)
+* HTML
+* Markdown
+* Complex document parsing and OCR
+
+For JSON, LangChain already provides better loaders.
+
+---
+
+## Option 1: Use `JSONLoader` (Recommended)
+
+Install:
+
+```bash
+pip install jq
+pip install langchain-community
+```
+
+Example JSON:
+
+```json
+[
+  {
+    "title": "RAG",
+    "content": "Retrieval Augmented Generation"
+  },
+  {
+    "title": "LLM",
+    "content": "Large Language Model"
+  }
+]
+```
+
+Load it:
+
+```python
+from langchain_community.document_loaders import JSONLoader
+
+loader = JSONLoader(
+    file_path="data.json",
+    jq_schema=".[]",
+    text_content=False
+)
+
+docs = loader.load()
+
+print(docs[0])
+```
+
+Output:
+
+```python
+Document(
+    page_content='{"title":"RAG","content":"Retrieval Augmented Generation"}',
+    metadata={"source": "data.json", "seq_num": 1}
+)
+```
+
+---
+
+## Option 2: Extract Only Specific Fields
+
+Suppose your JSON is:
+
+```json
+[
+  {
+    "title": "RAG",
+    "content": "Retrieval Augmented Generation"
+  }
+]
+```
+
+and you only want the content.
+
+```python
+loader = JSONLoader(
+    file_path="data.json",
+    jq_schema=".[]",
+    content_key="content",
+    text_content=True
+)
+
+docs = loader.load()
+```
+
+Result:
+
+```python
+Document(
+    page_content="Retrieval Augmented Generation"
+)
+```
+
+---
+
+## Option 3: Create Documents Manually
+
+For RAG systems, this is often the cleanest approach.
+
+```python
+import json
+from pathlib import Path
+
+from langchain_core.documents import Document
+
+with open("data.json", "r", encoding="utf-8") as f:
+    data = json.load(f)
+
+docs = []
+
+for item in data:
+    docs.append(
+        Document(
+            page_content=item["content"],
+            metadata={
+                "title": item["title"]
+            }
+        )
+    )
+```
+
+Now you have proper metadata attached.
+
+---
+
+## Chunking
+
+```python
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50
+)
+
+chunks = splitter.split_documents(docs)
+```
+
+---
+
+## Embeddings
+
+Example with HuggingFace:
+
+```python
+from langchain_huggingface import HuggingFaceEmbeddings
+
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
+```
+
+---
+
+## FAISS
+
+```python
+from langchain_community.vectorstores import FAISS
+
+vectorstore = FAISS.from_documents(
+    chunks,
+    embeddings
+)
+```
+
+---
+
+## If You Really Want To Use Docling
+
+`DoclingLoader` is not intended for generic JSON ingestion. It expects document formats that Docling can convert into a structured document representation.
+
+For JSON files, a common pattern is:
+
+```python
+import json
+from langchain_core.documents import Document
+
+data = json.load(open("data.json"))
+
+doc = Document(
+    page_content=json.dumps(data, indent=2),
+    metadata={"source": "data.json"}
+)
+```
+
+Then chunk normally.
+
+For a production RAG pipeline, I would recommend:
+
+```text
+.md      -> TextLoader / UnstructuredMarkdownLoader
+.txt     -> TextLoader
+.pdf     -> DoclingLoader
+.docx    -> DoclingLoader
+.pptx    -> DoclingLoader
+.json    -> JSONLoader (or custom parser)
+.csv     -> CSVLoader
+```
+
+This keeps each file type handled by the loader that understands it best.
+
+
+# q2: langchain-community has been sunset by langchain
+
+You're correct.
+
+As of 2025–2026, many loaders and integrations that used to live in `langchain-community` have been moved into their own dedicated packages as part of LangChain's modularization effort.
+
+However, **`langchain-community` has not disappeared entirely**. It's in maintenance mode and many examples still use it, but LangChain recommends using the newer dedicated packages whenever available.
+
+For your specific case:
+
+### JSON files
+
+You don't need Docling or `langchain-community` at all.
+
+A simple approach is:
+
+```python
+import json
+from pathlib import Path
+
+from langchain_core.documents import Document
+
+def load_json(path: Path) -> list[Document]:
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    docs = []
+
+    if isinstance(data, list):
+        for item in data:
+            docs.append(
+                Document(
+                    page_content=json.dumps(item),
+                    metadata={"source": str(path)}
+                )
+            )
+
+    else:
+        docs.append(
+            Document(
+                page_content=json.dumps(data),
+                metadata={"source": str(path)}
+            )
+        )
+
+    return docs
+```
+
+Then:
+
+```python
+docs = load_json(Path("data.json"))
+
+chunks = text_splitter.split_documents(docs)
+
+vectorstore.add_documents(chunks)
+```
+
+---
+
+### If you're already using Docling
+
+For PDFs, DOCX, PPTX, etc.:
+
+```python
+from langchain_docling import DoclingLoader
+```
+
+which is the newer package:
+
+[langchain-docling](https://github.com/docling-project/langchain-docling?utm_source=chatgpt.com)
+
+Example:
+
+```python
+from langchain_docling import DoclingLoader
+
+loader = DoclingLoader(
+    file_path="report.pdf"
+)
+
+docs = loader.load()
+```
+
+---
+
+### What I would do for your RAG loader
+
+Since you've been building a file-type router recently, I'd structure it like:
+
+```python
+load_markdown()
+load_text()
+load_json()
+load_docling()   # pdf/docx/pptx
+load_csv()
+```
+
+and dispatch via:
+
+```python
+LOADERS = {
+    ".md": load_markdown,
+    ".txt": load_text,
+    ".json": load_json,
+    ".pdf": load_docling,
+    ".docx": load_docling,
+    ".pptx": load_docling,
+}
+```
+
+Then:
+
+```python
+loader = LOADERS.get(path.suffix.lower())
+
+if loader is None:
+    raise ValueError(f"Unsupported file type: {path.suffix}")
+
+docs = loader(path)
+```
+
+This is cleaner, easier to extend, and avoids depending on deprecated loader packages.

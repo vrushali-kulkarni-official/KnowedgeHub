@@ -1,0 +1,28 @@
+# ─── Core LangChain ────────────────────────────────────────────────────────────
+langchain>=0.3.0
+langchain-community>=0.3.0
+langchain-text-splitters>=0.3.0      # all the splitter classes live here now
+langchain-experimental>=0.3.0        # SemanticChunker lives here
+langchain-huggingface>=0.1.0         # HuggingFaceEmbeddings (free, local)
+
+# ─── Embeddings & Vector Store (free, local) ───────────────────────────────────
+sentence-transformers>=3.0.0         # MiniLM model you already use
+faiss-cpu>=1.8.0                     # local vector index, no server needed
+chromadb>=0.5.0                      # needed for ParentDocumentRetriever (supports empty init)
+
+# ─── Tokenizers ────────────────────────────────────────────────────────────────
+tiktoken>=0.7.0                      # OpenAI's BPE tokenizer (free to use locally)
+transformers>=4.40.0                 # HuggingFace tokenizers (for non-OpenAI models)
+
+# ─── Sentence / NLP libraries ──────────────────────────────────────────────────
+nltk>=3.8.0                          # sentence tokenizer (punkt model)
+spacy>=3.7.0                         # advanced NLP pipeline
+# After install run: python -m spacy download en_core_web_sm
+
+# ─── HTML / Markdown parsing ───────────────────────────────────────────────────
+beautifulsoup4>=4.12.0
+lxml>=5.0.0
+
+# ─── Utilities ─────────────────────────────────────────────────────────────────
+python-dotenv>=1.0.0
+numpy>=1.26.0

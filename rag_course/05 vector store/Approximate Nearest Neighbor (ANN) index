@@ -1,0 +1,1858 @@
+# First, Why Do We Need an Index?
+
+Imagine you have:
+
+```sql
+documents
+---------
+id
+content
+embedding
+```
+
+where:
+
+```python
+embedding = [0.12, -0.45, 0.89, ...]
+```
+
+(768 dimensions, 1536 dimensions, etc.)
+
+Suppose you have:
+
+```text
+1,000,000 documents
+```
+
+User asks:
+
+```text
+"What is HNSW?"
+```
+
+Query embedding:
+
+```python
+q = [0.23, -0.11, 0.56, ...]
+```
+
+Now PostgreSQL must find:
+
+```text
+Which document vectors are closest to q?
+```
+
+Without an index:
+
+```sql
+SELECT *
+FROM documents
+ORDER BY embedding <=> query_embedding
+LIMIT 10;
+```
+
+Postgres computes distance against:
+
+```text
+Doc1
+Doc2
+Doc3
+...
+Doc1,000,000
+```
+
+This is:
+
+```text
+O(N)
+```
+
+called a:
+
+```text
+Brute Force Search
+```
+
+For 1 million vectors:
+
+```text
+1,000,000 similarity calculations
+```
+
+every query.
+
+Too slow.
+
+---
+
+# ANN Index
+
+Instead of checking every vector:
+
+```text
+Approximate Nearest Neighbor (ANN)
+```
+
+tries to find:
+
+```text
+"probably the nearest vectors"
+```
+
+much faster.
+
+Tradeoff:
+
+```text
+100% recall
+↓
+95-99% recall
+```
+
+but
+
+```text
+100x faster
+```
+
+This is what HNSW and IVFFlat do.
+
+---
+
+# Understanding the SQL
+
+```sql
+CREATE INDEX ON documents
+USING hnsw (embedding vector_cosine_ops)
+WITH (
+    m = 16,
+    ef_construction = 64
+);
+```
+
+---
+
+# Part 1
+
+```sql
+CREATE INDEX
+```
+
+Create an index.
+
+Same concept as:
+
+```sql
+CREATE INDEX idx_name
+ON users(email);
+```
+
+except now we are indexing vectors.
+
+---
+
+# Part 2
+
+```sql
+ON documents
+```
+
+Build index on:
+
+```sql
+documents table
+```
+
+---
+
+# Part 3
+
+```sql
+USING hnsw
+```
+
+This is the important part.
+
+Use:
+
+```text
+Hierarchical Navigable Small Worlds
+```
+
+algorithm.
+
+---
+
+# What is HNSW?
+
+Think of Google Maps.
+
+Suppose you want:
+
+```text
+Mumbai → Small street in Delhi
+```
+
+You don't inspect every road in India.
+
+Instead:
+
+```text
+National highways
+↓
+State roads
+↓
+City roads
+↓
+Local roads
+```
+
+You navigate layer by layer.
+
+HNSW works similarly.
+
+---
+
+# HNSW Builds Layers
+
+Example:
+
+```text
+Layer 3 (very sparse)
+
+A ----- B
+ \     /
+   C
+
+Layer 2
+
+A-B-C-D-E-F-G
+
+Layer 1
+
+Many more nodes
+
+Layer 0
+
+All vectors
+```
+
+Top layers:
+
+```text
+Few nodes
+```
+
+Bottom layers:
+
+```text
+All nodes
+```
+
+Search starts:
+
+```text
+Top layer
+↓
+Lower layer
+↓
+Lower layer
+↓
+Bottom layer
+```
+
+Gradually zooming in.
+
+This makes search extremely fast.
+
+---
+
+# What Does HNSW Store?
+
+Each vector becomes a node.
+
+Example:
+
+```text
+Doc1
+Doc2
+Doc3
+...
+```
+
+For each node HNSW stores:
+
+```text
+nearest neighbors
+```
+
+Example:
+
+```text
+Doc1 → Doc7, Doc8, Doc15
+Doc2 → Doc5, Doc20
+...
+```
+
+forming a graph.
+
+---
+
+# vector_cosine_ops
+
+```sql
+(embedding vector_cosine_ops)
+```
+
+means:
+
+```text
+Use cosine distance
+```
+
+for comparisons.
+
+---
+
+## Other Options
+
+Cosine:
+
+```sql
+vector_cosine_ops
+```
+
+L2 Euclidean:
+
+```sql
+vector_l2_ops
+```
+
+Inner Product:
+
+```sql
+vector_ip_ops
+```
+
+---
+
+# Cosine Similarity
+
+Measures angle.
+
+Example:
+
+```text
+A = [1,1]
+
+B = [2,2]
+```
+
+Angle:
+
+```text
+0°
+```
+
+Similarity:
+
+```text
+1.0
+```
+
+Very similar.
+
+---
+
+Example:
+
+```text
+A = [1,0]
+
+B = [0,1]
+```
+
+Angle:
+
+```text
+90°
+```
+
+Similarity:
+
+```text
+0
+```
+
+Unrelated.
+
+---
+
+Most embedding models are optimized for cosine similarity.
+
+Therefore:
+
+```sql
+vector_cosine_ops
+```
+
+is usually recommended.
+
+---
+
+# WITH Clause
+
+```sql
+WITH (
+    m = 16,
+    ef_construction = 64
+)
+```
+
+These are HNSW tuning parameters.
+
+---
+
+# Parameter 1: m
+
+```sql
+m = 16
+```
+
+---
+
+## What Does m Mean?
+
+Each node connects to:
+
+```text
+up to 16 neighbors
+```
+
+Think:
+
+```text
+Facebook friends
+```
+
+If:
+
+```text
+m = 4
+```
+
+each node knows:
+
+```text
+4 nearby nodes
+```
+
+If:
+
+```text
+m = 32
+```
+
+each node knows:
+
+```text
+32 nearby nodes
+```
+
+---
+
+Example
+
+m=4
+
+```text
+A → B,C,D,E
+```
+
+m=16
+
+```text
+A → 16 neighbors
+```
+
+More roads.
+
+More navigation options.
+
+Better search quality.
+
+---
+
+# Larger m
+
+Advantages:
+
+```text
+Higher recall
+Better accuracy
+Better graph connectivity
+```
+
+Disadvantages:
+
+```text
+More RAM
+Larger index
+Longer build time
+```
+
+---
+
+Typical values:
+
+```text
+8
+16
+32
+48
+```
+
+Most production systems:
+
+```text
+m = 16
+```
+
+or
+
+```text
+m = 32
+```
+
+---
+
+# Parameter 2: ef_construction
+
+```sql
+ef_construction = 64
+```
+
+This affects:
+
+```text
+index building quality
+```
+
+not query speed directly.
+
+---
+
+Imagine building roads.
+
+Option A:
+
+```text
+Quickly connect neighbors
+```
+
+Result:
+
+```text
+Okay graph
+```
+
+Option B:
+
+```text
+Spend more time finding best neighbors
+```
+
+Result:
+
+```text
+Excellent graph
+```
+
+That's ef_construction.
+
+---
+
+# During Index Build
+
+When inserting a vector:
+
+```text
+Find best neighbors
+Connect graph
+```
+
+How many candidates should HNSW consider?
+
+```text
+ef_construction
+```
+
+controls that.
+
+---
+
+Small value:
+
+```text
+16
+```
+
+Fast build.
+
+Lower quality.
+
+---
+
+Large value:
+
+```text
+200
+```
+
+Slow build.
+
+Better graph.
+
+---
+
+Typical values:
+
+```text
+64
+128
+200
+```
+
+Production:
+
+```text
+64-128
+```
+
+is common.
+
+---
+
+# Search-Time Parameter: ef_search
+
+You don't see it in the index definition.
+
+But it is extremely important.
+
+Example:
+
+```sql
+SET hnsw.ef_search = 100;
+```
+
+---
+
+This controls:
+
+```text
+search quality
+```
+
+during queries.
+
+---
+
+Small:
+
+```text
+ef_search=20
+```
+
+Fast.
+
+Lower recall.
+
+---
+
+Large:
+
+```text
+ef_search=200
+```
+
+Slower.
+
+Higher recall.
+
+---
+
+Production example:
+
+```text
+ef_search = 50-200
+```
+
+---
+
+# Real Example
+
+Suppose:
+
+```text
+10 million vectors
+1536 dimensions
+OpenAI embeddings
+```
+
+Configuration:
+
+```sql
+CREATE INDEX ON documents
+USING hnsw (
+    embedding vector_cosine_ops
+)
+WITH (
+    m = 16,
+    ef_construction = 128
+);
+```
+
+Query:
+
+```sql
+SET hnsw.ef_search = 100;
+
+SELECT *
+FROM documents
+ORDER BY embedding <=> query_vector
+LIMIT 10;
+```
+
+Result:
+
+```text
+~98-99% recall
+milliseconds latency
+```
+
+instead of:
+
+```text
+seconds
+```
+
+for brute force.
+
+---
+
+# Alternative: IVFFlat
+
+```sql
+CREATE INDEX ON documents
+USING ivfflat (
+    embedding vector_cosine_ops
+)
+WITH (
+    lists = 100
+);
+```
+
+---
+
+# How IVFFlat Works
+
+IVF means:
+
+```text
+Inverted File Index
+```
+
+---
+
+Instead of graph navigation:
+
+it clusters vectors.
+
+Example:
+
+```text
+1,000,000 vectors
+```
+
+Create:
+
+```text
+100 clusters
+```
+
+---
+
+Cluster 1
+
+```text
+Sports docs
+```
+
+Cluster 2
+
+```text
+Finance docs
+```
+
+Cluster 3
+
+```text
+Medical docs
+```
+
+etc.
+
+(Not actual topics—just vector-space clusters.)
+
+---
+
+When query arrives:
+
+```text
+Find nearest cluster
+```
+
+Search only there.
+
+Instead of:
+
+```text
+1,000,000 vectors
+```
+
+search:
+
+```text
+10,000 vectors
+```
+
+---
+
+# lists = 100
+
+```sql
+WITH (
+    lists = 100
+)
+```
+
+means:
+
+```text
+Create 100 clusters
+```
+
+---
+
+Rule of thumb:
+
+```text
+lists ≈ sqrt(number_of_rows)
+```
+
+Example:
+
+```text
+10,000 rows
+```
+
+sqrt:
+
+```text
+100
+```
+
+Hence:
+
+```sql
+lists=100
+```
+
+---
+
+# HNSW vs IVFFlat
+
+| Feature               | HNSW      | IVFFlat  |
+| --------------------- | --------- | -------- |
+| Recall                | Excellent | Good     |
+| Speed                 | Excellent | Good     |
+| Build Time            | Slow      | Fast     |
+| RAM Usage             | High      | Lower    |
+| Query Latency         | Very Low  | Low      |
+| Production Popularity | Highest   | Moderate |
+| Dynamic Inserts       | Better    | Okay     |
+
+---
+
+# Why HNSW Is Usually Recommended
+
+Modern production RAG systems commonly use:
+
+```text
+HNSW
+```
+
+because:
+
+```text
+Better recall
+Faster search
+Excellent scalability
+Works well with embeddings
+```
+
+Examples:
+
+* pgvector HNSW
+* ChromaDB HNSW
+* Qdrant HNSW
+* Weaviate HNSW
+* Milvus HNSW
+* OpenSearch KNN (HNSW)
+
+This is why the comment says:
+
+```sql
+-- recommended index for most production use cases
+```
+
+because HNSW has become the default ANN algorithm for many vector databases and production RAG systems.
+
+### Mental Model
+
+Think of them like this:
+
+**Brute Force**
+
+```text
+Search every house in the city
+```
+
+**IVFFlat**
+
+```text
+Go to the correct neighborhood first,
+then search houses there
+```
+
+**HNSW**
+
+```text
+Use a hierarchy of highways, roads,
+and shortcuts to rapidly navigate
+to the correct house
+```
+
+That's why HNSW typically achieves the best balance of speed and retrieval quality for modern production RAG workloads.
+
+
+
+
+
+# Quesiton: explain ef_construction in detail in easy to understand works and then explain the algorithm working
+
+
+`ef_construction` is one of the most misunderstood HNSW parameters because people often memorize:
+
+> "Higher ef_construction = better index quality"
+
+without understanding **why**.
+
+Let's build the intuition from scratch.
+
+---
+
+# Imagine You're Building a Social Network
+
+Suppose we have documents represented as vectors:
+
+```text
+Doc A
+Doc B
+Doc C
+Doc D
+Doc E
+...
+```
+
+HNSW wants to create a graph like:
+
+```text
+A ---- B
+|    / |
+|   /  |
+C ---- D
+ \
+  \
+   E
+```
+
+Each document is a node.
+
+Each node stores links to nearby nodes.
+
+---
+
+## The Goal
+
+For every new node:
+
+```text
+Find the BEST neighbors
+```
+
+not just random neighbors.
+
+Because later search will travel through these connections.
+
+---
+
+# Example
+
+Suppose we already have:
+
+```text
+A
+B
+C
+D
+E
+F
+G
+```
+
+Now a new vector arrives:
+
+```text
+X
+```
+
+We must decide:
+
+```text
+Who should X connect to?
+```
+
+---
+
+# Option 1: Lazy Search
+
+Look at only a few candidates:
+
+```text
+A
+B
+C
+```
+
+Choose nearest.
+
+Result:
+
+```text
+X → B
+X → C
+```
+
+Fast.
+
+But maybe:
+
+```text
+D
+E
+```
+
+were actually much better neighbors.
+
+We never looked.
+
+---
+
+# Option 2: Thorough Search
+
+Explore much more of the graph:
+
+```text
+A
+B
+C
+D
+E
+F
+G
+```
+
+Now we discover:
+
+```text
+D and E
+```
+
+are the true nearest neighbors.
+
+Result:
+
+```text
+X → D
+X → E
+```
+
+Better graph.
+
+---
+
+This thoroughness is controlled by:
+
+```text
+ef_construction
+```
+
+---
+
+# What Does ef Mean?
+
+ef =
+
+```text
+Expansion Factor
+```
+
+or
+
+```text
+Exploration Factor
+```
+
+depending on implementation/documentation.
+
+Think:
+
+```text
+How many candidates should I explore?
+```
+
+while building the graph.
+
+---
+
+# Simple Analogy
+
+Imagine you're choosing a house.
+
+---
+
+## ef_construction = 10
+
+You visit:
+
+```text
+10 houses
+```
+
+and buy the best one.
+
+Fast.
+
+But maybe house #83 was perfect.
+
+You never saw it.
+
+---
+
+## ef_construction = 100
+
+You visit:
+
+```text
+100 houses
+```
+
+before deciding.
+
+More work.
+
+But likely a much better choice.
+
+---
+
+HNSW does exactly this when selecting neighbors.
+
+---
+
+# What Happens During Index Building?
+
+Suppose we insert vectors one by one.
+
+```text
+A
+B
+C
+D
+E
+...
+```
+
+When vector X arrives:
+
+```text
+Insert X
+```
+
+HNSW must find:
+
+```text
+Nearest neighbors of X
+```
+
+---
+
+It starts at the top layer.
+
+Navigates downward.
+
+Searches through the graph.
+
+Collects candidate neighbors.
+
+---
+
+The size of this candidate pool is:
+
+```text
+ef_construction
+```
+
+---
+
+Example:
+
+```text
+ef_construction = 20
+```
+
+means:
+
+```text
+Keep up to 20 promising candidates
+while exploring.
+```
+
+---
+
+Example:
+
+```text
+ef_construction = 200
+```
+
+means:
+
+```text
+Keep up to 200 promising candidates.
+```
+
+Much larger search.
+
+Much better chance of finding the true nearest neighbors.
+
+---
+
+# Visual Example
+
+Suppose X is inserted.
+
+Actual nearest vectors are:
+
+```text
+D
+E
+F
+G
+```
+
+---
+
+## Small ef_construction
+
+```text
+ef_construction = 10
+```
+
+Exploration reaches:
+
+```text
+A
+B
+C
+D
+```
+
+Only.
+
+Result:
+
+```text
+Connect X → D
+```
+
+---
+
+Graph quality:
+
+```text
+Okay
+```
+
+---
+
+## Large ef_construction
+
+```text
+ef_construction = 200
+```
+
+Exploration reaches:
+
+```text
+A B C D E F G H I ...
+```
+
+Result:
+
+```text
+Connect X → D
+Connect X → E
+Connect X → F
+Connect X → G
+```
+
+Graph quality:
+
+```text
+Excellent
+```
+
+---
+
+# Why Better Connections Matter
+
+Remember:
+
+HNSW search later depends on these links.
+
+Search works by hopping:
+
+```text
+Node → Node → Node
+```
+
+---
+
+Bad graph:
+
+```text
+A → B → C → D
+```
+
+Many detours.
+
+May miss nearest neighbors.
+
+---
+
+Good graph:
+
+```text
+A → F → X
+```
+
+Direct shortcut.
+
+Search becomes much better.
+
+---
+
+So:
+
+```text
+Higher ef_construction
+```
+
+creates:
+
+```text
+Better roads
+```
+
+inside the graph.
+
+---
+
+# The Tradeoff
+
+Suppose:
+
+```text
+1 million vectors
+```
+
+---
+
+### ef_construction = 32
+
+Build time:
+
+```text
+Fast
+```
+
+Memory:
+
+```text
+Low
+```
+
+Graph quality:
+
+```text
+Good
+```
+
+---
+
+### ef_construction = 200
+
+Build time:
+
+```text
+Much slower
+```
+
+Memory during build:
+
+```text
+Higher
+```
+
+Graph quality:
+
+```text
+Excellent
+```
+
+---
+
+# Real Production Values
+
+Most vector databases recommend:
+
+```text
+64
+```
+
+or
+
+```text
+128
+```
+
+because they provide a very good balance.
+
+Examples:
+
+```text
+64
+128
+200
+```
+
+Common.
+
+---
+
+# How the HNSW Algorithm Actually Uses ef_construction
+
+Now let's look inside the algorithm.
+
+---
+
+# Step 1: New Vector Arrives
+
+Suppose:
+
+```text
+Insert X
+```
+
+---
+
+Current graph:
+
+```text
+A B C D E F G
+```
+
+---
+
+# Step 2: Random Layer Assignment
+
+HNSW randomly decides:
+
+```text
+X exists in:
+Layer 0
+Layer 1
+Layer 2
+```
+
+or maybe only:
+
+```text
+Layer 0
+```
+
+This creates the hierarchy.
+
+---
+
+Example:
+
+```text
+Layer 2
+      A
+
+Layer 1
+   A  C  F
+
+Layer 0
+A B C D E F G
+```
+
+---
+
+# Step 3: Start Search From Top Layer
+
+Search begins at highest layer.
+
+Example:
+
+```text
+Layer 2
+```
+
+Start at:
+
+```text
+A
+```
+
+---
+
+Compute distance:
+
+```text
+distance(X, A)
+```
+
+---
+
+# Step 4: Greedy Navigation
+
+Move to neighbors that improve distance.
+
+Example:
+
+```text
+A → C
+```
+
+because C is closer to X.
+
+---
+
+Then:
+
+```text
+C → F
+```
+
+because F is closer.
+
+---
+
+Eventually:
+
+```text
+No neighbor is better
+```
+
+Stop.
+
+---
+
+This gives an approximate entry point.
+
+---
+
+# Step 5: Descend Layer
+
+Move down.
+
+```text
+Layer 2
+↓
+Layer 1
+```
+
+Continue search.
+
+Then:
+
+```text
+Layer 1
+↓
+Layer 0
+```
+
+---
+
+Now we're in the dense layer.
+
+---
+
+# Step 6: Candidate Queue
+
+This is where:
+
+```text
+ef_construction
+```
+
+becomes important.
+
+---
+
+HNSW maintains:
+
+```text
+Candidate Priority Queue
+```
+
+Example:
+
+```text
+[D, E, F, G]
+```
+
+---
+
+As search expands:
+
+```text
+Visit neighbors
+Add candidates
+Remove bad candidates
+```
+
+---
+
+Maximum size:
+
+```text
+ef_construction
+```
+
+---
+
+If:
+
+```text
+ef_construction = 64
+```
+
+queue can hold:
+
+```text
+64 candidates
+```
+
+---
+
+If:
+
+```text
+ef_construction = 200
+```
+
+queue can hold:
+
+```text
+200 candidates
+```
+
+---
+
+Larger queue:
+
+```text
+More exploration
+Better neighbors found
+```
+
+---
+
+# Step 7: Neighbor Selection
+
+After exploration:
+
+Candidate list:
+
+```text
+D
+E
+F
+G
+H
+I
+J
+...
+```
+
+---
+
+Sort by distance.
+
+Choose best neighbors according to:
+
+```text
+m
+```
+
+---
+
+Example:
+
+```text
+m = 4
+```
+
+Choose:
+
+```text
+D
+E
+F
+G
+```
+
+---
+
+Create edges:
+
+```text
+X ↔ D
+X ↔ E
+X ↔ F
+X ↔ G
+```
+
+---
+
+# Why Search Recall Improves
+
+Suppose actual nearest neighbor is:
+
+```text
+G
+```
+
+---
+
+Small ef_construction:
+
+```text
+Never discovered G
+```
+
+Graph misses important connection.
+
+---
+
+Large ef_construction:
+
+```text
+Found G
+```
+
+Graph contains shortcut.
+
+Future searches become more accurate.
+
+---
+
+# Relationship Between m and ef_construction
+
+These two work together.
+
+---
+
+## m
+
+Controls:
+
+```text
+How many neighbors are stored
+```
+
+---
+
+## ef_construction
+
+Controls:
+
+```text
+How hard we search for those neighbors
+```
+
+---
+
+Analogy:
+
+### m
+
+```text
+How many friends you keep
+```
+
+---
+
+### ef_construction
+
+```text
+How many people you interview before choosing friends
+```
+
+---
+
+Example:
+
+```text
+m = 16
+ef_construction = 200
+```
+
+means:
+
+```text
+Interview 200 people
+Choose best 16 friends
+```
+
+Very high-quality graph.
+
+---
+
+# One-Sentence Mental Model
+
+`ef_construction` is the **thoroughness of the neighbor search performed while building the HNSW graph**. Higher values make index creation slower and use more resources, but they produce a better-connected graph, which leads to higher recall and better search quality later.

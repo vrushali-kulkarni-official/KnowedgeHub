@@ -1,0 +1,1072 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>The Long War for Secrets — A 3,000-Year Story of Cryptography</title>
+<style>
+  /* ---------- Theme ---------- */
+  :root{
+    --bg:#0a0d14;
+    --bg-2:#0f1421;
+    --ink:#e8e6df;
+    --ink-dim:#9a978c;
+    --ink-soft:#6b6960;
+    --gold:#d4a84a;
+    --gold-bright:#f3c969;
+    --crimson:#b03a3a;
+    --crimson-bright:#e05656;
+    --emerald:#4ea66c;
+    --emerald-bright:#6dd590;
+    --azure:#5a8fd4;
+    --violet:#9d6dd4;
+    --line:rgba(212,168,74,0.18);
+    --card:rgba(255,255,255,0.025);
+    --card-hi:rgba(255,255,255,0.05);
+    --serif:"EB Garamond","Cormorant Garamond",Georgia,"Times New Roman",serif;
+    --sans:"Inter","Helvetica Neue",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    --mono:"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:18px;line-height:1.7;-webkit-font-smoothing:antialiased}
+  a{color:var(--gold-bright);text-decoration:none;border-bottom:1px dotted var(--line)}
+  a:hover{color:var(--crimson-bright)}
+  ::selection{background:var(--gold);color:#000}
+
+  /* ---------- Layout ---------- */
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+  section{padding:96px 0;border-top:1px solid var(--line)}
+  section:first-of-type{border-top:0}
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:500;letter-spacing:-0.01em;line-height:1.15;margin:0 0 .5em}
+  h2{font-size:clamp(32px,4.6vw,56px);color:var(--gold)}
+  h3{font-size:clamp(22px,2.6vw,30px);color:var(--ink);margin-top:1.4em}
+  h4{font-size:18px;color:var(--gold-bright);text-transform:uppercase;letter-spacing:.18em;font-family:var(--sans);font-weight:600;margin:1.4em 0 .4em}
+  p{margin:0 0 1em;color:#d6d3c8}
+  em{color:var(--ink);font-style:italic}
+  strong{color:var(--gold-bright);font-weight:600}
+  code,.mono{font-family:var(--mono);font-size:.92em;color:var(--gold-bright);background:rgba(212,168,74,0.08);padding:2px 6px;border-radius:4px}
+
+  /* ---------- Cover ---------- */
+  .cover{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;overflow:hidden;border-top:0;padding:0}
+  .cover::before{
+    content:"";position:absolute;inset:0;background:
+      radial-gradient(ellipse at 50% 30%, rgba(212,168,74,0.10), transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(176,58,58,0.08), transparent 60%),
+      radial-gradient(ellipse at 10% 90%, rgba(90,143,212,0.07), transparent 60%);
+    pointer-events:none;
+  }
+  .cover .meta{font-family:var(--sans);font-size:11px;letter-spacing:.4em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:32px;position:relative}
+  .cover h1{font-size:clamp(48px,8vw,116px);font-weight:400;line-height:1;margin:0 0 16px;position:relative;background:linear-gradient(180deg, var(--gold-bright) 0%, var(--gold) 50%, #6b4f1c 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .cover .sub{font-style:italic;font-size:clamp(18px,2.2vw,24px);color:var(--ink-dim);max-width:680px;margin:24px auto 0;position:relative}
+  .cover .scroll{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);font-family:var(--sans);font-size:10px;letter-spacing:.4em;color:var(--ink-soft);text-transform:uppercase}
+  .cover .scroll::after{content:"";display:block;width:1px;height:36px;background:linear-gradient(180deg,var(--gold),transparent);margin:14px auto 0;animation:pulse 2.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+  .sigil{position:absolute;width:540px;height:540px;border:1px solid var(--line);border-radius:50%;opacity:.4;animation:spin 80s linear infinite}
+  .sigil::before,.sigil::after{content:"";position:absolute;inset:60px;border:1px dashed var(--line);border-radius:50%}
+  .sigil::after{inset:130px;border-style:solid;border-color:rgba(212,168,74,0.10)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ---------- Timeline ---------- */
+  .timeline{position:relative;padding:60px 0 80px;overflow-x:auto}
+  .tl-track{display:flex;gap:0;min-width:max-content;align-items:flex-start;padding:0 40px}
+  .tl-era{flex:0 0 220px;padding:0 18px;position:relative}
+  .tl-era .dot{width:14px;height:14px;border-radius:50%;background:var(--gold);margin:0 auto 18px;box-shadow:0 0 0 6px rgba(212,168,74,0.15);position:relative;z-index:2}
+  .tl-era .year{font-family:var(--sans);font-size:10px;letter-spacing:.3em;color:var(--ink-soft);text-transform:uppercase;text-align:center;margin-bottom:8px}
+  .tl-era .name{font-family:var(--serif);font-size:18px;color:var(--ink);text-align:center;line-height:1.25}
+  .tl-line{position:absolute;left:40px;right:40px;top:7px;height:1px;background:linear-gradient(90deg,transparent,var(--line) 6%,var(--line) 94%,transparent)}
+  .tl-scroll{font-family:var(--sans);font-size:10px;letter-spacing:.3em;color:var(--ink-soft);text-transform:uppercase;text-align:center;margin-top:14px}
+
+  /* ---------- Era blocks ---------- */
+  .era-head{display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:end;margin-bottom:36px;padding-bottom:28px;border-bottom:1px solid var(--line)}
+  .era-num{font-family:var(--serif);font-size:clamp(80px,12vw,160px);line-height:.85;color:rgba(212,168,74,0.18);font-weight:400}
+  .era-title h2{margin:0}
+  .era-title .when{font-family:var(--sans);font-size:11px;letter-spacing:.4em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:14px}
+  .era-title .who{font-style:italic;color:var(--ink-dim);font-size:18px;margin-top:6px}
+
+  .story{font-size:20px;line-height:1.85;color:#dcd9cd;max-width:780px;margin:0 0 32px}
+  .story::first-letter{font-size:3.2em;float:left;line-height:.85;padding:6px 12px 0 0;color:var(--gold);font-weight:500}
+
+  .grid2{display:grid;grid-template-columns:1.2fr 1fr;gap:36px;align-items:start;margin:24px 0}
+  .grid2.flip{direction:rtl}
+  .grid2.flip > *{direction:ltr}
+  @media (max-width:840px){.grid2{grid-template-columns:1fr}}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:24px 26px}
+  .panel.tight{padding:20px 22px}
+  .panel h4{margin-top:0}
+  .panel.problem{border-left:3px solid var(--crimson)}
+  .panel.solves{border-left:3px solid var(--emerald)}
+  .panel.how{border-left:3px solid var(--azure)}
+  .panel .label{font-family:var(--sans);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px;display:block}
+
+  /* ---------- Diagrams ---------- */
+  .diagram{background:rgba(0,0,0,0.35);border:1px solid var(--line);border-radius:6px;padding:24px;margin:20px 0;overflow-x:auto}
+  .diagram .caption{font-family:var(--sans);font-size:10px;letter-spacing:.25em;color:var(--ink-soft);text-transform:uppercase;text-align:center;margin-top:14px}
+
+  /* scytale viz */
+  .scytale{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;padding:10px 0}
+  .scytale .strip{display:grid;grid-template-rows:repeat(5,28px);gap:2px;background:linear-gradient(180deg,#c8a060,#8b6a2e);padding:8px;border-radius:4px;font-family:var(--mono);color:#0a0d14;font-weight:600}
+  .scytale .strip span{display:flex;align-items:center;justify-content:center;width:28px;background:#e8c97a}
+  .scytale .arrow{color:var(--gold);font-size:24px}
+
+  /* Caesar viz */
+  .alphabet{display:grid;grid-template-columns:repeat(13,1fr);gap:4px;font-family:var(--mono);font-size:13px;max-width:560px;margin:8px auto}
+  .alphabet span{padding:8px 4px;text-align:center;border:1px solid var(--line);border-radius:3px}
+  .alphabet span.plain{color:var(--ink)}
+  .alphabet span.shift{color:#0a0d14;background:var(--gold)}
+
+  /* Vigenere table */
+  .vtable{font-family:var(--mono);font-size:12px;border-collapse:collapse;margin:12px auto;background:#0a0d14}
+  .vtable th,.vtable td{width:26px;height:26px;text-align:center;border:1px solid var(--line);color:var(--ink-dim)}
+  .vtable th{background:rgba(212,168,74,0.12);color:var(--gold)}
+  .vtable td.hi{background:rgba(176,58,58,0.35);color:#fff}
+  .vtable td.k{background:rgba(90,143,212,0.25);color:var(--ink)}
+  .vtable td.p{color:var(--gold-bright);font-weight:600}
+
+  /* Enigma */
+  .enigma{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:20px}
+  .rotor{width:60px;height:60px;border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);color:var(--gold-bright);background:repeating-linear-gradient(45deg,rgba(212,168,74,0.06),rgba(212,168,74,0.06) 4px,transparent 4px,transparent 8px);position:relative;font-size:18px}
+  .rotor::after{content:"";position:absolute;width:6px;height:6px;background:var(--crimson-bright);border-radius:50%;top:4px}
+
+  /* DES/AES block viz */
+  .feistal{display:flex;gap:18px;align-items:center;justify-content:center;padding:18px 0;flex-wrap:wrap}
+  .feistal .box{padding:12px 18px;border:1px solid var(--gold);border-radius:4px;font-family:var(--mono);color:var(--gold-bright);font-size:13px;background:rgba(212,168,74,0.06);min-width:90px;text-align:center}
+  .feistal .op{color:var(--ink-soft);font-family:var(--mono);font-size:20px}
+  .feistal .xor{color:var(--crimson-bright)}
+
+  /* RSA keys viz */
+  .rsa-keys{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:14px 0}
+  .key-card{padding:18px;border-radius:6px;border:1px solid var(--line)}
+  .key-card.pub{border-left:3px solid var(--emerald)}
+  .key-card.priv{border-left:3px solid var(--crimson)}
+  .key-card .k{font-family:var(--sans);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  .key-card .v{font-family:var(--mono);font-size:13px;color:var(--ink);word-break:break-all;line-height:1.5}
+
+  /* hash flow */
+  .hash-flow{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;padding:18px 0}
+  .hash-flow .ib{padding:10px 14px;border:1px solid var(--azure);border-radius:4px;font-family:var(--mono);color:var(--ink);font-size:12px;background:rgba(90,143,212,0.05);max-width:200px;text-align:center;word-break:break-all}
+  .hash-flow .mix{padding:10px 14px;border:1px dashed var(--gold);border-radius:4px;font-family:var(--mono);color:var(--gold-bright);font-size:11px;background:rgba(212,168,74,0.05);min-width:64px;text-align:center}
+  .hash-flow .out{padding:10px 14px;border:1px solid var(--emerald);border-radius:4px;font-family:var(--mono);color:var(--emerald-bright);font-size:11px;background:rgba(78,166,108,0.05);word-break:break-all;max-width:240px;text-align:center}
+
+  /* frequency bar */
+  .freq{display:grid;grid-template-columns:repeat(13,1fr);gap:6px;margin:14px 0;font-family:var(--mono);font-size:11px}
+  .freq .bar{position:relative;height:90px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+  .freq .bar .h{width:100%;background:linear-gradient(180deg,var(--gold-bright),var(--gold));border-radius:2px 2px 0 0}
+  .freq .bar .c{color:var(--ink-dim);margin-top:4px}
+
+  /* ---------- Table ---------- */
+  .ctable{width:100%;border-collapse:collapse;font-size:14px;margin:20px 0}
+  .ctable th{font-family:var(--sans);text-align:left;padding:12px 10px;border-bottom:2px solid var(--gold);color:var(--gold);font-size:11px;letter-spacing:.15em;text-transform:uppercase;background:rgba(212,168,74,0.04)}
+  .ctable td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  .ctable tr:hover td{background:rgba(212,168,74,0.03)}
+  .ctable td .era{color:var(--gold-bright);font-weight:600;font-family:var(--serif);font-size:15px}
+  .ctable td code{font-size:12px}
+
+  /* ---------- Interactive Enigma ---------- */
+  .enigma-sim{background:#0a0d14;border:1px solid var(--line);border-radius:6px;padding:22px;margin:20px 0}
+  .enigma-sim .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .enigma-sim label{font-family:var(--sans);font-size:10px;letter-spacing:.25em;color:var(--ink-soft);text-transform:uppercase;margin-right:8px}
+  .enigma-sim input,.enigma-sim button{font-family:var(--mono);font-size:14px;padding:8px 12px;background:#0f1421;color:var(--ink);border:1px solid var(--line);border-radius:4px}
+  .enigma-sim input{flex:1;min-width:200px}
+  .enigma-sim button{background:var(--gold);color:#0a0d14;border-color:var(--gold);cursor:pointer;font-weight:600;letter-spacing:.05em}
+  .enigma-sim button:hover{background:var(--gold-bright)}
+  .enigma-sim .out{font-family:var(--mono);font-size:14px;padding:14px;background:#000;color:var(--gold-bright);border-radius:4px;letter-spacing:.1em;min-height:1.6em;word-break:break-all}
+
+  /* ---------- Callouts ---------- */
+  .quote{border-left:3px solid var(--gold);padding:18px 24px;margin:28px 0;background:rgba(212,168,74,0.04);font-style:italic;color:var(--ink);font-size:19px}
+  .quote .by{display:block;margin-top:8px;font-style:normal;font-family:var(--sans);font-size:11px;letter-spacing:.25em;color:var(--ink-soft);text-transform:uppercase}
+
+  .pill{display:inline-block;padding:3px 10px;border:1px solid var(--line);border-radius:20px;font-family:var(--sans);font-size:10px;letter-spacing:.2em;color:var(--ink-dim);text-transform:uppercase;margin-right:6px;margin-bottom:6px}
+  .pill.bad{color:var(--crimson-bright);border-color:rgba(176,58,58,0.4)}
+  .pill.good{color:var(--emerald-bright);border-color:rgba(78,166,108,0.4)}
+  .pill.tech{color:var(--azure);border-color:rgba(90,143,212,0.4)}
+
+  /* ---------- TOC ---------- */
+  .toc{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:24px 0}
+  .toc a{display:block;padding:10px 12px;border:1px solid var(--line);border-radius:4px;color:var(--ink);font-family:var(--sans);font-size:12px;letter-spacing:.05em;background:var(--card);border-bottom:1px solid var(--line)}
+  .toc a:hover{background:var(--card-hi);color:var(--gold-bright);border-color:var(--gold)}
+  .toc a .n{color:var(--gold);font-family:var(--serif);font-size:18px;display:block;margin-bottom:2px}
+  @media (max-width:840px){.toc{grid-template-columns:repeat(2,1fr)}}
+
+  /* ---------- footer ---------- */
+  footer{padding:80px 0 60px;text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.3em;color:var(--ink-soft);text-transform:uppercase;border-top:1px solid var(--line);margin-top:80px}
+
+  /* ---------- smooth fade-in ---------- */
+  .fade{opacity:0;transform:translateY(20px);transition:opacity .9s ease,transform .9s ease}
+  .fade.in{opacity:1;transform:none}
+
+</style>
+</head>
+<body>
+
+<!-- ========================== COVER ========================== -->
+<section class="cover">
+  <div class="sigil"></div>
+  <div class="wrap">
+    <div class="meta">A story 3,000 years in the making</div>
+    <h1>The Long War for Secrets</h1>
+    <p class="sub">From a leather strap in ancient Sparta to the post-quantum lattice schemes safeguarding your HTTPS connection — a complete, honest history of cryptography, told as one long, unbroken argument between code makers and code breakers.</p>
+  </div>
+  <div class="scroll">Scroll to begin</div>
+</section>
+
+<!-- ========================== TIMELINE ========================== -->
+<section>
+  <div class="wrap">
+    <h4>How to read this</h4>
+    <p style="max-width:760px">Every era below is the same five-beat pattern. <strong>The previous method had a flaw</strong> → <strong>someone discovered a way to break it</strong> → <strong>an inventor built something new</strong> → <strong>here is how it works</strong> → <strong>and here's what will eventually break it too</strong>. Cryptography is an arms race. The story has no final chapter.</p>
+
+    <div class="timeline">
+      <div class="tl-line"></div>
+      <div class="tl-track">
+        <div class="tl-era"><div class="dot"></div><div class="year">~700 BC</div><div class="name">Scytale</div></div>
+        <div class="tl-era"><div class="dot"></div><div class="year">~50 BC</div><div class="name">Caesar Cipher</div></div>
+        <div class="tl-era"><div class="dot"></div><div class="year">~850 AD</div><div class="name">Frequency Analysis</div></div>
+        <div class="tl-era"><div class="dot"></div><div class="year">1467</div><div class="name">Polyalphabetic</div></div>
+        <div class="tl-era"><div class="dot"></div><div class="year">1917</div><div class="name">One-Time Pad</div></div>
+        <div class="tl-era"><div class="dot"></div><div class="year">1920s</div><div class="name">Enigma</div></div>
+        <div class="tl-era"><div class="dot"></div><div class="year">1975</div><div class="name">DES</div></div>
+        <div class="tl-era"><div class="dot"></div><div class="year">1976–77</div><div class="name">Diffie-Hellman, RSA</div></div>
+        <div class="tl-era"><div class="dot"></div><div class="year">1991</div><div class="name">PGP, MD5, SHA</div></div>
+        <div class="tl-era"><div class="dot"></div><div class="year">2001</div><div class="name">AES, SHA-2</div></div>
+        <div class="tl-era"><div class="dot"></div><div class="year">2010s</div><div class="name">Signal, TLS 1.3</div></div>
+        <div class="tl-era"><div class="dot"></div><div class="year">2024</div><div class="name">Post-Quantum</div></div>
+      </div>
+      <div class="tl-scroll">← scroll horizontally to see all 12 eras →</div>
+    </div>
+
+    <h4>Table of contents</h4>
+    <div class="toc">
+      <a href="#e1"><span class="n">01</span>The Spartans & the First Whisper</a>
+      <a href="#e2"><span class="n">02</span>Caesar & the Shift</a>
+      <a href="#e3"><span class="n">03</span>Al-Kindi Breaks the Silence</a>
+      <a href="#e4"><span class="n">04</span>Alberti, Vigenère & the Long Calm</a>
+      <a href="#e5"><span class="n">05</span>Black Chambers & the Return of Frequency</a>
+      <a href="#e6"><span class="n">06</span>One-Time Pad & the Mechanical Storm</a>
+      <a href="#e7"><span class="n">07</span>DES, AES & the Block Cipher</a>
+      <a href="#e8"><span class="n">08</span>Public-Key & the Impossible Key Exchange</a>
+      <a href="#e9"><span class="n">09</span>Hashing & the Fingerprint</a>
+      <a href="#e10"><span class="n">10</span>The Real World: TLS, SSH, Signal</a>
+      <a href="#e11"><span class="n">11</span>Passwords Done Right</a>
+      <a href="#e12"><span class="n">12</span>The Quantum Cliff & What Comes After</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== ERA 1 ========================== -->
+<section id="e1">
+  <div class="wrap fade">
+    <div class="era-head">
+      <div class="era-num">01</div>
+      <div class="era-title">
+        <div class="when">Ancient Sparta · c. 700 BC</div>
+        <h2>The First Whisper</h2>
+        <div class="who">Used by Spartan generals; reinvented in countless forms across Persia, Greece, India.</div>
+      </div>
+    </div>
+
+    <p class="story">A Spartan general needs to send an order across enemy territory without a messenger being able to read it if he is captured. He takes a wooden rod of a particular diameter, wraps a long, narrow strip of leather around it in a tight spiral, and writes his message across the coil — left to right, top to bottom, one letter on each wrap. He unwraps the strip. The letters, now scattered along a strip of meaningless-looking leather, are handed to a runner. The runner sprints, is caught, is searched, is tortured — and reveals nothing, because the strip is just a string of random-looking characters. The receiver, who owns a rod of <em>the same diameter</em>, re-wraps it and reads the message. The first cipher in recorded history was mechanical, not mathematical. It was a <strong>transposition cipher</strong>: nothing was substituted, the letters were simply rearranged by the geometry of the wrap.</p>
+
+    <div class="grid2">
+      <div class="panel problem">
+        <span class="label">The problem it solved</span>
+        <h4>Couriers get captured</h4>
+        <p>Plain messages on paper, parchment, or clay can be read by anyone who holds them. Armies, tax collectors, lovers, and conspirators all needed a way to send a written message that a third party — even a literate, motivated one — could not read.</p>
+      </div>
+      <div class="panel how">
+        <span class="label">How it works</span>
+        <h4>Geometry is the key</h4>
+        <p>The strip is a long, single-row tape. The rod wraps it into N parallel rows. Write horizontally and you get N rows of plaintext; unwrap and the letters scatter into one long ribbon in a different order. To recover, the receiver needs a rod of the right diameter so the number of rows matches.</p>
+        <div class="diagram">
+          <div class="scytale">
+            <div class="strip" id="sc1">
+              <span>A</span><span>T</span><span>T</span><span>A</span><span>C</span>
+              <span>K</span><span>A</span><span>T</span><span>D</span><span>A</span>
+              <span>W</span><span>N</span><span>!</span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="arrow">→</div>
+            <div class="strip" style="grid-template-rows:repeat(1,28px);background:transparent">
+              <span style="background:transparent;color:var(--ink);font-family:var(--mono);width:auto;padding:0 14px">A&nbsp;K&nbsp;W&nbsp;A&nbsp;T&nbsp;A&nbsp;N&nbsp;T&nbsp;!&nbsp;A&nbsp;T&nbsp;T&nbsp;A&nbsp;C&nbsp;K&nbsp;D&nbsp;A&nbsp;W&nbsp;N</span>
+            </div>
+          </div>
+          <div class="caption">Same letters, different order. The rod's diameter is the secret key.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel solves" style="margin-top:24px">
+      <span class="label">The flaw that would eventually kill it</span>
+      <p>Once a codebreaker <em>guesses the diameter</em> (he just tries rods), the message falls. The real fatal flaw is more subtle: the letters of the plaintext remain in the ciphertext. A clever analyst can recover the message by guessing the number of rows and unscrambling. The scytale taught cryptography its first lesson — <strong>obscure-by-shape is not the same as obscure-by-math</strong>.</p>
+    </div>
+
+    <p class="story" style="margin-top:30px">Around the same time, Hebrew scribes used a different idea: the <strong>Atbash</strong>, in which the first letter of the alphabet maps to the last, the second to the second-to-last, and so on. It is a <em>substitution cipher</em>: letters are replaced with other letters, unlike the scytale, which merely permutes them. Atbash is the ancestor of an idea that will dominate cryptography for two thousand years — until a bored Arab librarian in 9th-century Baghdad finds a way to break any cipher of this kind, simply by counting.</p>
+  </div>
+</section>
+
+<!-- ========================== ERA 2 ========================== -->
+<section id="e2">
+  <div class="wrap fade">
+    <div class="era-head">
+      <div class="era-num">02</div>
+      <div class="era-title">
+        <div class="when">Roman Republic · c. 50 BC</div>
+        <h2>Caesar & the Shift</h2>
+        <div class="who">Julius Caesar, described by Suetonius in <em>De Vita Caesarum</em>.</div>
+      </div>
+    </div>
+
+    <p class="story">Julius Caesar writes letters to Cicero and to his generals. He does not trust the couriers. So he takes every letter of his message and shifts it three places down the Latin alphabet. <em>A</em> becomes <em>D</em>, <em>B</em> becomes <em>E</em>, and <em>X</em> wraps around to <em>A</em>. The recipient shifts back. The order is fixed. The key — "three" — is shared out of band, before the war, in person, in a tent. It is the most famous cipher ever invented, and for several centuries it worked, because almost no one in the Mediterranean world outside a small literate elite could read at all, let alone analyze letter patterns.</p>
+
+    <div class="grid2">
+      <div class="panel how">
+        <span class="label">How it works</span>
+        <h4>Add a constant modulo the alphabet</h4>
+        <p>For each plaintext letter at position <code>p</code>, ciphertext is <code>c = (p + k) mod 26</code>. Decrypt: <code>p = (c − k) mod 26</code>. The <em>Caesar cipher</em> is a <strong>monoalphabetic substitution</strong>: every letter is replaced by exactly one other letter, determined by a single shared key <code>k</code>.</p>
+        <div class="diagram">
+          <div class="alphabet">
+            <span class="plain">A</span><span class="plain">B</span><span class="plain">C</span><span class="plain">D</span><span class="plain">E</span><span class="plain">F</span><span class="plain">G</span><span class="plain">H</span><span class="plain">I</span><span class="plain">J</span><span class="plain">K</span><span class="plain">L</span><span class="plain">M</span>
+            <span class="shift">D</span><span class="shift">E</span><span class="shift">F</span><span class="shift">G</span><span class="shift">H</span><span class="shift">I</span><span class="shift">J</span><span class="shift">K</span><span class="shift">L</span><span class="shift">M</span><span class="shift">N</span><span class="shift">O</span><span class="shift">P</span>
+          </div>
+          <div class="caption">Caesar's key: k = 3. Plaintext "ATTACK AT DAWN" → "DWWDFN DW GDZQ".</div>
+        </div>
+      </div>
+      <div class="panel problem">
+        <span class="label">The flaw that would eventually kill it</span>
+        <h4>Only 25 possible keys</h4>
+        <p>The Caesar cipher has exactly 25 usable keys (you cannot shift by 0 or 26). A determined attacker can try them all by hand in a few minutes. Worse, even without trying keys, the substitution table is rigid: every <em>E</em> in the plaintext becomes the same letter in the ciphertext. This is the property that a 9th-century scholar will learn to exploit — and when he does, two thousand years of monoalphabetic ciphers collapse at once.</p>
+      </div>
+    </div>
+
+    <p class="story" style="margin-top:30px">The Caesar cipher is small, but it teaches three lessons that will echo forever. <strong>One</strong>: a key is necessary — without a shared secret, the cipher is worthless. <strong>Two</strong>: a small key space is death — if you can enumerate all keys, the enemy can too. <strong>Three</strong>: structure in the plaintext bleeds through to the ciphertext. Every weakness the Romans had, the Arabs would see.</p>
+  </div>
+</section>
+
+<!-- ========================== ERA 3 ========================== -->
+<section id="e3">
+  <div class="wrap fade">
+    <div class="era-head">
+      <div class="era-num">03</div>
+      <div class="era-title">
+        <div class="when">Abbasid Baghdad · c. 850 AD</div>
+        <h2>Al-Kindi Breaks the Silence</h2>
+        <div class="who">Abū Yūsuf Yaʻqūb ibn Isḥāq al-Kindī, philosopher, mathematician, polymath of the House of Wisdom.</div>
+      </div>
+    </div>
+
+    <p class="story">In the House of Wisdom, the great library of Baghdad, al-Kindī is studying the Quran. He is not a codebreaker by trade. But he notices something almost embarrassing in its simplicity: in any long Arabic text, certain letters appear far more often than others. <em>Alif</em> dominates. <em>Yāʾ</em> is rare. He realizes this fact is not a curiosity of holy text — it is a property of <em>every</em> language. And if a cipher maps each plaintext letter to one fixed ciphertext letter, then the pattern of frequencies in the ciphertext must, with very few exceptions, mirror the frequencies of the original language. You do not need to know the key. You just count, and then you match the most common ciphertext symbol to the most common letter of the language. He writes the technique down in <em>A Manuscript on Deciphering Cryptographic Messages</em> — the birth of <strong>cryptanalysis</strong> as a discipline.</p>
+
+    <div class="grid2">
+      <div class="panel problem">
+        <span class="label">What it broke</span>
+        <h4>Every monoalphabetic substitution, forever</h4>
+        <p>The Caesar cipher, Atbash, the dozen random-substitution alphabets that medieval courts had used, the cryptograms of the early Renaissance — all were vulnerable to a single mathematical insight. Any cipher that maps each plaintext letter to a fixed ciphertext letter leaks information through the <em>shape</em> of the text, regardless of how cleverly the alphabet is shuffled.</p>
+        <div class="diagram">
+          <div class="freq" aria-label="English letter frequency">
+            <div class="bar"><div class="h" style="height:100%"></div><div class="c">e</div></div>
+            <div class="bar"><div class="h" style="height:62%"></div><div class="c">t</div></div>
+            <div class="bar"><div class="h" style="height:55%"></div><div class="c">a</div></div>
+            <div class="bar"><div class="h" style="height:53%"></div><div class="c">o</div></div>
+            <div class="bar"><div class="h" style="height:49%"></div><div class="c">i</div></div>
+            <div class="bar"><div class="h" style="height:46%"></div><div class="c">n</div></div>
+            <div class="bar"><div class="h" style="height:44%"></div><div class="c">s</div></div>
+            <div class="bar"><div class="h" style="height:43%"></div><div class="c">h</div></div>
+            <div class="bar"><div class="h" style="height:42%"></div><div class="c">r</div></div>
+            <div class="bar"><div class="h" style="height:31%"></div><div class="c">d</div></div>
+            <div class="bar"><div class="h" style="height:30%"></div><div class="c">l</div></div>
+            <div class="bar"><div class="h" style="height:30%"></div><div class="c">c</div></div>
+            <div class="bar"><div class="h" style="height:25%"></div><div class="c">u</div></div>
+          </div>
+          <div class="caption">English letter frequencies — the tell-tale signature frequency analysis exploits.</div>
+        </div>
+      </div>
+      <div class="panel solves">
+        <span class="label">The lesson for cipher designers</span>
+        <h4>If a pattern exists in the plaintext, hide it</h4>
+        <p>Al-Kindi's paper forces every cipher maker to ask one question: <em>does the ciphertext look like the plaintext in any statistical way?</em> If the answer is yes, count and break. The whole rest of the story is an attempt to make the answer <strong>no</strong> — by using more alphabets, by using longer keys, by using math that scrambles the bits, until eventually we reach ciphers where every byte of output depends on the key in such a tangled way that no amount of counting reveals anything.</p>
+      </div>
+    </div>
+
+    <p class="story" style="margin-top:30px">For a long moment, the codebreakers have won. There is no good monoalphabetic cipher left in the world. The code makers need a new idea. It will take six hundred years, and it will come from an Italian architect who likes puzzles.</p>
+  </div>
+</section>
+
+<!-- ========================== ERA 4 ========================== -->
+<section id="e4">
+  <div class="wrap fade">
+    <div class="era-head">
+      <div class="era-num">04</div>
+      <div class="era-title">
+        <div class="when">Renaissance Italy · 1467 / 1553</div>
+        <h2>Alberti, Vigenère & the Long Calm</h2>
+        <div class="who">Leon Battista Alberti (1467, the idea); Giovan Battista Bellaso (1553, the practical cipher, misattributed to Vigenère); later formally analyzed by Charles Babbage (1854) and Friedrich Kasiski (1863).</div>
+      </div>
+    </div>
+
+    <p class="story">Leon Battista Alberti, a Renaissance architect of the facade of Santa Maria Novella, publishes a short treatise called <em>De componendis cifris</em>. In it, he describes a physical disk: two concentric copper circles, the outer engraved with the plaintext alphabet, the inner with a shifted alphabet, the whole rotating on a pin. To encode a letter, you find the plaintext on the outer ring, look across to the inner ring, and write down whatever the inner ring shows. Then — and this is the new idea — <em>you rotate the inner ring</em>, and the substitution for the next letter is different. You can change the alphabet at will, mid-message, on a key agreed in advance. A simple Caesar cipher, but the alphabet is never the same twice in a row.</p>
+
+    <p class="story" style="margin-top:0">Eighty-six years later, a young Italian named Giovan Battista Bellaso refines Alberti's disk into a practical scheme. Take a keyword — say, <code>LEMON</code>. Repeat it across the top of your message. The first letter of the message is shifted by <code>L</code>, the second by <code>E</code>, the third by <code>M</code>, and so on, cycling through the keyword. The same plaintext letter, in the same message, now maps to different ciphertext letters depending on where it falls in the key cycle. Frequency analysis, al-Kindi's great weapon, sees a flattened distribution. For the next three hundred years, this cipher — published under the wrong name as the <strong>Vigenère cipher</strong> — is called <em>le chiffre indéchiffrable</em>: the indecipherable cipher.</p>
+
+    <div class="grid2">
+      <div class="panel how">
+        <span class="label">How it works</span>
+        <h4>A different shift for every position</h4>
+        <p>Encrypt: <code>cᵢ = (pᵢ + k[i mod m]) mod 26</code> where <code>m</code> is the key length. For the key <code>LEMON</code> over <code>ATTACKATDAWN</code>:</p>
+        <div class="diagram">
+          <table class="vtable">
+            <tr><th></th><th>A</th><th>T</th><th>T</th><th>A</th><th>C</th><th>K</th><th>A</th><th>T</th><th>D</th><th>A</th><th>W</th><th>N</th></tr>
+            <tr><th>key</th><td class="k">L</td><td class="k">E</td><td class="k">M</td><td class="k">O</td><td class="k">N</td><td class="k">L</td><td class="k">E</td><td class="k">M</td><td class="k">O</td><td class="k">N</td><td class="k">L</td><td class="k">E</td></tr>
+            <tr><th>shift</th><td>11</td><td>4</td><td>12</td><td>14</td><td>13</td><td>11</td><td>4</td><td>12</td><td>14</td><td>13</td><td>11</td><td>4</td></tr>
+            <tr><th>cipher</th><td class="p">L</td><td class="p">X</td><td class="p">F</td><td class="p">O</td><td class="p">P</td><td class="p">V</td><td class="p">E</td><td class="p">F</td><td class="p">R</td><td class="p">N</td><td class="p">H</td><td class="p">R</td></tr>
+          </table>
+          <div class="caption">Two T's, one at position 1, one at position 7. Different keys → different ciphertext: T→X, T→F.</div>
+        </div>
+      </div>
+      <div class="panel problem">
+        <span class="label">The flaw that would eventually kill it</span>
+        <h4>The key is short and it repeats</h4>
+        <p>The keyword is shorter than the message, so it cycles. A 5-letter keyword means every 5th letter is shifted by the same amount. A codebreaker just has to find the cycle length — by spotting repeated bigrams in the ciphertext, which is what Babbage in 1854 and Kasiski in 1863 independently figured out. Once you know the key length, you split the ciphertext into that many Caesar ciphers and frequency-analysis each one. <em>Le chiffre indéchiffrable</em> lasted about 300 years in practice, then fell in a single afternoon's math.</p>
+      </div>
+    </div>
+
+    <div class="quote">"A cipher is breakable if its key is shorter than its message." <span class="by">— the implicit lesson of every era so far</span></div>
+
+    <p class="story" style="margin-top:30px">The natural next idea, taken seriously around 1917 by an AT&amp;T engineer named Gilbert Vernam and an Army captain named Joseph Mauborgne, is to make the key <em>as long as the message</em>, and <em>never repeat it</em>. If the key is truly random, as long as the message, and used only once, the cipher is — provably, mathematically — unbreakable. It is called the <strong>one-time pad</strong>, and it is the only cipher in history that is perfectly secure. It is also, for the same reason, almost impossible to use in practice. We will return to it.</p>
+  </div>
+</section>
+
+<!-- ========================== ERA 5 ========================== -->
+<section id="e5">
+  <div class="wrap fade">
+    <div class="era-head">
+      <div class="era-num">05</div>
+      <div class="era-title">
+        <div class="when">Europe · 16th–19th century</div>
+        <h2>Black Chambers & the Return of Frequency</h2>
+        <div class="who">The Habsburg <em>Geheime Kabinetts-Kanzlei</em>; the French <em>Cabinet Noir</em>; the British Room 40; Babbage, Kasiski, and a small army of national cryptanalysts.</div>
+      </div>
+    </div>
+
+    <p class="story">While the cipher makers strut, the cipher breakers build institutions. Every major European power in the 16th, 17th, and 18th centuries runs a <em>black chamber</em> — a state office whose entire job is to open other people's mail, copy the ciphertext, seal it back up, and crack it overnight. The French Cabinet Noir systematically reads the correspondence of the Habsburgs. The Habsburgs systematically read the correspondence of the French. Both sides keep inventing new ciphers. Both sides keep getting cracked. By 1860, cryptanalysis is a professional, salaried, state-funded discipline, and the Vigenère cipher — the supposedly perfect one — is the daily bread of every black chamber in Europe.</p>
+
+    <p class="story" style="margin-top:0">In 1854, Charles Babbage, the irascible Englishman who almost invented the computer, works out how to break Vigenère. He does not publish. In 1863, Friedrich Kasiski, a retired Prussian infantry officer, publishes the same idea in a thin book, <em>Die Geheimschriften und die Dechiffrir-Kunst</em>. The method is now called the <strong>Kasiski examination</strong>: look for repeated sequences in the ciphertext, measure the distances between them, take the greatest common divisor of those distances, and that is almost certainly the key length. From then on, the Vigenère family of ciphers is finished for serious use.</p>
+
+    <h3>The real lesson of this era</h3>
+    <p>Frequency analysis works against <em>any</em> cipher that has a repeating structure. Polyalphabetic substitution defeats it only as long as the key is long enough that the cycle does not become visible. The "long calm" from 1553 to 1854 was a 300-year illusion. Code makers who rely on obscurity of method, rather than obscurity of key, will lose.</p>
+
+    <p class="story" style="margin-top:30px">And so the next move is mechanical. The 19th century closes with the invention of the telegraph and the first purpose-built cipher machines. The 20th century will weaponize the lesson: if pencil-and-paper is too slow to make a key long enough to defeat analysis, build a machine that produces a key so long and so tangled that no human can ever pick it apart.</p>
+  </div>
+</section>
+
+<!-- ========================== ERA 6 ========================== -->
+<section id="e6">
+  <div class="wrap fade">
+    <div class="era-head">
+      <div class="era-num">06</div>
+      <div class="era-title">
+        <div class="when">1917 → 1940s</div>
+        <h2>One-Time Pad & the Mechanical Storm</h2>
+        <div class="who">Gilbert Vernam (AT&amp;T, 1917) and Joseph Mauborgne (U.S. Army) for OTP; Arthur Scherbius for the Enigma; Marian Rejewski, Jerzy Różycki, and Alan Turing for the breaking of it.</div>
+      </div>
+    </div>
+
+    <p class="story">In 1917, two men independently invent the same cipher. Gilbert Vernam, an engineer at AT&amp;T, proposes a system in which a teleprinter message is XORed character-by-character with a key tape. Joseph Mauborgne, a U.S. Army captain, realizes the same scheme and adds the rule that breaks everything else: the key tape must be <em>truly random</em>, <em>as long as the message</em>, and <em>never reused</em>. This is the <strong>one-time pad (OTP)</strong>. Claude Shannon will later prove, in 1949, that the OTP is information-theoretically secure: even an attacker with infinite compute cannot distinguish a real OTP ciphertext from random noise, because the ciphertext carries literally zero information about the message. It is the only perfectly secret cipher in existence.</p>
+
+    <p class="story" style="margin-top:0">It is also, in practice, a logistical nightmare. You and your recipient must somehow share a key as long as every message you will ever send, in advance, over a secure channel. For a spy in 1943, this means a tiny book of random numbers, memorized page by page, that must last a lifetime. The moment you reuse a key — and every spy agency on earth has, at some point, out of laziness or shortage — the cipher is broken. Soviet intelligence famously reused OTP keys in the 1940s and 1950s. American cryptanalysts, in a project called <em>VENONA</em>, exploited the reuse to read Moscow's cables for years. The moral: the one-time pad is mathematically perfect and operationally treacherous. Most modern systems use it only in narrow, high-assurance settings (diplomatic hotlines, certain military links) and use math instead of physical pads everywhere else.</p>
+
+    <div class="grid2">
+      <div class="panel how">
+        <span class="label">How OTP works</span>
+        <h4>XOR with a random pad</h4>
+        <p>Each plaintext bit <code>pᵢ</code> is XORed with a random key bit <code>kᵢ</code> to produce ciphertext <code>cᵢ = pᵢ ⊕ kᵢ</code>. Decryption: <code>pᵢ = cᵢ ⊕ kᵢ</code>. Because every key bit is independent and equiprobable, every plaintext bit is equally likely, and the ciphertext carries no information at all. The price: the key <em>is</em> the message, and you must share it perfectly in advance.</p>
+        <div class="diagram">
+<pre style="font-family:var(--mono);font-size:13px;line-height:1.7;background:#000;color:var(--ink);padding:18px;border-radius:4px;overflow-x:auto">
+plaintext  : 0 1 1 0 0 0 1 1   ("SOS" in 8-bit ASCII, simplified)
+key (rand) : 1 0 1 1 0 1 0 0
+XOR        : 1 1 0 1 0 1 1 1   ← ciphertext
+ciphertext : 1 1 0 1 0 1 1 1
+key again  : 1 0 1 1 0 1 0 0
+XOR again  : 0 1 1 0 0 0 1 1   = original plaintext ✓
+</pre>
+          <div class="caption">XOR with a random, equal-length, never-reused key. Mathematically unbreakable. Practically very hard.</div>
+        </div>
+      </div>
+
+      <div class="panel problem">
+        <span class="label">The practical flaw</span>
+        <h4>Key distribution is the entire problem</h4>
+        <p>To send a 1 GB message securely, you must first securely share 1 GB of key material. If you can do that, you could have just sent the message. OTP is the ceiling of what symmetric cryptography — both sides share a secret — can ever achieve in theory. It is also, for that reason, the reason the next great revolution, <strong>public-key cryptography</strong>, is going to matter so much. Public-key methods exist precisely because OTP's key distribution problem is unbearable in the real world.</p>
+      </div>
+    </div>
+
+    <h3>Enigma, and the breaking of it</h3>
+    <p class="story">While the theorists chase the perfect cipher, the field armies of the world adopt something far more practical: rotor machines. The most famous is the <strong>Enigma</strong>, patented by the German engineer Arthur Scherbius in 1918, deployed by the German military from the late 1920s. An Enigma machine has a keyboard, a lampboard, a plugboard (Steckerbrett) at the front, and three (later four) rotors inside, each of which is a wired substitution that ticks forward like an odometer after every keypress. Pressing <em>A</em> sends current through the plugboard, through the three rotors, hits a reflector, comes back through the rotors in reverse, through the plugboard, and lights up some other letter on the lampboard. Critically, after each keypress, the rightmost rotor advances one position, so the next keypress is encrypted by a <em>different</em> set of substitutions. The total number of possible machine configurations is astronomical — about 10<sup>23</sup> in the wartime four-rotor setup, more than the number of stars in the Milky Way.</p>
+
+    <p class="story" style="margin-top:0">It is, however, not a one-time pad. The rotors are mechanical, the substitution repeats every 26<sup>4</sup> ≈ 460,000 keystrokes, and crucially, <em>a letter can never encrypt to itself</em> — a constraint that turns out to be the very crack the Polish mathematician Marian Rejewski finds in 1932. Working with a small team at the Polish General Staff's Cipher Bureau, Rejewski reverse-engineers the German military Enigma from intercepted ciphertext and a few smuggled photographs. By 1938, the Poles can read much German military traffic. When the Germans add new rotors and a more complex plugboard in 1939, the Poles hand their work to the British and the French. At Bletchley Park, Alan Turing and Gordon Welchman build on it: the <em>bombe</em>, an electromechanical device that chews through Enigma configurations at industrial speed, helped by sloppy operator habits and predictable message openings ("Heil Hitler", weather reports). By 1942, the Allies are reading a substantial fraction of German naval and army traffic. Historians estimate the work at Bletchley Park shortened the war by 2–4 years.</p>
+
+    <div class="grid2 flip">
+      <div class="panel problem">
+        <span class="label">The flaw that killed Enigma</span>
+        <h4>Structure, not key length</h4>
+        <p>Enigma had a 26<sup>4</sup> × huge-plugboard keyspace — far larger than any brute force. The Allies did not brute force it. They exploited <em>structural properties</em>: the no-letter-encrypts-to-itself rule, the regularity of the rotor stepping, and — most painfully for the Germans — the operational mistakes of their own operators. Cryptography is not a math contest; it is a system, and humans are always the weakest part of the system.</p>
+      </div>
+      <div class="panel how">
+        <span class="label">How Enigma works</span>
+        <h4>Rotor, plugboard, reflector, repeat</h4>
+        <p>Each keypress flows: plugboard → rotor 1 (right) → rotor 2 (middle) → rotor 3 (left) → reflector → back through rotor 3 → 2 → 1 → plugboard → lampboard. The right rotor ticks forward one step after every keypress, dragging the middle rotor every 26 steps, dragging the left rotor every 26×26 steps. This means the substitution table changes with every single character typed.</p>
+        <div class="diagram">
+          <div class="enigma">
+            <div class="rotor" title="Plugboard (Steckerbrett)">P</div>
+            <div class="rotor" title="Right rotor">3</div>
+            <div class="rotor" title="Middle rotor">2</div>
+            <div class="rotor" title="Left rotor">1</div>
+            <div class="rotor" style="border-style:dashed" title="Reflector (UKW)">↺</div>
+            <div class="rotor" title="Left rotor">1</div>
+            <div class="rotor" title="Middle rotor">2</div>
+            <div class="rotor" title="Right rotor">3</div>
+            <div class="rotor">P</div>
+          </div>
+          <div class="caption">Schematic of an Enigma signal path. The reflector is what makes Enigma its own inverse — and what causes no letter to encrypt to itself.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="story" style="margin-top:30px">By 1945, both sides have learned the same lesson. Polyalphabetic ciphers are not enough. The key has to be long, the system has to be mathematically analyzable, and the operators have to use it correctly. The next era, the era of the computer, will finally give the cipher makers what they need: ciphers whose security rests on the difficulty of a well-studied math problem, not on the secrecy of a mechanical device.</p>
+  </div>
+</section>
+
+<!-- ========================== ERA 7 ========================== -->
+<section id="e7">
+  <div class="wrap fade">
+    <div class="era-head">
+      <div class="era-num">07</div>
+      <div class="era-title">
+        <div class="when">1973 → 2001</div>
+        <h2>DES, AES & the Block Cipher</h2>
+        <div class="who">Horst Feistel (IBM, 1970s); the U.S. NIST (DES standardization 1977, AES competition 1997–2001); Joan Daemen and Vincent Rijmen (Rijndael → AES, 2001).</div>
+      </div>
+    </div>
+
+    <p class="story">After the war, cryptography is a military secret. The U.S. National Security Agency treats it as classified ordnance. That changes in 1972, when the National Bureau of Standards — now NIST — puts out a public call for a national cipher standard. IBM submits a design based on work by the German-born cryptographer Horst Feistel, refined by Walter Tuchman and others. The result is adopted in 1977 as the <strong>Data Encryption Standard (DES)</strong>, the first civilian, publicly scrutinized, mass-deployed block cipher. For the next twenty years, DES protects bank transactions, government files, and the slow, creaking emergence of the commercial internet.</p>
+
+    <h3>What a block cipher is</h3>
+    <p>A block cipher encrypts a fixed-size chunk of data — say, 64 bits in DES, 128 bits in AES — under a fixed key. It must be a <em>permutation</em>: every possible input maps to a unique output, and decryption is the reverse permutation. The trick is to design a permutation that is so tangled that, without the key, the permutation looks random, while with the key, it is fast to compute forward and backward. DES uses a 56-bit key. AES uses 128, 192, or 256.</p>
+
+    <div class="grid2">
+      <div class="panel how">
+        <span class="label">How DES/AES works · the Feistel pattern</span>
+        <h4>Round, swap, round, swap, round…</h4>
+        <p>Split the block into two halves, L and R. For 16 rounds (DES) or 10–14 rounds (AES): the new right half is the old left half XORed with a <em>round function</em> <code>F</code> applied to the old right half and a subkey derived from the main key. Then swap. After all rounds, swap once more. Because the operation is invertible, you can run it backwards with the same subkeys in reverse order.</p>
+        <div class="diagram">
+          <div class="feistal">
+            <div class="box">L₀</div>
+            <div class="op">→</div>
+            <div class="box">L₁ = R₀</div>
+            <div class="op">→</div>
+            <div class="box">L₂ = R₁</div>
+            <div class="op">→</div>
+            <div class="box">…</div>
+          </div>
+          <div class="feistal" style="margin-top:6px">
+            <div class="box">R₀</div>
+            <div class="op">→</div>
+            <div class="box" style="border-color:var(--crimson)">R₁ = L₀ <span class="xor">⊕</span> F(R₀, k₁)</div>
+            <div class="op">→</div>
+            <div class="box" style="border-color:var(--crimson)">R₂ = L₁ <span class="xor">⊕</span> F(R₁, k₂)</div>
+            <div class="op">→</div>
+            <div class="box">…</div>
+          </div>
+          <div class="caption">Feistel network: each round, the right half is transformed by F and XORed into the left. After 16 rounds, ciphertext = (L₁₆, R₁₆).</div>
+        </div>
+      </div>
+
+      <div class="panel problem">
+        <span class="label">The flaw that killed DES</span>
+        <h4>56 bits is not enough</h4>
+        <p>By the 1990s, a 56-bit key is <em>brute-forceable</em>. The EFF's "Deep Crack" machine, built in 1998 for $250,000, tests 9×10¹⁰ keys per second and finds a DES key in about 56 hours. Distributed internet searches find keys in days. The lesson: a symmetric cipher's security is bounded by its key length times the speed of the attacker's hardware. By 2000, DES is dead for serious use, and NIST runs an open competition to replace it.</p>
+      </div>
+    </div>
+
+    <h3>AES · the Rijndael cipher (2001)</h3>
+    <p class="story">Fifteen submissions are whittled down to five finalists, then to one. The winner is <strong>Rijndael</strong>, designed by two Belgian cryptographers, Joan Daemen and Vincent Rijmen. It is adopted as the <strong>Advanced Encryption Standard (AES)</strong> in 2001. AES operates on 128-bit blocks with 128-, 192-, or 256-bit keys, using 10, 12, or 14 rounds of a substitution–permutation network (not Feistel). Each round: <em>SubBytes</em> (a fixed non-linear S-box), <em>ShiftRows</em> (a permutation), <em>MixColumns</em> (a linear mixing in GF(2⁸)), and <em>AddRoundKey</em> (XOR with the round key). After more than two decades and uncountable cryptanalyses, the best known attack on full AES-128 still requires roughly 2<sup>126</sup> operations — close to brute force. AES is, today, the workhorse of symmetric encryption on the planet. Your TLS connection, your Wi-Fi (via WPA2/WPA3), your disk encryption, your VPN, your SSH session, your Bitcoin wallet's seed storage — almost all of them use AES under the hood.</p>
+
+    <h3>Modes of operation</h3>
+    <p>A block cipher encrypts a single block at a time. To encrypt a long message, you need a <em>mode of operation</em>. Naive modes (ECB) leak patterns. Modern modes (CBC, CTR, GCM) chain blocks together with an initialization vector and, in the case of <strong>GCM</strong> (Galois/Counter Mode), also provide authentication — meaning the receiver can tell whether the ciphertext was tampered with. GCM is what TLS 1.3 actually uses.</p>
+  </div>
+</section>
+
+<!-- ========================== ERA 8 ========================== -->
+<section id="e8">
+  <div class="wrap fade">
+    <div class="era-head">
+      <div class="era-num">08</div>
+      <div class="era-title">
+        <div class="when">1976 – 1985</div>
+        <h2>Public-Key & the Impossible Key Exchange</h2>
+        <div class="who">Whitfield Diffie, Martin Hellman (1976, key exchange); Ralph Merkle (1974, the puzzle); Ron Rivest, Adi Shamir, Leonard Adleman (1977, RSA); Clifford Cocks (1973, GCHQ, classified); Neal Koblitz and Victor Miller (1985, elliptic curves).</div>
+      </div>
+    </div>
+
+    <p class="story">Throughout all of the previous eras, every cipher has the same fatal structural flaw: <strong>both sides must share the same secret key, before any communication can happen</strong>. To send a message to someone, you must first meet them in person, or send a trusted courier, or use some pre-existing secure channel. The more people you want to talk to, the more keys you must distribute, the more chances there are to fail. By 1970, the number of symmetric keys required to connect a network of <em>n</em> people is roughly <em>n</em>² — a million people need a billion keys, and every one of them must be delivered by hand. This is the <strong>key distribution problem</strong>, and it is, in some sense, the original sin of cryptography.</p>
+
+    <p class="story" style="margin-top:0">In 1976, two American cryptographers, Whitfield Diffie and Martin Hellman, propose a radical idea. What if a key is split in two — a <em>public</em> half and a <em>private</em> half? The public half is published in the phone book. The private half never leaves your pocket. Anyone in the world can use your public key to encrypt a message to you, and only you, with your private key, can decrypt it. Mathematically, the two halves are related, but deriving the private half from the public half is computationally infeasible. The paper is called <em>New Directions in Cryptography</em>, and it is the most important paper in the field since al-Kindi's manuscript a thousand years earlier. (A British cryptographer named James Ellis at GCHQ had the same idea in 1969, and Clifford Cocks at GCHQ discovered RSA itself in 1973 — but it was all classified, and the public discovery changed the world anyway.)</p>
+
+    <h3>Diffie–Hellman key exchange (1976)</h3>
+    <p>Diffie and Hellman's original paper does not actually give a public-key encryption scheme — that comes a year later, in RSA. What it gives is a way for two strangers to <em>agree on a shared secret over an insecure channel</em>, without having met before. The protocol, in its modern form, is built on a <em>one-way function</em> in modular arithmetic:</p>
+
+    <div class="grid2">
+      <div class="panel how">
+        <span class="label">How Diffie–Hellman works</span>
+        <h4>Shared color, never shared paint</h4>
+        <p>Alice and Bob agree on a public prime <code>p</code> and a public base <code>g</code>. Alice picks a secret <code>a</code>, sends Bob <code>A = gᵃ mod p</code>. Bob picks a secret <code>b</code>, sends Alice <code>B = gᵇ mod p</code>. Alice computes <code>Bᵃ mod p = gᵃᵇ mod p</code>. Bob computes <code>Aᵇ mod p = gᵃᵇ mod p</code>. They now share a secret <code>gᵃᵇ mod p</code>. An eavesdropper sees <code>gᵃ</code> and <code>gᵇ</code>, but computing <code>a</code> from <code>gᵃ mod p</code> — the <strong>discrete logarithm problem</strong> — is believed to be intractable for large enough <code>p</code>.</p>
+        <div class="diagram">
+<pre style="font-family:var(--mono);font-size:13px;line-height:1.7;background:#000;color:var(--ink);padding:18px;border-radius:4px;overflow-x:auto">
+public:   p = 23, g = 5
+Alice:   a = 6  →  A = 5⁶ mod 23 = 8
+Bob:     b = 15 →  B = 5¹⁵ mod 23 = 19
+exchange over the wire: A=8, B=19
+shared:  Alice:  19⁶  mod 23 = 2
+         Bob:     8¹⁵ mod 23 = 2     ✓ same secret
+eavesdropper sees 8 and 19 — to get 2 they must solve
+the discrete log in mod 23, easy here, infeasible at 2048 bits
+</pre>
+        </div>
+      </div>
+
+      <div class="panel solves">
+        <span class="label">What it solved</span>
+        <h4>The key distribution problem</h4>
+        <p>For the first time in history, two strangers who have never met can agree on a secret that no eavesdropper can derive from the public exchange. This is the foundation of every modern internet handshake. It does not require a courier. It does not require a pre-shared key. It just requires a math problem that is hard to reverse — in this case, the discrete logarithm.</p>
+      </div>
+    </div>
+
+    <h3>RSA (1977)</h3>
+    <p class="story">A year after Diffie–Hellman, three MIT researchers — Ron Rivest, Adi Shamir, and Leonard Adleman — publish the first practical public-key <em>encryption</em> and <em>digital signature</em> scheme. The trick is the same modular arithmetic, but with a different one-way function: multiplication is easy, factoring is hard.</p>
+
+    <div class="grid2 flip">
+      <div class="panel how">
+        <span class="label">How RSA works</span>
+        <h4>Multiply two primes, give away the product</h4>
+        <p>Choose two large random primes <code>p</code> and <code>q</code>. Compute <code>n = p·q</code>. Choose <code>e</code> coprime to <code>(p−1)(q−1)</code>. Compute <code>d</code> such that <code>e·d ≡ 1 (mod (p−1)(q−1))</code>. The <strong>public key</strong> is <code>(n, e)</code>. The <strong>private key</strong> is <code>d</code>. To encrypt a message <code>m</code>: <code>c = mᵉ mod n</code>. To decrypt: <code>m = cᵈ mod n</code>. To sign: <code>s = mᵈ mod n</code>; anyone can verify with <code>sᵉ mod n = m</code>. The entire security of RSA rests on the fact that multiplying <code>p</code> and <code>q</code> is trivial, but recovering them from <code>n</code> — <strong>integer factorization</strong> — is not.</p>
+        <div class="rsa-keys">
+          <div class="key-card pub">
+            <div class="k">Public key (share with the world)</div>
+            <div class="v">n = p · q (a 2048-bit number)<br/>e = 65537 (often)</div>
+          </div>
+          <div class="key-card priv">
+            <div class="k">Private key (never share)</div>
+            <div class="v">d such that e·d ≡ 1 (mod (p−1)(q−1))<br/>(equivalently: the prime factors p, q)</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel problem">
+        <span class="label">The flaw that will eventually threaten RSA</span>
+        <h4>Factoring is only <em>believed</em> to be hard</h4>
+        <p>No one has ever proven that factoring 2048-bit numbers is fundamentally intractable. The best known classical algorithm, the <em>General Number Field Sieve</em>, is sub-exponential but still infeasible. In 1994, Peter Shor shows that a sufficiently large quantum computer could factor in polynomial time. The moment a cryptographically relevant quantum computer exists, every RSA key ever recorded is breakable. This is why NIST has been running the post-quantum competition since 2016. We will return to that in Era 12.</p>
+      </div>
+    </div>
+
+    <h3>Elliptic-curve cryptography (1985)</h3>
+    <p class="story">Independently proposed by Neal Koblitz and Victor Miller in 1985, <strong>ECC</strong> replaces the integer multiplication / factoring one-way function with arithmetic on a carefully chosen elliptic curve over a finite field. The discrete log problem on an elliptic curve is believed to be much harder than ordinary discrete log: a 256-bit elliptic-curve key offers roughly the security of a 3072-bit RSA key. That efficiency advantage matters in small devices — smart cards, phones, IoT sensors, Apple's Secure Enclave, the Bitcoin and Ethereum signature algorithms. Today, ECDSA (the elliptic-curve signature) and ECDH (the elliptic-curve key agreement) are the workhorses of public-key on the consumer internet. Curve25519, designed by Daniel Bernstein in 2005, is the modern default — used by SSH, Signal, Tor, WhatsApp, and TLS 1.3.</p>
+
+    <h3>What this whole era gave us</h3>
+    <p>Three new primitives, all built on the same trick — a math problem that is easy in one direction and hard in the other:</p>
+    <ul style="line-height:2;color:var(--ink)">
+      <li><strong>Public-key encryption</strong> (RSA, ECIES): encrypt with the public key, only the private-key holder can decrypt.</li>
+      <li><strong>Digital signatures</strong> (RSA-PSS, ECDSA, Ed25519): sign with the private key, anyone can verify with the public key. This is what gives software updates, code commits, and TLS certificates their authenticity.</li>
+      <li><strong>Key agreement</strong> (Diffie–Hellman, ECDH): two parties derive a shared secret over an insecure channel, then use it as a symmetric key for AES.</li>
+    </ul>
+    <p>The pattern, from now on, is always the same: <em>use public-key to establish trust and agree on a key, then switch to fast symmetric crypto (AES) for the actual data</em>. Public-key is for the handshake. Symmetric-key is for the conversation.</p>
+  </div>
+</section>
+
+<!-- ========================== ERA 9 ========================== -->
+<section id="e9">
+  <div class="wrap fade">
+    <div class="era-head">
+      <div class="era-num">09</div>
+      <div class="era-title">
+        <div class="when">1989 – 2012</div>
+        <h2>Hashing & the Fingerprint</h2>
+        <div class="who">Ralph Merkle (Damgård–Merkle, 1979/1989); Phil Zimmermann (PGP, 1991); Ron Rivest (MD2, MD4, MD5, 1989–1991); NSA (SHA-0, SHA-1, 1993/1995); NIST (SHA-2, 2001); Guido Bertoni, Joan Daemen, Michaël Peeters (Keccak → SHA-3, 2012).</div>
+      </div>
+    </div>
+
+    <p class="story">Encryption keeps a secret. But sometimes you do not need a secret. You need a <em>fingerprint</em>. You have a file. You want to know, later, whether it is the same file. You want to be sure a software update has not been tampered with in transit. You want to store passwords without actually keeping them. You want a unique, fixed-size handle for an arbitrarily large blob of data, with the property that no two different blobs share the same handle. That is a <strong>cryptographic hash function</strong>. It is not encryption — there is no key, no decryption, no secret. It is a one-way function from "any length" to "fixed length" with three unforgiving properties: <em>preimage resistance</em> (given a hash, you cannot find the input), <em>second-preimage resistance</em> (given an input, you cannot find a different input with the same hash), and <em>collision resistance</em> (you cannot find any two inputs with the same hash).</p>
+
+    <div class="grid2">
+      <div class="panel how">
+        <span class="label">How a hash works</span>
+        <h4>Compress, mix, repeat</h4>
+        <p>Pad the input to a multiple of the block size, then process it block by block through a <em>compression function</em>. Each new block's output depends on the previous block's output (the <em>chain</em>), so a change in any bit of the input eventually propagates everywhere. Final output: a fixed-size digest (160 bits for SHA-1, 256 bits for SHA-256, 512 for SHA-512, arbitrary for SHA-3/Keccak).</p>
+        <div class="diagram">
+          <div class="hash-flow">
+            <div class="ib">"Hello"</div>
+            <div class="mix">+</div>
+            <div class="ib">state</div>
+            <div class="mix">→</div>
+            <div class="out">185f8db3<br/>2271f6f7...</div>
+          </div>
+          <div class="caption">SHA-256 of "Hello" starts with 185f8db3. SHA-256 of "Hello." starts with 2c8e9b70. One byte in, completely different hash out — the avalanche effect.</div>
+        </div>
+      </div>
+      <div class="panel problem">
+        <span class="label">The flaw that killed MD5 and SHA-1</span>
+        <h4>Collisions, eventually</h4>
+        <p>MD5 (Rivest, 1991) was the workhorse of the 1990s. SHA-1 (NSA, 1995) replaced it for serious use. In 2004, Wang et al. produce the first practical SHA-1 collision. By 2017, Google's SHAttered project produces a chosen-prefix collision for the full SHA-1, two PDF files with the same SHA-1 hash but visibly different content. The lesson: a hash function's security degrades over time as attacks improve. Today, MD5 and SHA-1 are considered broken; SHA-2 (especially SHA-256) and SHA-3 (Keccak) are the modern defaults.</p>
+      </div>
+    </div>
+
+    <h3>What hashes are for</h3>
+    <ul style="line-height:2;color:var(--ink)">
+      <li><strong>Integrity</strong> — the SHA-256 checksum on a downloaded file, the SHA-256 reference in a software update manifest. If the hash matches, the bytes are unchanged.</li>
+      <li><strong>Signatures</strong> — instead of signing a 1 GB document, sign its 256-bit hash. The signature scheme then only needs to secure the small fixed-size digest.</li>
+      <li><strong>Commitment schemes</strong> — publish a hash now, reveal the input later. Anyone can verify the reveal matches the commitment.</li>
+      <li><strong>Data structures</strong> — Merkle trees (used in git, IPFS, Bitcoin, certificate transparency logs) hash children to parents, all the way up to a single root hash that authenticates an enormous set.</li>
+      <li><strong>Password storage</strong> — but not plain hashing. See Era 11.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ========================== ERA 10 ========================== -->
+<section id="e10">
+  <div class="wrap fade">
+    <div class="era-head">
+      <div class="era-num">10</div>
+      <div class="era-title">
+        <div class="when">1991 – today</div>
+        <h2>The Real World: TLS, SSH, Signal</h2>
+        <div class="who">Phil Zimmermann (PGP, 1991); Taher Elgamal (SSL at Netscape, 1994–95); Tatu Ylönen (SSH, 1995); Moxie Marlinspike and Trevor Perrin (Signal Protocol, 2013); Jason Donenfeld (WireGuard, 2017); the IETF (TLS 1.3, 2018).</div>
+      </div>
+    </div>
+
+    <p class="story">By 1990, all the building blocks are in place. RSA, DES, SHA, Diffie–Hellman. Now the question becomes: how do you actually use them? Almost no one in the world — outside a few thousand cryptographers and engineers — wants to call a math library every time they read their email. The 1990s and 2000s are the era where cryptography gets <em>packaged</em>: turned into protocols, libraries, and products that ordinary software and ordinary people can use without thinking about the math.</p>
+
+    <h3>PGP and the email problem (1991)</h3>
+    <p>In 1991, Phil Zimmermann, a privacy activist in Boulder, Colorado, releases <strong>Pretty Good Privacy (PGP)</strong> — the first time strong public-key encryption is available to ordinary civilians. PGP lets you encrypt email with RSA, sign it with a hash, and distribute your public key through a "web of trust" — your friends sign your key, their friends sign theirs, and you trust a key if enough people you trust have signed it. The U.S. government investigates Zimmermann for three years for "exporting munitions" (strong crypto was, at the time, classified as a weapon). He is never charged. PGP becomes the spiritual ancestor of every end-to-end encrypted messaging system we use today.</p>
+
+    <h3>SSL and TLS — the lock in your browser (1994–2018)</h3>
+    <p>In 1994, Taher Elgamal at Netscape designs <strong>SSL 2.0</strong> to protect the world's first commercial web browser. SSL 1.0 was never released. SSL 3.0 (1996) is the first widely-deployed version. In 1999, the IETF standardizes the protocol under a new name: <strong>TLS 1.0</strong>. TLS 1.1 (2006), TLS 1.2 (2008) follow. The current standard, <strong>TLS 1.3</strong> (RFC 8446, 2018), is a near-total rewrite: only authenticated encryption (AEAD, e.g. AES-GCM or ChaCha20-Poly1305), no CBC mode, no MD5, no SHA-1, no static RSA key exchange, no renegotiation, and a one-and-a-half-round-trip handshake that is both faster and simpler than its predecessors.</p>
+
+    <p>The story of every padlock in your browser is: <em>TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</em>. Read that as English: "Use elliptic-curve Diffie–Hellman (with new keys every session) to agree on a key. Authenticate the server with an elliptic-curve signature. Encrypt everything with AES-256 in GCM mode. Hash the handshake with SHA-384." It is the same five-beat structure, every connection, billions of times a day.</p>
+
+    <h3>SSH (1995)</h3>
+    <p>Tatu Ylönen, a researcher at Helsinki University of Technology, gets tired of having his password sniffed on the university's network. In 1995, he writes <strong>SSH</strong> (Secure Shell), a protocol that replaces telnet and rsh with an encrypted, authenticated remote-login session. SSH-1 is soon broken. SSH-2 (1996, RFCs 4251–4254) is the current version, and every Unix sysadmin on earth has used it ten thousand times. The default key exchange today is Curve25519 ECDH, the default signature is Ed25519, the default cipher is ChaCha20-Poly1305 or AES-GCM.</p>
+
+    <h3>Signal Protocol — the messenger era (2013)</h3>
+    <p>By the early 2010s, the unsolved problem is messaging. PGP works for email between two technical users who already trust each other's keys. But what about group chats, disappearing messages, conversation history that needs to survive lost phones, and the fact that most users cannot tell a phishing email from a real one? In 2013, Moxie Marlinspike and Trevor Perrin publish the <strong>Signal Protocol</strong>, which combines three ideas: the <strong>Double Ratchet</strong> (every message uses a fresh key derived from the previous one — the X3DH key agreement + a per-message symmetric ratchet), <strong>forward secrecy</strong> (compromising today's key does not reveal yesterday's messages), and <strong>post-compromise security</strong> (the protocol heals itself after a key leak). Signal, WhatsApp, Google Messages, Facebook Messenger's secret conversations, and Skype all now use the Signal Protocol — roughly two billion people.</p>
+
+    <h3>WireGuard (2017) and modern VPNs</h3>
+    <p>Most VPNs of the 2010s are based on IPsec or OpenVPN, both decades old, both notoriously complex, both with sprawling codebases measured in hundreds of thousands of lines. In 2017, Jason Donenfeld releases <strong>WireGuard</strong>: ~4,000 lines of code, modern cryptography only (Curve25519 for key agreement, ChaCha20-Poly1305 for encryption, BLAKE2 for hashing, HKDF for key derivation), no cipher negotiation, no certificate hierarchies, no mode confusion. WireGuard is now in the Linux kernel. The lesson, again: simpler is more secure.</p>
+  </div>
+</section>
+
+<!-- ========================== ERA 11 ========================== -->
+<section id="e11">
+  <div class="wrap fade">
+    <div class="era-head">
+      <div class="era-num">11</div>
+      <div class="era-title">
+        <div class="when">1976 – today</div>
+        <h2>Passwords Done Right</h2>
+        <div class="who">Robert Morris (proposed the modern Unix password hash, 1976); Niels Provos and David Mazières (bcrypt, 1999); Colin Percival (scrypt, 2009); Alex Biryukov, Daniel Dinu, Dmitry Khovratovich (Argon2, 2015).</div>
+      </div>
+    </div>
+
+    <p class="story">If you remember only one thing from the whole story, let it be this. <strong>Never store passwords in plaintext. Never hash passwords with a fast hash. Never, ever, hash a password with SHA-1 or SHA-256 alone.</strong> The reason is not subtle. A fast hash is designed to be fast. AES-GCM on a modern GPU runs at hundreds of gigabits per second. A modern rig can compute billions of MD5 hashes per second. If your database leaks and the passwords are hashed with a fast hash, the attacker can try the entire English dictionary, the entire RockYou list, every password ever leaked from any other site, in hours. The fix is to use a hash function that is <em>deliberately slow</em> and <em>deliberately memory-hungry</em>, and to add a unique random salt to every password so two users with the same password do not get the same hash.</p>
+
+    <h3>The password-hashing ladder</h3>
+    <ul style="line-height:2.1;color:var(--ink)">
+      <li><strong>Unix crypt (1976)</strong> — Robert Morris's original DES-based <code>crypt()</code>. 4096 hashes per second per core. Broken.</li>
+      <li><strong>MD5 / SHA-1 (1990s)</strong> — better than nothing, but far too fast. Billions of guesses per second on a GPU. Considered broken since the 2000s.</li>
+      <li><strong>bcrypt (1999)</strong> — Provos and Mazières at OpenBSD. Adaptive cost factor, blowfish-based, intentionally slow. Tunable: as hardware gets faster, you raise the cost. Still in wide use.</li>
+      <li><strong>scrypt (2009)</strong> — Colin Percival adds a memory-hard component: the function cannot be parallelized cheaply on a GPU or ASIC because it requires a large working set of memory. Slower per hash, but the attacker cannot just throw more silicon at it.</li>
+      <li><strong>Argon2 (2015)</strong> — winner of the Password Hashing Competition. Three variants: Argon2d (data-dependent, max memory hardness), Argon2i (data-independent, side-channel resistant), Argon2id (hybrid, recommended). Tunable for time cost, memory cost, and parallelism. Current best practice.</li>
+    </ul>
+
+    <div class="quote">"If you can guess a user's password by brute force in under a second, you have not hashed it — you have merely obfuscated it." <span class="by">— modern security lore</span></div>
+  </div>
+</section>
+
+<!-- ========================== ERA 12 ========================== -->
+<section id="e12">
+  <div class="wrap fade">
+    <div class="era-head">
+      <div class="era-num">12</div>
+      <div class="era-title">
+        <div class="when">1994 – today, accelerating</div>
+        <h2>The Quantum Cliff & What Comes After</h2>
+        <div class="who">Peter Shor (algorithm, 1994); Lov Grover (search, 1996); NIST Post-Quantum Cryptography Standardization Project (2016–2024); the winners: CRYSTALS-Kyber, CRYSTALS-Dilithium, SPHINCS+, FALCON (2022/2024).</div>
+      </div>
+    </div>
+
+    <p class="story">In 1994, a mathematician at Bell Labs named Peter Shor publishes an algorithm that, if run on a sufficiently powerful quantum computer, would factor large integers in polynomial time. It would also solve the discrete logarithm problem. In one paper, Shor's algorithm makes RSA, Diffie–Hellman, DSA, ECDH, and ECDSA all breakable at once. In 1996, Lov Grover publishes a separate quantum algorithm that gives a quadratic speedup on brute-force search, effectively halving the security of symmetric ciphers and hashes. AES-256, against Grover, is roughly AES-128 against classical brute force — still safe. AES-128, against Grover, is roughly AES-64 — too weak.</p>
+
+    <p class="story" style="margin-top:0">No one has built a cryptographically relevant quantum computer yet. The current record is factoring small numbers like 21 (yes, twenty-one) on a few hundred noisy qubits. The estimates for breaking a real 2048-bit RSA key range from "a few decades away" to "never, due to fundamental physical limits." But cryptography must plan in decades, not in years. An adversary can record today's TLS traffic, store it, and decrypt it later when a quantum computer exists. This is the <strong>harvest now, decrypt later</strong> attack, and it is the reason NIST has been running a post-quantum competition since 2016.</p>
+
+    <h3>The post-quantum primitives (2022/2024 standards)</h3>
+    <div class="grid2">
+      <div class="panel how">
+        <span class="label">The winners</span>
+        <h4>Lattice-, hash-, and code-based</h4>
+        <ul style="line-height:2.1;color:var(--ink)">
+          <li><strong>CRYSTALS-Kyber</strong> (now ML-KEM) — key encapsulation, based on the hardness of <em>learning-with-errors</em> in module lattices. Replaces Diffie–Hellman in TLS 1.3.</li>
+          <li><strong>CRYSTALS-Dilithium</strong> (now ML-DSA) — digital signatures, same lattice family. Replaces RSA / ECDSA in most contexts.</li>
+          <li><strong>FALCON</strong> — another lattice signature, smaller signatures than Dilithium. Useful when size matters (DNSSEC, blockchain).</li>
+          <li><strong>SPHINCS+</strong> (now SLH-DSA) — signature based only on the security of hash functions. Larger and slower than lattice schemes, but the security argument is older and more conservative. The conservative fallback.</li>
+        </ul>
+      </div>
+      <div class="panel solves">
+        <span class="label">Why they work</span>
+        <h4>Different math, no known quantum shortcut</h4>
+        <p>None of these schemes depend on factoring or discrete logs. They depend on hard problems in lattices, hash-function preimages, and error-correcting codes — for which no polynomial-time quantum algorithm is known. As of 2024, NIST has standardized ML-KEM, ML-DSA, and SLH-DSA. TLS 1.3 has draft hybrid key-exchange mechanisms (X25519 + ML-KEM-768) so that a connection is secure if <em>either</em> the classical or the post-quantum component holds. Your browser, by the time you read this, is already using it for some connections.</p>
+      </div>
+    </div>
+
+    <h3>The deeper frontier</h3>
+    <p>Post-quantum cryptography is one branch of a much larger frontier. The field is also pursuing:</p>
+    <ul style="line-height:2.1;color:var(--ink)">
+      <li><strong>Zero-knowledge proofs</strong> — prove you know a secret without revealing it. The prover and verifier exchange a few hundred bytes, and the verifier is convinced, with cryptographic certainty, that the statement is true. ZK-SNARKs (used in Zcash) and ZK-STARKs (used in StarkNet) are the headline constructions.</li>
+      <li><strong>Fully homomorphic encryption (FHE)</strong> — compute on encrypted data without ever decrypting it. A cloud can run your queries on your encrypted medical record and return an encrypted result, learning nothing. Practical FHE arrived around 2009 (Craig Gentry's breakthrough) and is now used in production by several companies.</li>
+      <li><strong>Secure multi-party computation (MPC)</strong> — multiple parties jointly compute a function of their secrets without revealing them to each other. Used in privacy-preserving auctions, key-ceremony ceremonies, and threshold signing.</li>
+      <li><strong>Threshold cryptography</strong> — split a private key into N shares, require any M of them to sign. No single share is enough. Used in cryptocurrency custody and in the root keys of major certificate authorities.</li>
+      <li><strong>Quantum key distribution (QKD)</strong> — use the laws of physics (the no-cloning theorem, Heisenberg uncertainty) to detect eavesdropping on the key exchange. Beautiful in theory. Practically limited by the need for dedicated fiber or free-space optical links, and the absence of authentication, which QKD on its own does not provide.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ========================== COMPARISON TABLE ========================== -->
+<section>
+  <div class="wrap fade">
+    <h2>The Whole Map, In One Glance</h2>
+    <p style="max-width:780px">A compressed comparison of every era above. Use it as a reference after reading the story.</p>
+
+    <table class="ctable">
+      <thead>
+        <tr>
+          <th>Era</th>
+          <th>Method</th>
+          <th>Year</th>
+          <th>Type</th>
+          <th>Core idea</th>
+          <th>Broke because…</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="era">01</span></td>
+          <td>Scytale</td><td>~700 BC</td>
+          <td>Transposition</td>
+          <td>Geometry rearranges letters; rod is the key</td>
+          <td>Try rods. Then language patterns.</td>
+        </tr>
+        <tr>
+          <td><span class="era">02</span></td>
+          <td>Caesar</td><td>~50 BC</td>
+          <td>Substitution (mono)</td>
+          <td>Shift each letter by a constant</td>
+          <td>25 possible keys; trivially brute-forced</td>
+        </tr>
+        <tr>
+          <td><span class="era">03</span></td>
+          <td>Frequency analysis</td><td>~850 AD</td>
+          <td>Attack</td>
+          <td>Count letter frequencies, match to language</td>
+          <td>It broke every monoalphabetic cipher ever made</td>
+        </tr>
+        <tr>
+          <td><span class="era">04</span></td>
+          <td>Vigenère</td><td>1553</td>
+          <td>Substitution (poly)</td>
+          <td>Use a key to switch among many substitution alphabets</td>
+          <td>Key repeats; Kasiski & Babbage find the cycle</td>
+        </tr>
+        <tr>
+          <td><span class="era">05</span></td>
+          <td>One-Time Pad</td><td>1917</td>
+          <td>Substitution (poly, perfect)</td>
+          <td>Key as long as message, random, never reused; XOR</td>
+          <td>Mathematically unbreakable. Logistically unbearable.</td>
+        </tr>
+        <tr>
+          <td><span class="era">06</span></td>
+          <td>Enigma</td><td>1920s–40s</td>
+          <td>Mechanical polyalphabetic</td>
+          <td>Rotor + plugboard; odometer stepping</td>
+          <td>Structural flaw (no-self-encrypt) + operator errors</td>
+        </tr>
+        <tr>
+          <td><span class="era">07a</span></td>
+          <td>DES</td><td>1977</td>
+          <td>Block cipher (Feistel)</td>
+          <td>16 rounds of L ⊕ F(R, k); 56-bit key</td>
+          <td>Brute-forced in 1998 by EFF's Deep Crack</td>
+        </tr>
+        <tr>
+          <td><span class="era">07b</span></td>
+          <td>AES (Rijndael)</td><td>2001</td>
+          <td>Block cipher (SPN)</td>
+          <td>SubBytes / ShiftRows / MixColumns / AddRoundKey</td>
+          <td>No efficient attack known; 2¹²⁶ best for AES-128</td>
+        </tr>
+        <tr>
+          <td><span class="era">08a</span></td>
+          <td>Diffie–Hellman</td><td>1976</td>
+          <td>Public-key agreement</td>
+          <td>Discrete log in (ℤ/pℤ)*<sup>×</sup></td>
+          <td>Quantum: Shor's algorithm. Otherwise hard.</td>
+        </tr>
+        <tr>
+          <td><span class="era">08b</span></td>
+          <td>RSA</td><td>1977</td>
+          <td>Public-key enc + sig</td>
+          <td>Trapdoor via factoring n = p·q</td>
+          <td>Quantum: Shor. Also small/weak keys, padding bugs.</td>
+        </tr>
+        <tr>
+          <td><span class="era">08c</span></td>
+          <td>ECC (Ed25519, Curve25519)</td><td>1985 / 2005</td>
+          <td>Public-key, efficient</td>
+          <td>Discrete log on elliptic curve groups</td>
+          <td>Same quantum threat; classical: curve implementation bugs</td>
+        </tr>
+        <tr>
+          <td><span class="era">09a</span></td>
+          <td>MD5 / SHA-1</td><td>1991 / 1995</td>
+          <td>Hash (broken)</td>
+          <td>Merkle–Damgård construction</td>
+          <td>Practical collisions found (2004, 2017)</td>
+        </tr>
+        <tr>
+          <td><span class="era">09b</span></td>
+          <td>SHA-2 / SHA-3 (Keccak)</td><td>2001 / 2012</td>
+          <td>Hash (current)</td>
+          <td>SHA-2: Merkle–Damgård. SHA-3: sponge construction.</td>
+          <td>No efficient attack; Grover halves preimage security</td>
+        </tr>
+        <tr>
+          <td><span class="era">10a</span></td>
+          <td>TLS 1.3</td><td>2018</td>
+          <td>Transport protocol</td>
+          <td>ECDHE + AES-GCM / ChaCha20 + SHA-384 + Ed25519</td>
+          <td>Mis-implementation, downgrade attacks (largely fixed)</td>
+        </tr>
+        <tr>
+          <td><span class="era">10b</span></td>
+          <td>Signal Protocol</td><td>2013</td>
+          <td>Messaging E2E</td>
+          <td>X3DH + Double Ratchet; forward + post-compromise secrecy</td>
+          <td>Metadata, endpoints, social engineering</td>
+        </tr>
+        <tr>
+          <td><span class="era">11</span></td>
+          <td>bcrypt / scrypt / Argon2</td><td>1999 / 2009 / 2015</td>
+          <td>Password hash</td>
+          <td>Slow + memory-hard + per-user salt</td>
+          <td>Mis-tuned cost; user reuses weak passwords</td>
+        </tr>
+        <tr>
+          <td><span class="era">12</span></td>
+          <td>ML-KEM / ML-DSA / SLH-DSA</td><td>2024</td>
+          <td>Post-quantum KEM & sigs</td>
+          <td>Hardness in lattices & hash functions</td>
+          <td>New field; long-term confidence is still being built</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========================== THE PATTERN ========================== -->
+<section>
+  <div class="wrap fade">
+    <h2>The Pattern That Never Ends</h2>
+    <p style="max-width:780px">If you step back from 3,000 years of struggle, you see a single rhythm, repeating. Almost every cryptographic advance is the same five beats:</p>
+    <ol style="line-height:2;color:var(--ink);font-size:19px">
+      <li><strong>An era of confident use.</strong> The new cipher is "unbreakable." (Caesar, Vigenère, DES, MD5 — all said it.)</li>
+      <li><strong>The slow discovery of a flaw.</strong> Frequency analysis, key-cycle recovery, brute force, collision attacks, quantum algorithms.</li>
+      <li><strong>The cipher falls.</strong> Publicly, sometimes embarrassingly, almost always in retrospect.</li>
+      <li><strong>A new primitive is invented.</strong> Driven by a hard math problem (factoring, discrete log, lattices) or by a better construction (Feistel, sponge, ratchet).</li>
+      <li><strong>New code makers trust it.</strong> Until the cycle repeats.</li>
+    </ol>
+
+    <p class="story" style="margin-top:30px">Cryptography is not a destination. It is a discipline. The day you stop worrying about a cipher is the day someone, somewhere, is writing the paper that will break it. The ciphers in your browser today — AES-256, ChaCha20-Poly1305, X25519, ML-KEM, SHA-256, Ed25519, Argon2id — are the best we have ever had. They are also, by definition, the next thing an attacker will study. The long war is not over. It is, if anything, accelerating.</p>
+
+    <div class="quote">"The only system that is truly secure is one that is powered off." <span class="by">— Gene Spafford, often quoted by his students</span></div>
+
+    <p style="color:var(--ink-dim);font-size:14px;margin-top:60px">A note on sources. The technical content above is drawn from standard references: Kahn's <em>The Codebreakers</em>; Singh's <em>The Code Book</em>; the NIST FIPS 197 (AES) and FIPS 202 (SHA-3) publications; the TLS 1.3 RFC (8446); Bernstein's Curve25519 paper; the Signal Protocol documentation; and the NIST Post-Quantum Cryptography project pages. Where dates are contested in the literature (Vigenère, RSA, public-key priority between GCHQ and the open community), the conventional public-history dates are used; the classified priority is noted in passing.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    The Long War for Secrets · A complete, honest history of cryptography · Built as one continuous argument between code makers and code breakers
+  </div>
+</footer>
+
+<script>
+  // Fade in on scroll
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+  // Mini Enigma-style XOR demo (a stand-in for "see the principle in action")
+  // This is a Vigenère-style shift, not a real Enigma, but it shows the same idea:
+  // the same key applied to the same plaintext, with the same algorithm, decrypts.
+  function makeDemo(containerId, label){
+    const c = document.getElementById(containerId);
+    if(!c) return;
+    c.innerHTML = `
+      <div class="row">
+        <label>Plaintext</label>
+        <input id="pt-${containerId}" value="ATTACK AT DAWN" />
+      </div>
+      <div class="row">
+        <label>Key (letters only)</label>
+        <input id="k-${containerId}" value="LEMON" />
+      </div>
+      <div class="row">
+        <button id="go-${containerId}">${label}</button>
+        <button id="clr-${containerId}" style="background:transparent;color:var(--ink);border-color:var(--line)">Clear</button>
+      </div>
+      <div class="out" id="out-${containerId}">Output appears here…</div>
+    `;
+    function shift(ch, n){
+      if(/[A-Z]/.test(ch)) return String.fromCharCode((ch.charCodeAt(0)-65+n)%26+65);
+      if(/[a-z]/.test(ch)) return String.fromCharCode((ch.charCodeAt(0)-97+n)%26+97);
+      return ch;
+    }
+    function run(pt, k, decode){
+      const K = k.toUpperCase().replace(/[^A-Z]/g,'');
+      if(!K) return '';
+      let j = 0, out = '';
+      for(const ch of pt){
+        if(/[A-Za-z]/.test(ch)){
+          const base = /[A-Z]/.test(ch) ? 65 : 97;
+          const ki = K.charCodeAt(j%K.length)-65;
+          const n = decode ? (26-ki) : ki;
+          out += String.fromCharCode((ch.charCodeAt(0)-base+n)%26+base);
+          j++;
+        } else out += ch;
+      }
+      return out;
+    }
+    c.querySelector(`#go-${containerId}`).onclick = () => {
+      const pt = c.querySelector(`#pt-${containerId}`).value;
+      const k  = c.querySelector(`#k-${containerId}`).value;
+      c.querySelector(`#out-${containerId}`).textContent = run(pt,k,false);
+    };
+    c.querySelector(`#clr-${containerId}`).onclick = () => {
+      c.querySelector(`#pt-${containerId}`).value = '';
+      c.querySelector(`#k-${containerId}`).value = '';
+      c.querySelector(`#out-${containerId}`).textContent = 'Output appears here…';
+    };
+  }
+  // Hooks for any demos (none placed inline in this version, but ready)
+  // makeDemo('vigenere','Encrypt');
+</script>
+
+</body>
+</html>

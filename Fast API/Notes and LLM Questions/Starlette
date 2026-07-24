@@ -1,0 +1,425 @@
+This is one of the most important concepts to understand in FastAPI.
+
+**Short answer:**
+
+> **FastAPI is built on top of Starlette.**
+>
+> Starlette is the ASGI web framework that provides all the web-related functionality, while FastAPI adds automatic validation, dependency injection, OpenAPI documentation, and type-based features.
+
+Think of it like this:
+
+```
+Your Application
+       │
+       ▼
+FastAPI
+(Adds API features)
+       │
+       ▼
+Starlette
+(Web framework)
+       │
+       ▼
+ASGI Server (Uvicorn/Hypercorn)
+       │
+       ▼
+Operating System
+```
+
+---
+
+# Step 1: What is Starlette?
+
+Starlette is a **lightweight ASGI web framework**.
+
+It provides the basic building blocks needed to create a web application.
+
+Examples:
+
+* HTTP Requests
+* HTTP Responses
+* Routing
+* Middleware
+* WebSockets
+* Static Files
+* Background Tasks
+* Lifespan events
+* Sessions
+* Cookies
+
+It does **not** provide things like:
+
+* Request validation
+* Automatic documentation
+* Dependency Injection
+* Pydantic models
+* Automatic serialization
+
+Those are added by FastAPI.
+
+---
+
+# Step 2: What does FastAPI add?
+
+FastAPI takes Starlette and adds modern API development features.
+
+```
+                FastAPI
+      +---------------------------+
+      | Pydantic Validation        |
+      | Dependency Injection       |
+      | OpenAPI Docs               |
+      | Swagger UI                 |
+      | OAuth Utilities            |
+      | Type Hints                 |
+      +-------------▲--------------+
+                    |
+               Built on
+                    |
+      +-------------▼--------------+
+      |         Starlette          |
+      | Routing                    |
+      | Requests                   |
+      | Responses                  |
+      | Middleware                 |
+      | WebSockets                 |
+      | Background Tasks           |
+      | Static Files               |
+      | Lifespan                   |
+      +-------------▲--------------+
+                    |
+             ASGI Server
+              (Uvicorn)
+```
+
+---
+
+# Step 3: Without Starlette
+
+If Starlette didn't exist, FastAPI would have to implement:
+
+* URL routing
+* HTTP parsing
+* Request objects
+* Response objects
+* Middleware
+* Cookies
+* Sessions
+* WebSockets
+* Background tasks
+
+That would be thousands of lines of code.
+
+Instead FastAPI simply reuses Starlette.
+
+---
+
+# Step 4: A Simple Example
+
+FastAPI:
+
+```python
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return {"message": "Hello"}
+```
+
+Looks simple.
+
+Internally:
+
+```
+Client
+   │
+   ▼
+Uvicorn
+   │
+   ▼
+Starlette receives request
+   │
+   ▼
+Starlette matches route
+   │
+   ▼
+FastAPI validates parameters
+   │
+   ▼
+Your function executes
+   │
+   ▼
+FastAPI converts dict → JSON
+   │
+   ▼
+Starlette creates Response
+   │
+   ▼
+Uvicorn sends response
+```
+
+---
+
+# Step 5: Many FastAPI objects actually come from Starlette
+
+For example:
+
+```python
+from fastapi import Request
+```
+
+Actually:
+
+```python
+from starlette.requests import Request
+```
+
+FastAPI simply re-exports it.
+
+Similarly:
+
+```python
+from fastapi import Response
+```
+
+comes from
+
+```python
+starlette.responses.Response
+```
+
+Same for:
+
+```python
+BackgroundTasks
+```
+
+```python
+FileResponse
+```
+
+```python
+StreamingResponse
+```
+
+```python
+WebSocket
+```
+
+All of these originate in Starlette.
+
+---
+
+# Step 6: Example using Starlette objects
+
+```python
+from fastapi import FastAPI, Request
+
+app = FastAPI()
+
+@app.get("/")
+async def home(request: Request):
+    return {
+        "url": str(request.url),
+        "method": request.method,
+        "headers": dict(request.headers)
+    }
+```
+
+`Request` is actually Starlette's Request object.
+
+---
+
+# Step 7: Middleware is Starlette
+
+When you write
+
+```python
+@app.middleware("http")
+async def middleware(request, call_next):
+    response = await call_next(request)
+    return response
+```
+
+this middleware system is implemented by Starlette.
+
+FastAPI only provides a convenient decorator.
+
+---
+
+# Step 8: Background Tasks are Starlette
+
+```python
+from fastapi import BackgroundTasks
+```
+
+Actually:
+
+```
+starlette.background.BackgroundTasks
+```
+
+FastAPI re-exports it.
+
+---
+
+# Step 9: Static Files
+
+```python
+from fastapi.staticfiles import StaticFiles
+```
+
+Actually:
+
+```
+starlette.staticfiles.StaticFiles
+```
+
+---
+
+# Step 10: WebSockets
+
+```python
+from fastapi import WebSocket
+```
+
+Actually:
+
+```
+starlette.websockets.WebSocket
+```
+
+---
+
+# Step 11: Responses
+
+FastAPI provides many response classes:
+
+```python
+JSONResponse
+PlainTextResponse
+HTMLResponse
+FileResponse
+RedirectResponse
+StreamingResponse
+```
+
+All are implemented by Starlette.
+
+---
+
+# Step 12: Request Lifecycle
+
+Suppose the browser sends
+
+```
+GET /users/5
+```
+
+Flow:
+
+```
+Browser
+    │
+    ▼
+Uvicorn
+    │
+    ▼
+Starlette Application
+    │
+    ▼
+Routing
+    │
+    ▼
+Middleware
+    │
+    ▼
+FastAPI
+    │
+    ├── Validate parameters
+    ├── Dependency Injection
+    ├── Parse Body
+    ├── Pydantic Validation
+    │
+    ▼
+Your Endpoint
+    │
+    ▼
+Return dict
+    │
+    ▼
+FastAPI serializes it
+    │
+    ▼
+Starlette Response
+    │
+    ▼
+Browser
+```
+
+---
+
+# Step 13: Can you use Starlette directly?
+
+Yes.
+
+Example:
+
+```python
+from starlette.applications import Starlette
+from starlette.responses import JSONResponse
+from starlette.routing import Route
+
+async def homepage(request):
+    return JSONResponse({"hello": "world"})
+
+app = Starlette(routes=[
+    Route("/", homepage)
+])
+```
+
+This works, but you don't get:
+
+* Automatic validation
+* Swagger UI
+* OpenAPI docs
+* Dependency injection
+* Pydantic integration
+
+You have to build those features yourself.
+
+---
+
+# Step 14: FastAPI vs Starlette
+
+| Feature                 | Starlette | FastAPI        |
+| ----------------------- | --------- | -------------- |
+| ASGI framework          | ✅         | Uses Starlette |
+| Routing                 | ✅         | Uses Starlette |
+| Requests                | ✅         | Re-exports     |
+| Responses               | ✅         | Re-exports     |
+| Middleware              | ✅         | Uses Starlette |
+| WebSockets              | ✅         | Uses Starlette |
+| Background Tasks        | ✅         | Uses Starlette |
+| Static Files            | ✅         | Uses Starlette |
+| Pydantic Validation     | ❌         | ✅              |
+| Dependency Injection    | ❌         | ✅              |
+| OpenAPI                 | ❌         | ✅              |
+| Swagger UI              | ❌         | ✅              |
+| Automatic Serialization | ❌         | ✅              |
+
+---
+
+# A useful analogy
+
+Imagine you're building a house:
+
+* **Starlette** is the foundation, walls, plumbing, and electrical wiring—the core infrastructure that makes a web application work.
+* **FastAPI** is the finished interior: cabinets, appliances, smart home features, and automation that make building APIs faster and more convenient.
+* **Uvicorn** is the utility connection that delivers traffic from the outside world into the house.
+
+Each layer has a distinct role, and FastAPI relies heavily on Starlette rather than reimplementing those lower-level web framework capabilities.
+
+As you continue learning FastAPI, you'll notice that many advanced features—such as `Request`, `Response`, middleware, background tasks, WebSockets, static files, and lifespan events—are Starlette features that FastAPI exposes with a more developer-friendly API.

@@ -1,0 +1,492 @@
+You're asking about **structure-aware splitting**, specifically how Markdown header-based splitters behave when there are nested headers and `strip_headers=False`.
+
+This is one of the most misunderstood topics in RAG, because **splitting** and **metadata extraction** are often mixed together.
+
+---
+
+# First, what is Structure-Aware Splitting?
+
+Instead of splitting purely by character count:
+
+```text
+1000 chars
+1000 chars
+1000 chars
+```
+
+the splitter first understands the document structure:
+
+```markdown
+# Company Policy
+
+text...
+
+## Leave Policy
+
+text...
+
+## Travel Policy
+
+text...
+
+# Engineering
+
+text...
+
+## Coding Standards
+
+text...
+```
+
+and then creates chunks based on the document hierarchy.
+
+The goal is to preserve meaning.
+
+---
+
+# Example Document
+
+Suppose we have:
+
+```markdown
+# Employee Handbook
+
+This handbook explains company rules.
+
+Many paragraphs here.
+
+## Leave Policy
+
+Employees get 20 annual leaves.
+
+More leave policy text.
+
+## Travel Policy
+
+Employees can claim travel expenses.
+
+More travel text.
+```
+
+Visual hierarchy:
+
+```text
+Employee Handbook
+│
+├── Intro Text
+│
+├── Leave Policy
+│   └── Text
+│
+└── Travel Policy
+    └── Text
+```
+
+---
+
+# What MarkdownHeaderTextSplitter Does
+
+LangChain's `MarkdownHeaderTextSplitter` doesn't immediately create final RAG chunks.
+
+It first creates **sections**.
+
+For example:
+
+```python
+headers_to_split_on = [
+    ("#", "H1"),
+    ("##", "H2"),
+]
+```
+
+The splitter identifies:
+
+---
+
+Section 1
+
+```markdown
+# Employee Handbook
+
+This handbook explains company rules.
+
+Many paragraphs here.
+```
+
+Metadata:
+
+```python
+{
+    "H1": "Employee Handbook"
+}
+```
+
+---
+
+Section 2
+
+```markdown
+## Leave Policy
+
+Employees get 20 annual leaves.
+
+More leave policy text.
+```
+
+Metadata:
+
+```python
+{
+    "H1": "Employee Handbook",
+    "H2": "Leave Policy"
+}
+```
+
+---
+
+Section 3
+
+```markdown
+## Travel Policy
+
+Employees can claim travel expenses.
+
+More travel text.
+```
+
+Metadata:
+
+```python
+{
+    "H1": "Employee Handbook",
+    "H2": "Travel Policy"
+}
+```
+
+Notice something important:
+
+The introductory text under H1 becomes its own section.
+
+The H2 sections do NOT automatically inherit that intro text.
+
+---
+
+# Your Main Question
+
+Suppose:
+
+```markdown
+# H1
+
+Body text under H1
+
+Body text under H1
+
+## H2-A
+
+Text A
+
+## H2-B
+
+Text B
+```
+
+You asked:
+
+> Will H2-A and H2-B contain the H1 body text?
+
+Answer:
+
+**No.**
+
+They only inherit the H1 *header metadata*, not the H1 body content.
+
+The split looks like:
+
+---
+
+Chunk 1
+
+```markdown
+# H1
+
+Body text under H1
+
+Body text under H1
+```
+
+Metadata:
+
+```python
+{
+    "H1": "H1"
+}
+```
+
+---
+
+Chunk 2
+
+```markdown
+## H2-A
+
+Text A
+```
+
+Metadata:
+
+```python
+{
+    "H1": "H1",
+    "H2": "H2-A"
+}
+```
+
+---
+
+Chunk 3
+
+```markdown
+## H2-B
+
+Text B
+```
+
+Metadata:
+
+```python
+{
+    "H1": "H1",
+    "H2": "H2-B"
+}
+```
+
+The body text under H1 stays only in Chunk 1.
+
+---
+
+# What Does strip_headers=False Do?
+
+Let's use:
+
+```python
+MarkdownHeaderTextSplitter(
+    headers_to_split_on=[
+        ("#", "H1"),
+        ("##", "H2")
+    ],
+    strip_headers=False
+)
+```
+
+---
+
+## strip_headers=True (default)
+
+Chunk content:
+
+```text
+Employees get 20 annual leaves.
+```
+
+Metadata:
+
+```python
+{
+    "H1": "Employee Handbook",
+    "H2": "Leave Policy"
+}
+```
+
+Header removed from content.
+
+---
+
+## strip_headers=False
+
+Chunk content:
+
+```markdown
+## Leave Policy
+
+Employees get 20 annual leaves.
+```
+
+Metadata:
+
+```python
+{
+    "H1": "Employee Handbook",
+    "H2": "Leave Policy"
+}
+```
+
+Header remains inside chunk text.
+
+---
+
+Important:
+
+`strip_headers=False`
+
+does **not** mean:
+
+```markdown
+# Employee Handbook
+
+This handbook explains company rules.
+
+## Leave Policy
+
+Employees get 20 annual leaves.
+```
+
+It only keeps the section's own header.
+
+---
+
+# Why Metadata Inheritance Exists
+
+Consider retrieval.
+
+Suppose vector DB returns:
+
+```markdown
+## Leave Policy
+
+Employees get 20 annual leaves.
+```
+
+Without metadata you don't know:
+
+```text
+Leave Policy of what?
+```
+
+Could be:
+
+* Employee Handbook
+* University Rules
+* Government Regulation
+
+Metadata preserves context:
+
+```python
+{
+    "H1": "Employee Handbook",
+    "H2": "Leave Policy"
+}
+```
+
+Even though the H1 body text isn't copied.
+
+---
+
+# What Happens in Production RAG
+
+Most production systems do:
+
+### Step 1
+
+Structure split
+
+```markdown
+# H1
+## H2
+### H3
+```
+
+to preserve hierarchy.
+
+---
+
+### Step 2
+
+Large sections are further chunked
+
+Example:
+
+```markdown
+## Leave Policy
+```
+
+contains 5000 tokens.
+
+Then:
+
+```python
+RecursiveCharacterTextSplitter(
+    chunk_size=1000,
+    chunk_overlap=200
+)
+```
+
+creates:
+
+```text
+Chunk A
+Chunk B
+Chunk C
+Chunk D
+```
+
+All inherit the same metadata:
+
+```python
+{
+    "H1": "Employee Handbook",
+    "H2": "Leave Policy"
+}
+```
+
+---
+
+# Visual Summary
+
+Document:
+
+```markdown
+# Employee Handbook
+
+Intro Text
+
+## Leave Policy
+
+Leave Text
+
+## Travel Policy
+
+Travel Text
+```
+
+Structure-aware split:
+
+```text
+Chunk 1
+└─ H1 + Intro Text
+
+Chunk 2
+└─ H2 Leave Policy + Leave Text
+
+Chunk 3
+└─ H2 Travel Policy + Travel Text
+```
+
+Metadata:
+
+```text
+Chunk 1
+H1 = Employee Handbook
+
+Chunk 2
+H1 = Employee Handbook
+H2 = Leave Policy
+
+Chunk 3
+H1 = Employee Handbook
+H2 = Travel Policy
+```
+
+The H2 chunks inherit the **header hierarchy** (`H1`), but **not the body text** that appeared before them under H1.
+
+That's the key idea behind structure-aware splitting: **preserve document hierarchy through metadata, not by duplicating parent content into every child chunk.**

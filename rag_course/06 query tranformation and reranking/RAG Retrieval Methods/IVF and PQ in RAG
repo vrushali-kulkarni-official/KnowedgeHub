@@ -1,0 +1,1011 @@
+# Q : what are IVF (Inverted File Index) and PQ (Product Quantization)
+
+Excellent question.
+
+Once you move beyond toy RAG systems and start dealing with **millions or billions of embeddings**, two concepts appear everywhere:
+
+* **IVF (Inverted File Index)**
+* **PQ (Product Quantization)**
+
+These are the techniques that make vector databases like **FAISS**, Milvus, Qdrant, Weaviate, Pinecone, Vespa, etc. scale to huge datasets.
+
+---
+
+# First: Why Do We Need IVF and PQ?
+
+Suppose you have:
+
+```text
+10 million chunks
+```
+
+Each chunk has:
+
+```text
+1536-dimensional embedding
+```
+
+(OpenAI embeddings)
+
+A query comes in:
+
+```text
+"What is the refund policy?"
+```
+
+You create query embedding:
+
+```text
+q = [0.23, 0.11, ...]
+```
+
+Now you must find nearest vectors.
+
+---
+
+## Naive Search
+
+Compare query against every vector:
+
+```python
+for vector in all_vectors:
+    similarity = cosine(q, vector)
+```
+
+If you have:
+
+```text
+10,000,000 vectors
+```
+
+You perform:
+
+```text
+10,000,000 similarity calculations
+```
+
+for every query.
+
+Very expensive.
+
+This is called:
+
+```text
+Brute Force Search
+```
+
+Complexity:
+
+```text
+O(N)
+```
+
+where:
+
+```text
+N = number of vectors
+```
+
+---
+
+# Solution: Approximate Nearest Neighbor (ANN)
+
+Instead of searching:
+
+```text
+ALL vectors
+```
+
+search:
+
+```text
+ONLY likely vectors
+```
+
+This dramatically speeds up retrieval.
+
+Popular ANN techniques:
+
+```text
+IVF
+HNSW
+PQ
+LSH
+DiskANN
+ScaNN
+```
+
+Today we'll focus on:
+
+```text
+IVF
+PQ
+```
+
+---
+
+# PART 1: IVF (Inverted File Index)
+
+---
+
+# Intuition
+
+Imagine a city.
+
+You need to find:
+
+```text
+John Smith
+```
+
+Would you:
+
+```text
+Check every house?
+```
+
+No.
+
+You first find:
+
+```text
+Neighborhood
+```
+
+Then search houses there.
+
+---
+
+IVF does exactly this.
+
+Instead of:
+
+```text
+Search all vectors
+```
+
+it does:
+
+```text
+Find nearest cluster
+Search vectors inside cluster
+```
+
+---
+
+# Step 1: Cluster All Embeddings
+
+Suppose we have:
+
+```text
+1 million embeddings
+```
+
+Run K-Means:
+
+```python
+k = 1000
+```
+
+Creates:
+
+```text
+1000 clusters
+```
+
+Like:
+
+```text
+Cluster 1 = finance docs
+Cluster 2 = legal docs
+Cluster 3 = sports docs
+...
+```
+
+(not exact topics, just vector regions)
+
+---
+
+Each cluster has a centroid.
+
+Example:
+
+```text
+Centroid A
+Centroid B
+Centroid C
+```
+
+---
+
+# Visualization
+
+Instead of:
+
+```text
+1,000,000 points
+```
+
+you now have:
+
+```text
+1000 groups
+```
+
+```text
+           *
+      *         *
+   *      Q
+         *
+```
+
+Query only needs nearby groups.
+
+---
+
+# During Query Time
+
+Query embedding:
+
+```python
+q
+```
+
+Step 1:
+
+Compare q to all centroids.
+
+Only:
+
+```text
+1000 comparisons
+```
+
+instead of:
+
+```text
+1,000,000
+```
+
+---
+
+Suppose closest cluster:
+
+```text
+Cluster #271
+```
+
+contains:
+
+```text
+800 vectors
+```
+
+Now search:
+
+```text
+800 vectors
+```
+
+instead of:
+
+```text
+1,000,000 vectors
+```
+
+Huge speedup.
+
+---
+
+# Why "Inverted File"?
+
+Borrowed from search engines.
+
+Search engine:
+
+```text
+Word -> Documents
+```
+
+Example:
+
+```text
+"apple" -> doc1, doc4, doc9
+```
+
+This is an inverted index.
+
+---
+
+IVF:
+
+```text
+Cluster -> Vectors
+```
+
+Example:
+
+```text
+Cluster 271 ->
+    vector1
+    vector5
+    vector99
+```
+
+Hence:
+
+```text
+Inverted File Index
+```
+
+---
+
+# IVF Parameters
+
+In FAISS:
+
+```python
+IndexIVFFlat
+```
+
+Example:
+
+```python
+nlist = 1000
+```
+
+Means:
+
+```text
+1000 clusters
+```
+
+---
+
+# Query Parameter: nprobe
+
+Very important.
+
+Instead of searching:
+
+```text
+1 cluster
+```
+
+search:
+
+```text
+top 10 clusters
+```
+
+Example:
+
+```python
+index.nprobe = 10
+```
+
+This improves accuracy.
+
+---
+
+Tradeoff:
+
+| nprobe | Speed  | Accuracy |
+| ------ | ------ | -------- |
+| 1      | Fast   | Lower    |
+| 10     | Medium | Better   |
+| 50     | Slower | High     |
+
+---
+
+# IVF Analogy
+
+Imagine library.
+
+Without IVF:
+
+```text
+Search every shelf
+```
+
+With IVF:
+
+```text
+Find correct floor
+Search shelves on floor
+```
+
+---
+
+# PART 2: Product Quantization (PQ)
+
+Now let's solve another problem.
+
+Storage.
+
+---
+
+Suppose:
+
+```text
+10 million vectors
+```
+
+Each:
+
+```text
+1536 dimensions
+```
+
+Stored as float32.
+
+---
+
+Memory:
+
+```text
+1536 × 4 bytes
+=
+6144 bytes/vector
+```
+
+For:
+
+```text
+10 million vectors
+```
+
+Memory:
+
+```text
+61 GB
+```
+
+Huge.
+
+---
+
+Need compression.
+
+That's where PQ comes in.
+
+---
+
+# Core Idea
+
+Instead of storing:
+
+```text
+Actual vector
+```
+
+store:
+
+```text
+Short code representing vector
+```
+
+Like image compression.
+
+---
+
+# Example
+
+Original vector:
+
+```text
+[1.24, 0.87, 0.22, 1.91]
+```
+
+Store:
+
+```text
+Code 57
+```
+
+Much smaller.
+
+---
+
+# How PQ Works
+
+---
+
+## Step 1
+
+Split vector into chunks.
+
+Example:
+
+```text
+8 dimensions
+```
+
+Split into:
+
+```text
+2 groups
+```
+
+```text
+[1,2,3,4]
+[5,6,7,8]
+```
+
+---
+
+For real embeddings:
+
+```text
+1536 dimensions
+```
+
+Maybe split into:
+
+```text
+96 groups
+```
+
+Each:
+
+```text
+16 dimensions
+```
+
+---
+
+# Step 2
+
+Create Codebook
+
+For each group:
+
+Run K-Means.
+
+Example:
+
+Group 1:
+
+```text
+Center A
+Center B
+Center C
+Center D
+```
+
+---
+
+Instead of storing:
+
+```text
+[1.24, 0.87, 0.22, 1.91]
+```
+
+Store:
+
+```text
+Cluster ID = 3
+```
+
+---
+
+# Step 3
+
+Do This For Every Subvector
+
+Example:
+
+```text
+Subvector 1 -> Cluster 3
+Subvector 2 -> Cluster 7
+Subvector 3 -> Cluster 2
+Subvector 4 -> Cluster 1
+```
+
+Store:
+
+```text
+[3,7,2,1]
+```
+
+instead of full vector.
+
+---
+
+Massive compression.
+
+---
+
+# Example
+
+Original:
+
+```text
+1536 floats
+```
+
+Memory:
+
+```text
+6144 bytes
+```
+
+PQ compressed:
+
+```text
+96 bytes
+```
+
+Possible reduction:
+
+```text
+60x+
+```
+
+---
+
+# Query Time
+
+Query vector remains full precision.
+
+Database vectors are compressed.
+
+Distance is approximated using codebooks.
+
+This avoids reconstructing vectors.
+
+Very fast.
+
+---
+
+# Analogy
+
+Suppose city map.
+
+Instead of storing:
+
+```text
+Exact coordinates
+```
+
+store:
+
+```text
+Nearest landmark ID
+```
+
+Example:
+
+```text
+Near Airport
+Near Mall
+Near Station
+```
+
+Much smaller representation.
+
+---
+
+# IVF + PQ Together
+
+This is the most common production combination.
+
+FAISS index:
+
+```python
+IndexIVFPQ
+```
+
+Workflow:
+
+```text
+1. Cluster vectors (IVF)
+
+2. Find nearest clusters
+
+3. Compressed vectors inside clusters (PQ)
+
+4. Approximate distance search
+```
+
+---
+
+Visualization:
+
+```text
+Query
+  |
+  V
+
+Nearest Clusters
+  |
+  V
+
+Compressed Vectors
+  |
+  V
+
+Top K Results
+```
+
+---
+
+# Why IVF + PQ Is Popular
+
+Without:
+
+```text
+100 million vectors
+```
+
+might need:
+
+```text
+600+ GB RAM
+```
+
+With IVF+PQ:
+
+```text
+10-20 GB
+```
+
+possible.
+
+And still fast.
+
+---
+
+# FAISS Index Types
+
+### Exact Search
+
+```python
+IndexFlatL2
+```
+
+Pros:
+
+```text
+100% accurate
+```
+
+Cons:
+
+```text
+slow
+large memory
+```
+
+---
+
+### IVF
+
+```python
+IndexIVFFlat
+```
+
+Pros:
+
+```text
+faster
+```
+
+Cons:
+
+```text
+still stores full vectors
+```
+
+---
+
+### PQ
+
+```python
+IndexPQ
+```
+
+Pros:
+
+```text
+small memory
+```
+
+Cons:
+
+```text
+some accuracy loss
+```
+
+---
+
+### IVF + PQ
+
+```python
+IndexIVFPQ
+```
+
+Pros:
+
+```text
+fast
+small memory
+```
+
+Cons:
+
+```text
+approximate
+```
+
+---
+
+# In Production RAG
+
+Typical progression:
+
+### Small
+
+```text
+<100k chunks
+```
+
+Use:
+
+```text
+Flat search
+```
+
+---
+
+### Medium
+
+```text
+100k – 10M chunks
+```
+
+Use:
+
+```text
+HNSW
+```
+
+or
+
+```text
+IVF
+```
+
+---
+
+### Very Large
+
+```text
+10M+
+```
+
+Use:
+
+```text
+IVF + PQ
+```
+
+or
+
+```text
+DiskANN
+```
+
+or
+
+```text
+HNSW + Compression
+```
+
+---
+
+# How Modern Vector Databases Use These
+
+### FAISS
+
+Supports:
+
+```text
+IVF
+PQ
+IVFPQ
+HNSW
+```
+
+---
+
+### Milvus
+
+Uses:
+
+```text
+IVF_FLAT
+IVF_PQ
+HNSW
+```
+
+---
+
+### Qdrant
+
+Mostly:
+
+```text
+HNSW
+Quantization
+```
+
+---
+
+### Weaviate
+
+Mostly:
+
+```text
+HNSW
+Compression
+```
+
+---
+
+### Pinecone
+
+Internals hidden
+
+Likely uses combinations of:
+
+```text
+HNSW
+IVF
+PQ
+DiskANN
+```
+
+depending on tier.
+
+---
+
+# Mental Model
+
+Think of it as two separate optimizations:
+
+### IVF = Search Fewer Vectors
+
+```text
+1,000,000 vectors
+        ↓
+nearest cluster
+        ↓
+5,000 vectors
+```
+
+Speed optimization.
+
+---
+
+### PQ = Store Smaller Vectors
+
+```text
+1536 floats
+        ↓
+compressed code
+```
+
+Memory optimization.
+
+---
+
+### IVF + PQ
+
+```text
+Search fewer vectors
++
+Store smaller vectors
+```
+
+which is why IVF-PQ became one of the foundational techniques behind production-scale vector search and large RAG systems.

@@ -1,0 +1,12 @@
+Orbital AI — Quick Notes
+========================
+
+These are informal engineering notes. The structured facts live in
+the other documents; this file is here so the DirectoryLoader demo
+has at least one .txt to grab.
+
+- Prometheus index is rebuilt every Sunday at 02:00 IST.
+- The on-call rotation lives in PagerDuty, schedule "rag-oncall".
+- The RAGAS golden set is owned by the AI/ML team, not platform.
+- DO NOT delete the Bengaluru S3 bucket, even if it looks empty;
+  cold-tier backups live there.

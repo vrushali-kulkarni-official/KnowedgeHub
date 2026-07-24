@@ -1,0 +1,384 @@
+# Q: which embedding algorithm is used in real world production systems while doing semantic splitting ?
+
+
+This is a very good question because there is a difference between:
+
+1. **The embedding model used in tutorial code**
+2. **The embedding model actually used in production semantic chunking**
+3. **The embedding model used later for retrieval**
+
+Many beginners assume that `all-MiniLM-L6-v2` is somehow special for semantic chunking. It is not.
+
+---
+
+# First: How Semantic Splitting Works
+
+Semantic splitting typically does something like:
+
+```text
+Sentence 1
+Sentence 2
+Sentence 3
+Sentence 4
+...
+```
+
+For each sentence:
+
+```python
+embedding(sentence)
+```
+
+Then it computes similarity:
+
+```python
+similarity(sentence_1, sentence_2)
+similarity(sentence_2, sentence_3)
+similarity(sentence_3, sentence_4)
+```
+
+Whenever similarity drops sharply:
+
+```text
+High similarity
+High similarity
+LOW similarity  <-- split here
+High similarity
+```
+
+it creates a chunk boundary.
+
+Therefore:
+
+> The embedding model used for semantic splitting is simply the model used to measure semantic similarity between neighboring text pieces.
+
+Nothing more magical than that.
+
+---
+
+# Why Tutorials Use MiniLM
+
+Most tutorials use:
+
+```python
+sentence-transformers/all-MiniLM-L6-v2
+```
+
+because:
+
+### Small
+
+384 dimensions
+
+### Fast
+
+Runs on CPU
+
+### Free
+
+No API costs
+
+### Good enough
+
+For learning and experiments.
+
+---
+
+For example:
+
+```text
+The cat sat on the mat.
+The feline rested on the carpet.
+```
+
+MiniLM correctly understands these are similar.
+
+For chunking tutorials that's sufficient.
+
+---
+
+# Is MiniLM Used In Production?
+
+Yes.
+
+But mostly in:
+
+* Internal tools
+* Small companies
+* Personal projects
+* Cost-sensitive deployments
+
+Many production systems still use MiniLM because:
+
+```text
+Fast
+Cheap
+Tiny memory footprint
+Good enough
+```
+
+A company processing millions of documents may prefer a smaller model if quality remains acceptable.
+
+---
+
+# What Do Large Companies Use?
+
+Large companies generally use the SAME embedding model throughout the RAG pipeline.
+
+Example:
+
+```text
+Chunking Embedding
+        ↓
+Retrieval Embedding
+        ↓
+Query Embedding
+```
+
+all use the same embedding family.
+
+Reason:
+
+If chunking thinks:
+
+```text
+A and B are similar
+```
+
+but retrieval thinks:
+
+```text
+A and B are unrelated
+```
+
+you get inconsistent behavior.
+
+---
+
+# Typical Modern Production Choices
+
+## OpenAI
+
+Often:
+
+```text
+text-embedding-3-small
+```
+
+or
+
+```text
+text-embedding-3-large
+```
+
+for:
+
+* chunking
+* indexing
+* retrieval
+
+all together.
+
+---
+
+## Anthropic Ecosystem
+
+Many customers use:
+
+```text
+Voyage embeddings
+```
+
+especially:
+
+```text
+voyage-large-2
+```
+
+or newer Voyage models.
+
+---
+
+## Open Source Production
+
+Very common:
+
+```text
+bge-large-en-v1.5
+```
+
+```text
+bge-base-en-v1.5
+```
+
+```text
+bge-m3
+```
+
+from BAAI.
+
+---
+
+Also popular:
+
+```text
+nomic-embed-text
+```
+
+```text
+e5-large-v2
+```
+
+```text
+gte-large
+```
+
+```text
+snowflake-arctic-embed
+```
+
+---
+
+# What Does Meta Use?
+
+Meta doesn't publicly disclose a universal semantic chunking model.
+
+Internally they often build custom embedding systems.
+
+Large companies frequently use:
+
+```text
+Fine-tuned embedding model
+```
+
+instead of off-the-shelf MiniLM.
+
+---
+
+# What Does Microsoft Use?
+
+For enterprise search and Copilot-related systems Microsoft commonly uses embedding models from Azure/OpenAI ecosystems rather than MiniLM.
+
+---
+
+# What Does Google Use?
+
+Google generally uses proprietary embedding models from Gemini infrastructure.
+
+Again:
+
+```text
+Semantic chunking
+Retrieval
+Ranking
+```
+
+often share the same embedding space.
+
+---
+
+# A Common Misconception
+
+Many people think:
+
+```text
+Chunking Model = Retrieval Model
+```
+
+must always be identical.
+
+Not necessarily.
+
+You could do:
+
+```text
+MiniLM
+     ↓
+Semantic Chunking
+
+OpenAI Embeddings
+     ↓
+Retrieval
+```
+
+and it will work.
+
+But quality is often better when both use the same embedding family.
+
+---
+
+# If You Were Building a Company RAG Today
+
+For internal company documents:
+
+### Budget Friendly
+
+```text
+bge-small-en-v1.5
+```
+
+or
+
+```text
+all-MiniLM-L6-v2
+```
+
+---
+
+### Serious Production
+
+```text
+bge-large-en-v1.5
+```
+
+or
+
+```text
+bge-m3
+```
+
+---
+
+### Premium Quality
+
+```text
+text-embedding-3-large
+```
+
+---
+
+# If You Were Building Something Like ChatGPT/OpenClaw
+
+I would not use MiniLM.
+
+I would use:
+
+```text
+bge-m3
+```
+
+or
+
+```text
+text-embedding-3-large
+```
+
+for:
+
+* semantic chunking
+* retrieval
+* reranking pipeline
+
+because retrieval quality becomes much more important than the small savings from MiniLM.
+
+---
+
+So the code you were shown:
+
+```python
+HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
+```
+
+is **not just a toy example**. It is genuinely used in many real production systems. However, among modern high-quality RAG systems in 2025–2026, it is increasingly common to use stronger embedding models such as **BGE**, **E5**, **Nomic**, **Snowflake Arctic**, **Voyage**, or **OpenAI text-embedding-3-large**, depending on cost, latency, and quality requirements.

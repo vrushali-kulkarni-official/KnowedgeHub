@@ -1,0 +1,132 @@
+PART 1: Document Embedding/storing phase:
+
+PHASE 1: Loader 
+
+loader load documents using Docling and updates metadata
+
+also stores original in object storage (aws s3 or MinIO)
+
+
+
+PHASE 2: Split the Document into chunks:
+
+use the following 4 techniques/steps:
+1. Structural  chunk 
+2. Token Guard (3 to 4 x of max token size, overlap size)
+3. Semantic Chunk ( for topic change use Tokenizer like Tiktoken and embed using all-MiniLM-L6v2)
+4. RCTS (define the max token size, overlap size)
+5. Add metadata at every steps
+
+metadata Enrichment for each Chunk by passing through a LLM(gtp-oss, or gemma or MiniLM)
+
+store chunks and its metadata in Document Store(Mongo DB) and generate chuck id against each chunk also add object store reference link for each chunk
+
+Also store the chunk text(word) details in an inverted file index like Elastic Search or open search
+
+
+
+PHASE 3:Embedding the chunks:
+
+1. Define tokenization model(SentencePiece)
+2. Define Embedding model(BGE M3) 
+with parameters(attention mask, mean pooling, Normalization)
+
+create a hash of each document chunk and check if this document hash already exist in the redis cache.
+
+if there is a cache miss then Embed the chunks and also store it in the redis cache along with the chunk hash
+
+if there is a cache hit, then directly take the Embeded chunk from the redis cache
+
+
+
+PHASE 4: Vector database:
+1. innitialize the vector DB with search and indexing algorithms like (HNSW (M =16 t0 32, ef_contruction = 200 to 400) or IVF+PQ or DiskNN)
+2. store the Embedding in a vector DB(Qdrant if medium to large and Milvus if very large)
+3. store chunk id against each embedding
+
+
+
+
+
+
+
+
+
+PART 2: Retrival
+
+
+PHASE 5: 
+
+read the user input question and chat history
+
+as an optional component, compress the chat history if too long
+
+convert user query into a standalone query
+
+hash the stand alone query and check if the query and response already exist the Redis Cache
+
+if Redis cache hit, then directly give the cached answer to the user
+
+if Redisc cache miss, then proceed to next step
+
+
+PHASE 6: Hybrid search
+
+find the related chunks using dense + sparse search
+
+PHASE 6.1 Dense search 
+1. embed the standalone query
+2. do a similarity search with the embedding in Redis cache
+if cache hit then directly return the chunks againt the embedding in Redis cache
+if cache miss then perform a vector search in vertor DB(ef_search = 64 to 128, Ktop = 100)
+
+PHASE 6.1 sparse search 
+1. perform sparse search on Elastic search DB(ktop = 100)
+
+
+PHASE 7: Fusion 
+combine the output of dense and sparse search
+remove duplicates
+perform Reciprocal rank fusion - RRF(Ktop = 80)
+
+
+PHASE 8: Remove same meaning chunks 
+filter chucks based on Maximal Marginal Relevance  - MMR(ktop = 40)
+
+
+PHASE 9: Chunk Retrival and Reranking
+Retrive chunk text for all chunks
+perform Reranking using Cross Encoder Reranking Method(Ktop = 10, Model = BGE Reranker)
+
+
+PHASE 10: Create RAG chain
+Merge text from all chunks to form the context
+Using a contextual compressor - compress the context keeping in mind the chat history and user's input question
+Create a Final Prompt to be send to the llm by adding a system prompt, chat history and user's input question prompt and the compressed  context
+
+
+Phase 11: LLM Query and Retrival
+Send the query to LLM and get the response
+Send the respose to the user
+Save the respose to the Cache against the prompt
+save the final chuck id to the cache against the standalone prompt embedding
+
+
+Phase 12: Evaluation
+Evaluate the Answer Relevance by analyzing Question + Answer (is the answer even relevant to the question)
+Evaluate the Context Relevance by Question + Retrieved Context(How useful is the retrived context with reference to the question and answer)
+Evaluate the Groundedness by  Retrieved Context + Answer (did the llm answer as per the data given in the context or did it halucinate )
+Evaluate the Context Precision by Retrieved Context + Relevance Judgment (of the total retrived documents how many useful documents did llm retrive )
+Evaluate the Toxicity of the Answer (Evaluates whether the answer contains offensive, abusive, or harmful language)
+Evaluate the Sentiment of the Answer (Measures whether the answer is positive, neutral, or negative when that matters for the application.)
+Evaluate the Conciseness of the Answer (Determines whether the answer is unnecessarily verbose or appropriately concise.)
+
+
+
+
+
+
+
+
+
+i

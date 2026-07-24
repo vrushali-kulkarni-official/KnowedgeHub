@@ -1,0 +1,563 @@
+# Prompt:
+im trying to learn everything about spiltters and chunking in rag. now I want to know which technique/ algorithm, package, library is used by the following AI:
+1. chatGPT
+2. gemini
+3. claude 
+4. deepseek
+5. z ai
+6. kimi
+7. minimax
+8. mistral
+9. gemma
+
+# Answer:
+
+### Short answer
+
+For commercial AI systems, the exact chunking and splitter algorithms are not publicly disclosed. Companies treat their retrieval pipelines as proprietary infrastructure. What we do know comes from papers, SDKs, benchmarks, and common industry practice.
+
+### Likely splitter/chunking approaches by model family
+
+| AI system                  | Publicly known chunking details                                                                                                      | Most likely techniques/libraries                                                                                                                                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ChatGPT (OpenAI)           | Not disclosed. Retrieval features (“deep research”, file upload, memory, connectors) clearly use chunking and embeddings internally. | Likely hierarchical + semantic chunking with token-aware splitting; probably custom infrastructure rather than a public library. Concepts similar to LangChain/LlamaIndex splitters and OpenAI tokenization (tiktoken). |
+| Gemini (Google)            | Not disclosed. Google’s retrieval stack is likely tied to Vertex AI Search/RAG infrastructure.                                       | Likely semantic + structure-aware chunking (documents, HTML, code, PDFs), with token-aware limits. Probably internal tooling built on Google’s document processing stack.                                               |
+| Claude (Anthropic)         | Not disclosed. Claude’s large-context workflow suggests heavy use of hierarchical retrieval and summarization.                       | Likely recursive/hierarchical chunking with semantic boundaries and metadata-aware retrieval; custom internal pipeline.                                                                                                 |
+| DeepSeek                   | Open models are public, but hosted retrieval pipeline is not.                                                                        | Community implementations around DeepSeek commonly use LangChain or LlamaIndex splitters (RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter, semantic chunkers).                                               |
+| Z.ai (Zhipu AI)            | No public details.                                                                                                                   | Likely standard enterprise RAG stack: token-aware recursive splitting + semantic retrieval.                                                                                                                             |
+| Kimi (Moonshot AI)         | No public details, though Kimi is known for long-context handling.                                                                   | Likely combines long-context ingestion with hierarchical chunking/summarization to reduce retrieval cost.                                                                                                               |
+| MiniMax                    | No public details.                                                                                                                   | Likely conventional RAG preprocessing: recursive or semantic chunking with overlap.                                                                                                                                     |
+| Mistral                    | Model weights and APIs are public, but hosted retrieval internals are not.                                                           | Examples in Mistral ecosystem often use LlamaIndex or LangChain chunkers; token-aware recursive splitting is common.                                                                                                    |
+| Gemma (Google open models) | Gemma is a model family, not a hosted RAG product.                                                                                   | Any chunking depends on the application using Gemma. Most community RAG examples use LangChain/LlamaIndex splitters.                                                                                                    |
+
+### What’s actually happening under the hood?
+
+Most modern RAG systems use a combination of these ideas:
+
+1. Document parsing
+
+   Extract text and structure from PDFs, HTML, Markdown, docs, spreadsheets, etc.
+
+2. Structure-aware splitting
+
+   Split first by natural boundaries:
+
+   * headings/subheadings
+
+   * paragraphs
+
+   * tables/code blocks
+
+   * pages or sections
+
+3. Token-aware chunking
+
+   Ensure chunks fit the embedding model and retrieval window (e.g., 256–1,500 tokens).
+
+4. Overlap
+
+   Add 10–30% overlap so context is preserved across boundaries.
+
+5. Semantic refinement (optional)
+
+   Merge/split chunks based on embedding similarity or topic shifts.
+
+6. Hierarchical retrieval
+
+   Retrieve coarse sections first, then finer chunks, especially for long documents.
+
+### The open-source equivalents you can learn from
+
+These are the libraries and splitter classes that most closely resemble industry practice:
+
+| Library      | Useful splitters / features                                                                                             |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| LangChain    | RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter, TokenTextSplitter, semantic chunkers, code-aware splitters. |
+| LlamaIndex   | Node parsers, sentence splitters, hierarchical chunking, semantic splitters, metadata-aware indexing.                   |
+| Haystack     | Preprocessors for cleaning, splitting, and metadata handling.                                                           |
+| Unstructured | Structure-aware document parsing before chunking.                                                                       |
+| Docling      | Rich document parsing (PDF, DOCX, PPTX, etc.) with structured output for downstream chunking.                           |
+
+### The key takeaway
+
+No major AI provider has publicly said, “we use RecursiveCharacterTextSplitter with chunk_size=1000 and overlap=200.” Their production systems are custom and more sophisticated than basic open-source defaults.
+
+But the core ideas are the same everywhere:
+
+* split by document structure first,
+
+* respect token limits,
+
+* keep overlap,
+
+* preserve metadata,
+
+* and retrieve hierarchically when documents are large.
+
+If you want to “learn everything about splitters and chunking,” the best path is to master the open-source implementations above. They expose the same design trade-offs the commercial systems are almost certainly using internally.
+
+
+
+# question 2:
+
+answer for 2 situations.. 1. if i am making a chatbot for a company for which i have to build a rag, based on all companies internal docs. 2. if i am making a ai chatbot like openclaw, which rag techniques would i use for both the situations. 
+
+# answer 2:
+
+These are actually **two very different RAG problems**, and many beginners make the mistake of using the same chunking strategy for both.
+
+---
+
+# Situation 1: Company Internal Knowledge Base Chatbot
+
+Example:
+
+* HR chatbot
+* IT support chatbot
+* Company SOP assistant
+* Product documentation assistant
+* Internal wiki assistant
+
+Documents:
+
+* PDFs
+* DOCX
+* PPTX
+* Confluence pages
+* Notion pages
+* Markdown docs
+* Excel sheets
+* Policies
+
+---
+
+## Goal
+
+When user asks:
+
+> "What is our reimbursement policy for international travel?"
+
+You need to retrieve the **exact section** containing the answer.
+
+Accuracy is more important than creativity.
+
+---
+
+## Chunking Strategy
+
+### 1. Structure-aware chunking
+
+Split by:
+
+* Heading
+* Subheading
+* Section
+* Paragraph
+
+Example:
+
+```text
+# Travel Policy
+
+## International Travel
+
+Employees may claim...
+```
+
+Becomes:
+
+```text
+Travel Policy > International Travel
+```
+
+metadata retained.
+
+---
+
+### 2. Recursive chunking
+
+Then apply:
+
+```python
+RecursiveCharacterTextSplitter(
+    chunk_size=1000,
+    chunk_overlap=200
+)
+```
+
+or
+
+```python
+chunk_size = 800
+overlap = 150
+```
+
+---
+
+### 3. Metadata enrichment
+
+Store:
+
+```python
+{
+    "source": "travel_policy.pdf",
+    "page": 12,
+    "department": "HR",
+    "section": "International Travel"
+}
+```
+
+This is extremely important.
+
+---
+
+### 4. Hybrid Search
+
+Use:
+
+```text
+Vector Search
++
+BM25
+```
+
+instead of pure vector search.
+
+Why?
+
+User may ask:
+
+> "VPN"
+
+Embedding search sometimes misses short keywords.
+
+BM25 catches them.
+
+---
+
+### 5. Reranking
+
+After retrieval:
+
+```text
+top 20 chunks
+↓
+reranker
+↓
+top 5 chunks
+```
+
+Examples:
+
+* BGE Reranker
+* Cohere Rerank
+* Jina Reranker
+
+This improves answer quality dramatically.
+
+---
+
+## Recommended Pipeline
+
+```text
+Docling
+↓
+Structure Splitter
+↓
+Recursive Splitter
+↓
+Embedding
+↓
+pgvector
+↓
+Hybrid Search
+↓
+Reranker
+↓
+LLM
+```
+
+This is what I'd build for a real company.
+
+---
+
+# Situation 2: OpenClaw / ChatGPT-like AI Assistant
+
+This is a completely different problem.
+
+Documents may include:
+
+* Websites
+* PDFs
+* Books
+* GitHub repos
+* User uploads
+* Research papers
+* Conversation history
+* Notes
+
+The corpus is huge and heterogeneous.
+
+---
+
+## Goal
+
+Not:
+
+> "Find exact reimbursement policy"
+
+But:
+
+> "Explain transformers to me"
+
+or
+
+> "Summarize this 500-page book"
+
+or
+
+> "What does this repository do?"
+
+---
+
+## Chunking Strategy
+
+Basic chunking is not enough.
+
+---
+
+### 1. Hierarchical Chunking
+
+Create multiple levels.
+
+Example:
+
+```text
+Book
+ ├── Chapter
+ │     ├── Section
+ │     │      ├── Paragraph
+```
+
+Store all levels.
+
+---
+
+#### Level 1
+
+Large chunk
+
+```text
+3000-5000 tokens
+```
+
+Contains entire topic.
+
+---
+
+#### Level 2
+
+Medium chunk
+
+```text
+1000 tokens
+```
+
+---
+
+#### Level 3
+
+Small chunk
+
+```text
+300-500 tokens
+```
+
+---
+
+When retrieving:
+
+```text
+retrieve chapter
+↓
+retrieve section
+↓
+retrieve paragraph
+```
+
+This is often called:
+
+* Parent-child retrieval
+* Hierarchical retrieval
+
+---
+
+### 2. Semantic Chunking
+
+Instead of fixed size:
+
+```text
+Topic A
+Topic A
+Topic A
+
+Topic B starts
+```
+
+split where topic changes.
+
+Libraries:
+
+* LlamaIndex SemanticSplitter
+* LangChain SemanticChunker
+
+---
+
+### 3. Contextual Chunking
+
+Before embedding:
+
+Convert:
+
+```text
+"it uses transformers"
+```
+
+into
+
+```text
+"OpenAI GPT-4 uses transformers"
+```
+
+This improves retrieval.
+
+Anthropic has discussed similar ideas.
+
+---
+
+### 4. Knowledge Graph Retrieval
+
+For large knowledge bases:
+
+Store relationships:
+
+```text
+OpenAI
+ ├── GPT-4
+ ├── GPT-5
+```
+
+Graph retrieval + vector retrieval.
+
+Useful for:
+
+* Research assistants
+* AI agents
+* OpenClaw-like systems
+
+---
+
+### 5. Multi-query Retrieval
+
+User asks:
+
+```text
+How does RAG work?
+```
+
+Generate:
+
+```text
+What is retrieval augmented generation?
+How are embeddings used in RAG?
+How does vector search work?
+```
+
+Retrieve for all.
+
+---
+
+### 6. Agentic Retrieval
+
+Instead of one search:
+
+```text
+Search
+↓
+Evaluate
+↓
+Search Again
+↓
+Answer
+```
+
+This is what ChatGPT Deep Research, Claude Research, Gemini Deep Research do.
+
+---
+
+# What I would build today
+
+## Company Chatbot
+
+```text
+Docling
+↓
+Heading Splitter
+↓
+Recursive Splitter
+↓
+BGE Embeddings
+↓
+pgvector
+↓
+Hybrid Search
+↓
+BGE Reranker
+↓
+Gemini / GPT
+```
+
+Simple, robust, production-ready.
+
+---
+
+## OpenClaw-like AI Assistant
+
+```text
+Docling
+↓
+Semantic Chunking
+↓
+Hierarchical Chunks
+↓
+Parent Child Retrieval
+↓
+Hybrid Search
+↓
+Reranker
+↓
+Multi Query Retrieval
+↓
+Agentic Retrieval
+↓
+LLM
+```
+
+Much more complex, but scales to books, repositories, websites, and large knowledge bases.
+
+---
+
+If your goal is to become a strong AI engineer, I would learn chunking in this order:
+
+1. Fixed-size chunking
+2. RecursiveCharacterTextSplitter
+3. Markdown/Header chunking
+4. Token-based chunking
+5. Semantic chunking
+6. Parent-child retrieval
+7. Contextual retrieval
+8. Hybrid search (BM25 + Vector)
+9. Rerankers
+10. Agentic RAG
+
+The biggest quality jump in real-world RAG systems usually comes not from fancy chunking, but from **hybrid search + reranking + good metadata**. Many teams spend weeks tuning chunk sizes and get less improvement than adding a reranker.

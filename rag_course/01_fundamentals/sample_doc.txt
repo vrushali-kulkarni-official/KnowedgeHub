@@ -1,0 +1,42 @@
+ORBITAL AI — INTERNAL COMPANY HANDBOOK (v3.2)
+Last updated: March 2025
+
+Section 1: Company Overview
+Orbital AI is a deep-tech research company founded in 2021 and headquartered
+in Bengaluru, India. We specialize in building autonomous systems for
+satellite constellation management. Our flagship product, StarTrack-9, is
+currently used by three national space agencies for real-time orbital debris
+avoidance.
+
+Section 2: Leadership
+- CEO: Priya Rao
+- CTO: Marcus Holloway
+- Head of Research: Dr. Aisha Patel
+- VP of Engineering: Tomohiro Sato
+
+Section 3: Products
+StarTrack-9 is a closed-loop control system that uses reinforcement learning
+to coordinate satellite maneuvers. It processes roughly 4.2 million telemetry
+points per second. The current version (v4.1) was released in Q1 2025 and
+reduced false-positive maneuver triggers by 78% compared to v3.
+
+Section 4: Funding
+The company has raised $42M across two rounds. Series A was led by Helios
+Ventures in 2023. Series B closed in late 2024 with participation from
+Sequoia India and a strategic investment from the Indian Space Research
+Organization (ISRO).
+
+Section 5: Office Locations
+- HQ: Bengaluru, India (4 floors, 220 employees)
+- Research Lab: Toulouse, France (12 researchers)
+- Field Office: Houston, Texas (5 employees, NASA liaison)
+
+Section 6: Core Values
+1. Precision over speed.
+2. Open peer review of all algorithms.
+3. No dark satellites — every system we build must be ground-observable.
+
+Section 7: Recent News (March 2025)
+Orbital AI signed a multi-year contract with the European Space Agency (ESA)
+to deploy StarTrack-9 across the Galileo constellation. The deployment is
+scheduled for early 2026.

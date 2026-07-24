@@ -1,0 +1,27 @@
+# =============================================================================
+# Module 2 — Document Loaders
+# =============================================================================
+
+# --- LangChain core ecosystem (LangChain 0.3+ split into focused packages) ---
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+
+# --- Loaders used in this module ------------------------------------------
+# PyPDFLoader needs `pypdf`. Pure-Python, fast, no system deps.
+pypdf>=5.0.0
+# Docx2txtLoader needs `docx2txt`. Pure-Python, lightweight.
+docx2txt>=0.8
+# WebBaseLoader uses requests + bs4 under the hood.
+beautifulsoup4>=4.12.0
+requests>=2.32.0
+
+# --- Optional: better structural parsing for Markdown/Word/PDF -------------
+# Uncomment to enable UnstructuredMarkdownLoader / UnstructuredWordDocumentLoader.
+# This adds ~150 MB of dependencies and is the recommended upgrade path.
+# unstructured>=0.16.0
+# unstructured-client>=0.27.0
+
+# --- Utilities -------------------------------------------------------------
+python-dotenv>=1.0.0
+pydantic>=2.7.0

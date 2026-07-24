@@ -1,0 +1,27 @@
+# =============================================================================
+# Module 1 — RAG Fundamentals
+# All modern, pinned, free-tier-friendly versions. CPU-only by default.
+# =============================================================================
+
+# --- LangChain core ecosystem (LangChain 0.3+ split into focused packages) ---
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+langchain-text-splitters>=0.3.0
+
+# --- Integrations we use in this module -----------------------------------
+# Official Google GenAI SDK integration for Gemini.
+langchain-google-genai>=2.0.0
+# Official HuggingFace integration for sentence-transformers embeddings.
+langchain-huggingface>=0.1.0
+
+# --- Embeddings + Vector store (free, local, CPU-friendly) ----------------
+# sentence-transformers pulls the model from HF Hub on first use (~80 MB).
+sentence-transformers>=3.0.0
+# FAISS CPU build. GPU build is `faiss-gpu` but you said weak hardware.
+faiss-cpu>=1.8.0
+huggingface-hub>=0.25.0
+
+# --- Utilities -------------------------------------------------------------
+python-dotenv>=1.0.0
+pydantic>=2.7.0

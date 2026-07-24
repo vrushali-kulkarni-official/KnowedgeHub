@@ -1,0 +1,286 @@
+# extract metadata using docling
+
+If you're using **Docling + LangChain's `DoclingLoader`**, metadata is already attached to each LangChain `Document` object.
+
+### 1. Access metadata from `DoclingLoader`
+
+```python
+from langchain_docling import DoclingLoader
+
+loader = DoclingLoader(file_path="sample.pdf")
+docs = loader.load()
+
+for doc in docs:
+    print(doc.metadata)
+```
+
+Typical output:
+
+```python
+{
+    "source": "sample.pdf",
+    "dl_meta": {
+        ...
+    }
+}
+```
+
+The `source` field contains the original file path, and `dl_meta` contains Docling chunk metadata. ([DeepWiki][1])
+
+---
+
+### 2. Inspect all available metadata
+
+For chunked documents:
+
+```python
+from pprint import pprint
+
+for doc in docs:
+    pprint(doc.metadata)
+```
+
+You may see fields such as:
+
+```python
+{
+    "source": "sample.pdf",
+    "dl_meta": {
+        "headings": [...],
+        "page_no": 3,
+        "bbox": {...},
+        ...
+    }
+}
+```
+
+The exact contents depend on the chunker and document structure. ([DeepWiki][1])
+
+---
+
+### 3. Extract metadata directly from a Docling document
+
+If you're using Docling itself rather than the LangChain wrapper:
+
+```python
+from docling.document_converter import DocumentConverter
+
+converter = DocumentConverter()
+
+result = converter.convert("sample.pdf")
+doc = result.document
+
+metadata = doc.export_to_dict()
+
+print(metadata)
+```
+
+`export_to_dict()` exports the entire parsed document structure, including pages, tables, headings, provenance information, and document attributes. ([Docling Project][2])
+
+---
+
+### 4. Create custom metadata for RAG
+
+This is usually what people do in production.
+
+Example:
+
+```python
+from langchain_core.documents import Document
+
+new_docs = []
+
+for doc in docs:
+    metadata = {
+        "source": doc.metadata["source"],
+        "page": doc.metadata["dl_meta"].get("page_no"),
+        "document_type": "policy",
+    }
+
+    new_docs.append(
+        Document(
+            page_content=doc.page_content,
+            metadata=metadata
+        )
+    )
+```
+
+Now you can filter in FAISS, Chroma, PGVector, etc. using:
+
+```python
+{
+    "source": "policy.pdf",
+    "page": 5
+}
+```
+
+---
+
+### 5. Create a custom metadata extractor in `DoclingLoader`
+
+Docling supports custom metadata extractors by subclassing `BaseMetaExtractor`. This lets you inject fields such as:
+
+* filename
+* page number
+* section heading
+* document title
+* author
+* creation date
+* chunk type (table/text/image)
+
+into every LangChain `Document` automatically. ([DeepWiki][1])
+
+Example skeleton:
+
+```python
+from langchain_docling.loader import BaseMetaExtractor
+
+class MyMetaExtractor(BaseMetaExtractor):
+
+    def extract_chunk_meta(self, file_path, chunk):
+        return {
+            "source": str(file_path),
+            "page": chunk.meta.doc_items[0].prov[0].page_no,
+        }
+
+    def extract_dl_doc_meta(self, file_path, dl_doc):
+        return {
+            "source": str(file_path)
+        }
+```
+
+---
+
+### For a RAG project
+
+The most useful metadata fields are usually:
+
+```python
+{
+    "source": filename,
+    "page": page_number,
+    "section": heading,
+    "chunk_id": id,
+    "document_type": type,
+}
+```
+
+because they can be used later for metadata filtering and citation generation in your retriever.
+
+If you're using the newer `DoclingLoader(file_path=...)` in your RAG pipeline, show me your current loader code and I can tell you exactly which metadata fields are available in your `Document.metadata` object.
+
+[1]: https://deepwiki.com/docling-project/docling-langchain/2.1-doclingloader/?utm_source=chatgpt.com "DoclingLoader | docling-project/docling-langchain | DeepWiki"
+[2]: https://docling-project.github.io/docling/reference/docling_document/?utm_source=chatgpt.com "Docling Document - Docling"
+
+
+# question 2: how to use docling for json
+
+If you want to convert a document into **JSON using Docling**, the simplest approach is:
+
+```python
+import json
+from docling.document_converter import DocumentConverter
+
+converter = DocumentConverter()
+
+result = converter.convert("sample.pdf")
+doc = result.document
+
+json_data = doc.export_to_dict()
+
+print(json.dumps(json_data, indent=2))
+```
+
+`export_to_dict()` returns the complete Docling document structure as a Python dictionary, which can then be serialized to JSON. ([Docling Project][1])
+
+---
+
+## Save JSON to a file
+
+```python
+import json
+from pathlib import Path
+from docling.document_converter import DocumentConverter
+
+converter = DocumentConverter()
+
+result = converter.convert("sample.pdf")
+
+with Path("output.json").open("w", encoding="utf-8") as f:
+    json.dump(
+        result.document.export_to_dict(),
+        f,
+        indent=2,
+        ensure_ascii=False
+    )
+```
+
+This is the officially recommended way to persist a `DoclingDocument`. ([Docling Project][2])
+
+---
+
+## Load a DoclingDocument back from JSON
+
+```python
+import json
+from pathlib import Path
+from docling_core.types.doc import DoclingDocument
+
+with Path("output.json").open("r", encoding="utf-8") as f:
+    doc_dict = json.load(f)
+
+doc = DoclingDocument.model_validate(doc_dict)
+```
+
+This reconstructs the original Docling document object from the saved JSON. ([Docling Project][2])
+
+---
+
+## What does the JSON contain?
+
+Docling's JSON is much richer than plain text or Markdown. It preserves:
+
+* Headings
+* Paragraphs
+* Tables
+* Lists
+* Images
+* Captions
+* Page information
+* Document hierarchy
+* Provenance/location metadata
+
+This is one reason many RAG practitioners prefer storing Docling's structured representation instead of converting immediately to Markdown. ([Docling Project][1])
+
+---
+
+## For RAG: Extract only text + metadata
+
+Instead of storing the entire JSON, you can create cleaner chunks:
+
+```python
+from docling.document_converter import DocumentConverter
+
+converter = DocumentConverter()
+result = converter.convert("sample.pdf")
+
+doc = result.document
+
+for item in doc.texts:
+    print({
+        "text": item.text,
+        "metadata": {
+            "label": item.label,
+            "page": item.prov[0].page_no
+        }
+    })
+```
+
+This gives you a lightweight JSON structure suitable for vector databases like PGVector or Chroma.
+
+---
+
+If your goal is **"I want JSON chunks for a RAG pipeline"**, I can show the modern Docling + HierarchicalChunker approach that produces structured JSON chunks with headings, captions, page numbers, and provenance metadata already attached. That's usually the best setup for RAG.
+
+[1]: https://docling-project.github.io/docling/reference/docling_document/?utm_source=chatgpt.com "Docling Document - Docling"
+[2]: https://docling-project.github.io/docling/v2/?utm_source=chatgpt.com "V2 - Docling"

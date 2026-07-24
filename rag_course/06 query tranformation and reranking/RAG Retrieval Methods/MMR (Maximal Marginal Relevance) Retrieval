@@ -1,0 +1,1866 @@
+# MMR (Maximal Marginal Relevance) Retrieval in RAG
+
+MMR is one of the most important retrieval techniques used in production RAG systems because it solves a very common problem:
+
+> Standard vector search often returns many chunks that are nearly identical to each other.
+
+MMR tries to return documents that are:
+
+1. **Relevant to the query**
+2. **Different from each other**
+
+Instead of retrieving the "top-k most similar chunks", MMR retrieves the "top-k relevant and diverse chunks".
+
+---
+
+# Why MMR Was Invented
+
+Imagine you ask:
+
+> "Explain how embeddings work in RAG"
+
+Your vector database contains:
+
+### Chunk A
+
+"Embeddings convert text into vectors..."
+
+### Chunk B
+
+"Embeddings transform words into vectors..."
+
+### Chunk C
+
+"Embeddings are numerical representations..."
+
+### Chunk D
+
+"Chunking strategies include recursive chunking..."
+
+### Chunk E
+
+"Vector databases use ANN search..."
+
+---
+
+## Standard Similarity Search
+
+Top 3 results might be:
+
+```
+A
+B
+C
+```
+
+Problem:
+
+All three chunks say almost the same thing.
+
+You waste context window space.
+
+---
+
+## MMR Search
+
+Top 3 results might become:
+
+```
+A
+D
+E
+```
+
+Why?
+
+Because:
+
+* A covers embeddings
+* D covers chunking
+* E covers vector databases
+
+The LLM receives broader information.
+
+This often improves answer quality significantly.
+
+---
+
+# Intuition
+
+MMR constantly asks:
+
+> "Should I select another highly relevant chunk, or should I select a chunk that adds new information?"
+
+It balances:
+
+```
+Relevance
+vs
+Novelty
+```
+
+---
+
+# Formal Definition
+
+MMR selects documents using:
+
+[
+MMR = \lambda \times Similarity(Query, Document)
+------------------------------------------------
+
+(1-\lambda) \times Similarity(Document, SelectedDocs)
+]
+
+Where:
+
+### First Term
+
+[
+Similarity(Query, Document)
+]
+
+Measures relevance.
+
+Higher is better.
+
+---
+
+### Second Term
+
+[
+Similarity(Document, SelectedDocs)
+]
+
+Measures redundancy.
+
+Higher is worse.
+
+---
+
+### λ (lambda)
+
+Controls the tradeoff.
+
+```
+λ = 1.0
+```
+
+Only relevance matters.
+
+Equivalent to normal vector search.
+
+---
+
+```
+λ = 0.0
+```
+
+Only diversity matters.
+
+Results may become irrelevant.
+
+---
+
+Most systems use:
+
+```
+0.3 – 0.8
+```
+
+Common default:
+
+```
+0.5
+```
+
+---
+
+# Step-by-Step Example
+
+Suppose query:
+
+```
+"What is RAG?"
+```
+
+Candidate chunks:
+
+| Chunk | Query Similarity |
+| ----- | ---------------- |
+| A     | 0.95             |
+| B     | 0.92             |
+| C     | 0.90             |
+| D     | 0.85             |
+| E     | 0.82             |
+
+---
+
+## Step 1
+
+Pick highest similarity.
+
+Selected:
+
+```
+A
+```
+
+---
+
+## Step 2
+
+Evaluate remaining chunks.
+
+Suppose:
+
+| Chunk | Query Sim | Similar to A |
+| ----- | --------- | ------------ |
+| B     | 0.92      | 0.95         |
+| C     | 0.90      | 0.91         |
+| D     | 0.85      | 0.30         |
+| E     | 0.82      | 0.20         |
+
+Using λ=0.5
+
+For B:
+
+```
+0.5×0.92 - 0.5×0.95
+= -0.015
+```
+
+---
+
+For D:
+
+```
+0.5×0.85 - 0.5×0.30
+= 0.275
+```
+
+---
+
+For E:
+
+```
+0.5×0.82 - 0.5×0.20
+= 0.31
+```
+
+Highest score:
+
+```
+E
+```
+
+Select E.
+
+---
+
+Now selected:
+
+```
+A
+E
+```
+
+---
+
+Repeat until k documents selected.
+
+This is MMR.
+
+---
+
+# Why MMR Works So Well in RAG
+
+RAG context windows are limited.
+
+Imagine:
+
+```
+8k tokens
+16k tokens
+32k tokens
+```
+
+You want:
+
+```
+Maximum information
+per token
+```
+
+Not:
+
+```
+Same information repeated 5 times
+```
+
+MMR increases information density.
+
+---
+
+# Visual Understanding
+
+Without MMR:
+
+```
+Query
+  |
+  +---- Doc A
+  +---- Doc B (almost same)
+  +---- Doc C (almost same)
+  +---- Doc D (almost same)
+```
+
+---
+
+With MMR:
+
+```
+Query
+  |
+  +---- Doc A
+  +---- Doc D
+  +---- Doc G
+  +---- Doc K
+```
+
+Each document contributes something unique.
+
+---
+
+# Standard Retrieval vs MMR
+
+## Similarity Search
+
+```python
+retriever = vectorstore.as_retriever(
+    search_type="similarity",
+    search_kwargs={"k": 5}
+)
+```
+
+Returns:
+
+```
+Top 5 closest vectors
+```
+
+Fast.
+
+May be redundant.
+
+---
+
+## MMR Search
+
+```python
+retriever = vectorstore.as_retriever(
+    search_type="mmr",
+    search_kwargs={
+        "k": 5
+    }
+)
+```
+
+Returns:
+
+```
+Relevant
++
+Diverse
+```
+
+Usually better for RAG.
+
+---
+
+# fetch_k Parameter
+
+One of the most important MMR settings.
+
+Example:
+
+```python
+retriever = vectorstore.as_retriever(
+    search_type="mmr",
+    search_kwargs={
+        "k": 5,
+        "fetch_k": 20
+    }
+)
+```
+
+Meaning:
+
+### Stage 1
+
+Retrieve top 20 similar chunks.
+
+```
+fetch_k = 20
+```
+
+---
+
+### Stage 2
+
+Apply MMR on those 20 chunks.
+
+Select best:
+
+```
+k = 5
+```
+
+Final output:
+
+```
+5 diverse chunks
+```
+
+---
+
+Without fetch_k:
+
+```
+No diversity pool.
+```
+
+MMR becomes weak.
+
+---
+
+Production values:
+
+```python
+k = 5
+fetch_k = 30
+```
+
+or
+
+```python
+k = 10
+fetch_k = 50
+```
+
+---
+
+# lambda_mult Parameter
+
+LangChain uses:
+
+```python
+lambda_mult
+```
+
+instead of λ.
+
+Example:
+
+```python
+retriever = vectorstore.as_retriever(
+    search_type="mmr",
+    search_kwargs={
+        "k": 5,
+        "fetch_k": 20,
+        "lambda_mult": 0.5
+    }
+)
+```
+
+---
+
+### lambda_mult = 1.0
+
+Pure relevance.
+
+Equivalent to normal search.
+
+---
+
+### lambda_mult = 0.0
+
+Pure diversity.
+
+Dangerous.
+
+Can return unrelated chunks.
+
+---
+
+### lambda_mult = 0.5
+
+Balanced.
+
+Most common.
+
+---
+
+# MMR in LangChain
+
+Example:
+
+```python
+retriever = vectorstore.as_retriever(
+    search_type="mmr",
+    search_kwargs={
+        "k": 5,
+        "fetch_k": 30,
+        "lambda_mult": 0.5
+    }
+)
+```
+
+Then:
+
+```python
+docs = retriever.invoke(
+    "How does vector search work?"
+)
+```
+
+---
+
+# FAISS + MMR
+
+Works directly:
+
+```python
+FAISS
+Chroma
+Qdrant
+Pinecone
+Weaviate
+Milvus
+```
+
+Most modern vector stores support MMR.
+
+Example:
+
+```python
+docs = vectorstore.max_marginal_relevance_search(
+    query,
+    k=5,
+    fetch_k=30
+)
+```
+
+---
+
+# MMR vs Reranking
+
+Many beginners confuse them.
+
+---
+
+## MMR
+
+Uses embeddings.
+
+Runs before LLM.
+
+Goal:
+
+```
+Reduce redundancy
+```
+
+---
+
+## Reranker
+
+Uses cross-encoder model.
+
+Goal:
+
+```
+Improve ranking accuracy
+```
+
+Example:
+
+```
+Retrieve 50 chunks
+↓
+MMR
+↓
+10 chunks
+↓
+Reranker
+↓
+Top 5 chunks
+↓
+LLM
+```
+
+This is a common production pipeline.
+
+---
+
+# MMR vs Hybrid Search
+
+Hybrid Search solves:
+
+```
+Keyword matching
++
+Semantic matching
+```
+
+---
+
+MMR solves:
+
+```
+Duplicate chunks
+```
+
+Different problems.
+
+Often used together.
+
+Pipeline:
+
+```
+Hybrid Search
+↓
+MMR
+↓
+Reranker
+↓
+LLM
+```
+
+---
+
+# When MMR Helps
+
+## Large Documents
+
+Example:
+
+```
+500-page PDF
+```
+
+Many chunks are similar.
+
+MMR helps a lot.
+
+---
+
+## Technical Documentation
+
+Example:
+
+```
+AWS docs
+Kubernetes docs
+LangChain docs
+```
+
+Huge redundancy.
+
+MMR improves coverage.
+
+---
+
+## Multi-topic Questions
+
+Example:
+
+> Explain RAG architecture.
+
+Need:
+
+* chunking
+* embeddings
+* retrieval
+* reranking
+* LLM generation
+
+MMR naturally gathers chunks from different sections.
+
+---
+
+# When MMR Can Hurt
+
+## Fact Lookup
+
+Question:
+
+> What is the capital of France?
+
+Best answer exists in one chunk.
+
+Diversity unnecessary.
+
+---
+
+## Very Small Databases
+
+Example:
+
+```
+20 chunks total
+```
+
+MMR adds little value.
+
+---
+
+## Low λ
+
+Too much diversity can introduce noise.
+
+Example:
+
+```
+lambda_mult=0.1
+```
+
+May retrieve unrelated chunks.
+
+---
+
+# Complexity
+
+Standard similarity:
+
+```
+O(N)
+```
+
+after ANN candidate retrieval.
+
+---
+
+MMR:
+
+```
+O(fetch_k²)
+```
+
+approximately.
+
+Because selected documents are repeatedly compared.
+
+Still cheap because:
+
+```
+fetch_k usually 20–100
+```
+
+not millions.
+
+---
+
+# Production Recommendation
+
+For production RAG:
+
+```python
+retriever = vectorstore.as_retriever(
+    search_type="mmr",
+    search_kwargs={
+        "k": 8,
+        "fetch_k": 40,
+        "lambda_mult": 0.5
+    }
+)
+```
+
+Then:
+
+```text
+Hybrid Search
+      ↓
+MMR
+      ↓
+Cross-Encoder Reranker
+      ↓
+Context Compression
+      ↓
+LLM
+```
+
+This architecture is common in modern enterprise RAG systems because it addresses three separate issues:
+
+1. **Hybrid Search** → recall problem
+2. **MMR** → redundancy problem
+3. **Reranker** → ranking accuracy problem
+
+# Evolution Story
+
+The concept of **Maximal Marginal Relevance (MMR)** was introduced in **1998** by Carbonell and Goldstein for document retrieval and text summarization.
+
+At that time search engines had a problem:
+
+```
+Top 10 search results
+=
+10 nearly identical pages
+```
+
+Researchers wanted results that were:
+
+* Relevant
+* Non-redundant
+
+MMR was created to solve this.
+
+Years later, when vector databases and RAG emerged, engineers realized the exact same problem existed:
+
+```
+Top-k embeddings
+=
+many nearly identical chunks
+```
+
+So MMR became a natural fit for RAG retrieval.
+
+---
+
+# One-Line Summary
+
+**MMR (Maximal Marginal Relevance) is a retrieval strategy that selects documents that are both highly relevant to the query and maximally different from each other, helping RAG systems avoid redundant chunks and make better use of the LLM's context window.**
+
+
+###############################
+
+
+# Question:
+
+what is the input given to mmr ? i mean if we are using hybrid search then only the dense searches output are given as input are given to mmr and the sparse search outputs are searched separate ? or is the output from both dense and sparse search are together combined and given as an input ? also in real word production does dense and sparse search work asynchronously and how does that affect to the input of mmr ?
+
+
+# Answer: 
+
+Excellent question. This gets into how **real production retrieval pipelines** are actually designed.
+
+The answer is:
+
+> **MMR doesn't care where the candidates came from.**
+>
+> It only needs:
+>
+> * Query embedding
+> * A candidate set of documents/chunks
+> * Embeddings of those candidate chunks
+
+The interesting part is **how that candidate set is produced**.
+
+---
+
+# Scenario 1: Dense Search + MMR (Most Common Beginner Setup)
+
+Pipeline:
+
+```text
+User Query
+    ↓
+Embedding Model
+    ↓
+Dense Vector Search
+    ↓
+Top 50 Candidates
+    ↓
+MMR
+    ↓
+Top 10 Diverse Candidates
+    ↓
+LLM
+```
+
+Example:
+
+```python
+retriever = vectorstore.as_retriever(
+    search_type="mmr",
+    search_kwargs={
+        "k":10,
+        "fetch_k":50
+    }
+)
+```
+
+Internally:
+
+```text
+Query
+ ↓
+Embedding
+ ↓
+FAISS Search
+ ↓
+50 chunks
+ ↓
+MMR
+ ↓
+10 chunks
+```
+
+In this setup:
+
+```text
+Input to MMR
+=
+Dense search results only
+```
+
+because no sparse search exists.
+
+---
+
+# Scenario 2: Hybrid Search + MMR
+
+Now things become more interesting.
+
+Suppose:
+
+```text
+Dense Search
++
+BM25 Search
+```
+
+Question:
+
+> Should MMR run separately on each search result or on the combined results?
+
+In production:
+
+### Usually
+
+```text
+Dense Results
++
+Sparse Results
+↓
+Fusion
+↓
+MMR
+```
+
+---
+
+Example:
+
+Dense returns:
+
+```text
+A
+B
+C
+D
+E
+```
+
+Sparse returns:
+
+```text
+C
+F
+G
+H
+```
+
+Combine:
+
+```text
+A
+B
+C
+D
+E
+F
+G
+H
+```
+
+Remove duplicates:
+
+```text
+A
+B
+C
+D
+E
+F
+G
+H
+```
+
+Now MMR operates on:
+
+```text
+A
+B
+C
+D
+E
+F
+G
+H
+```
+
+not separately.
+
+---
+
+# Why Not Run MMR Separately?
+
+Suppose:
+
+Dense Search:
+
+```text
+Embedding chunk 1
+Embedding chunk 2
+Embedding chunk 3
+```
+
+Sparse Search:
+
+```text
+Keyword chunk 1
+Keyword chunk 2
+Keyword chunk 3
+```
+
+If MMR runs separately:
+
+```text
+Dense MMR → 3 docs
+Sparse MMR → 3 docs
+```
+
+You may still end up with:
+
+```text
+6 overlapping docs
+```
+
+because neither side knows what the other selected.
+
+Global diversity is impossible.
+
+---
+
+Production systems usually prefer:
+
+```text
+Global MMR
+```
+
+over
+
+```text
+Per-search MMR
+```
+
+---
+
+# Typical Enterprise Pipeline
+
+A very common pipeline:
+
+```text
+Query
+ ↓
+Dense Search
+ ↓
+Top 50
+
+Query
+ ↓
+BM25 Search
+ ↓
+Top 50
+
+      ↓
+ Reciprocal Rank Fusion
+      ↓
+Top 100 Candidates
+      ↓
+MMR
+      ↓
+Top 20 Diverse Candidates
+      ↓
+Cross Encoder Reranker
+      ↓
+Top 5
+      ↓
+LLM
+```
+
+This is much closer to what you'd see in a production RAG system.
+
+---
+
+# What Happens During Fusion?
+
+Let's say:
+
+Dense results:
+
+| Doc | Rank |
+| --- | ---- |
+| A   | 1    |
+| B   | 2    |
+| C   | 3    |
+
+Sparse results:
+
+| Doc | Rank |
+| --- | ---- |
+| C   | 1    |
+| D   | 2    |
+| E   | 3    |
+
+After RRF:
+
+```text
+A
+C
+B
+D
+E
+```
+
+Now MMR gets:
+
+```text
+[A,C,B,D,E]
+```
+
+as candidates.
+
+---
+
+# But MMR Needs Embeddings
+
+This is important.
+
+MMR computes:
+
+```text
+Similarity(Query, Document)
+```
+
+and
+
+```text
+Similarity(Document, OtherDocuments)
+```
+
+using embeddings.
+
+So even if BM25 found:
+
+```text
+Document X
+```
+
+MMR still needs an embedding for Document X.
+
+Fortunately:
+
+```text
+All chunks already have embeddings
+```
+
+inside the vector database.
+
+So MMR can compute diversity scores.
+
+---
+
+# Real-World Asynchronous Retrieval
+
+You asked another very important production question.
+
+Yes.
+
+Dense and sparse retrieval usually run in parallel.
+
+---
+
+Example:
+
+```text
+                 ┌──── Dense Search
+User Query ──────┤
+                 └──── Sparse Search
+```
+
+Both start simultaneously.
+
+---
+
+Using Python:
+
+```python
+dense_task = asyncio.create_task(
+    dense_retriever(query)
+)
+
+sparse_task = asyncio.create_task(
+    bm25_retriever(query)
+)
+
+dense_results, sparse_results = await asyncio.gather(
+    dense_task,
+    sparse_task
+)
+```
+
+This saves latency.
+
+---
+
+Without Parallelism
+
+```text
+Dense Search 100 ms
++
+Sparse Search 100 ms
+
+=
+200 ms
+```
+
+---
+
+With Parallelism
+
+```text
+max(100,100)
+
+=
+100 ms
+```
+
+---
+
+This is why virtually every enterprise RAG system runs retrieval concurrently.
+
+---
+
+# When Does MMR Execute?
+
+After both searches finish.
+
+```text
+Query
+   ↓
+Dense Search ──┐
+               │
+               ├─ Wait
+               │
+Sparse Search ─┘
+       ↓
+Fusion
+       ↓
+MMR
+       ↓
+Reranker
+```
+
+MMR cannot start until it knows the full candidate pool.
+
+---
+
+# What If Dense Finishes Earlier?
+
+Suppose:
+
+```text
+Dense = 50 ms
+Sparse = 200 ms
+```
+
+MMR still waits.
+
+```text
+Dense complete
+      ↓
+Waiting...
+      ↓
+Sparse complete
+      ↓
+Fusion
+      ↓
+MMR
+```
+
+because MMR needs the final combined candidate set.
+
+---
+
+# Modern Vector Databases
+
+Some systems already integrate hybrid retrieval:
+
+* [Qdrant](https://qdrant.tech?utm_source=chatgpt.com)
+* [Weaviate](https://weaviate.io?utm_source=chatgpt.com)
+* [OpenSearch](https://opensearch.org?utm_source=chatgpt.com)
+* [Elasticsearch](https://www.elastic.co?utm_source=chatgpt.com)
+
+Internally they may perform:
+
+```text
+Dense Search
++
+Sparse Search
++
+Fusion
+```
+
+inside the database itself.
+
+Then your application receives:
+
+```text
+Top 100 hybrid candidates
+```
+
+and applies:
+
+```text
+MMR
+↓
+Reranker
+```
+
+outside the database.
+
+---
+
+# What Do Large Production Systems Usually Do?
+
+A common architecture looks like:
+
+```text
+User Query
+    ↓
+Query Rewrite
+    ↓
+────────────────────────
+│                      │
+Dense Search       BM25 Search
+│                      │
+────────────────────────
+           ↓
+      RRF Fusion
+           ↓
+         MMR
+           ↓
+ Cross Encoder Reranker
+           ↓
+ Context Compression
+           ↓
+           LLM
+```
+
+So in most modern production RAG systems:
+
+✅ Dense and sparse retrieval run asynchronously/parallel.
+
+✅ Their outputs are merged (RRF, weighted fusion, etc.).
+
+✅ MMR receives the **combined candidate set**, not just dense results.
+
+✅ MMR then removes redundancy across *all* retrieved candidates before reranking.
+
+This "Fusion → MMR → Reranker" ordering is one of the most common high-quality enterprise retrieval pipelines today.
+
+
+
+# question: what is rrf or weigted fusion
+
+
+These are the two most common techniques used to **combine Dense Search results and Sparse Search results** in Hybrid Retrieval.
+
+The problem they solve is:
+
+```text
+Dense Search says:
+A, B, C, D
+
+BM25 says:
+C, E, F, G
+```
+
+How do we create one final ranking?
+
+That's where **RRF (Reciprocal Rank Fusion)** and **Weighted Fusion** come in.
+
+---
+
+# Why Fusion Is Needed
+
+Imagine the query:
+
+> "What is the attention mask in BERT?"
+
+Dense search might return:
+
+| Rank | Doc                   |
+| ---- | --------------------- |
+| 1    | BERT architecture     |
+| 2    | Transformer attention |
+| 3    | Positional encoding   |
+
+because semantically they're related.
+
+---
+
+BM25 might return:
+
+| Rank | Doc                         |
+| ---- | --------------------------- |
+| 1    | Attention mask in BERT      |
+| 2    | BERT attention mask example |
+| 3    | HuggingFace attention_mask  |
+
+because exact keywords match.
+
+---
+
+Both retrieval methods found useful information.
+
+You don't want to choose one and ignore the other.
+
+You want:
+
+```text
+Dense
++
+Sparse
+=
+Better Recall
+```
+
+Fusion combines them.
+
+---
+
+# Method 1: RRF (Reciprocal Rank Fusion)
+
+RRF is the most popular method in modern RAG.
+
+Many production systems use it because it is:
+
+* Simple
+* Fast
+* Robust
+* Doesn't require score normalization
+
+---
+
+## Core Idea
+
+Don't use retrieval scores.
+
+Use ranks only.
+
+Example:
+
+### Dense Search
+
+| Rank | Doc |
+| ---- | --- |
+| 1    | A   |
+| 2    | B   |
+| 3    | C   |
+
+---
+
+### Sparse Search
+
+| Rank | Doc |
+| ---- | --- |
+| 1    | C   |
+| 2    | D   |
+| 3    | E   |
+
+---
+
+RRF score:
+
+[
+Score(d)=\sum \frac{1}{k+r(d)}
+]
+
+where:
+
+* (r(d)) = rank
+* (k) = constant (usually 60)
+
+---
+
+For document C:
+
+Dense rank:
+
+```text
+3
+```
+
+Sparse rank:
+
+```text
+1
+```
+
+Score:
+
+[
+\frac1{60+3}
++
+\frac1{60+1}
+]
+
+---
+
+For document A:
+
+Dense rank:
+
+```text
+1
+```
+
+Sparse rank:
+
+Not present
+
+Score:
+
+[
+\frac1{60+1}
+]
+
+---
+
+Notice something:
+
+```text
+C appears in BOTH searches
+```
+
+So C receives score contributions twice.
+
+It rises to the top.
+
+---
+
+Final ranking may become:
+
+```text
+C
+A
+B
+D
+E
+```
+
+---
+
+# Why RRF Became Popular
+
+Dense scores and BM25 scores are completely different.
+
+Example:
+
+Dense similarity:
+
+```text
+0.89
+0.87
+0.84
+```
+
+BM25:
+
+```text
+17.2
+14.5
+9.1
+```
+
+These numbers are not comparable.
+
+You can't directly add them.
+
+RRF avoids this issue by ignoring scores entirely.
+
+It only uses rank positions.
+
+---
+
+# Visualization
+
+Dense:
+
+```text
+A
+B
+C
+```
+
+Sparse:
+
+```text
+C
+D
+E
+```
+
+RRF says:
+
+```text
+C appears twice
+⇒ Important
+
+A appears once
+⇒ Less important
+
+D appears once
+⇒ Less important
+```
+
+---
+
+# Why Production Systems Love RRF
+
+No tuning required.
+
+Works across:
+
+```text
+BM25
+Dense Search
+Graph Search
+Metadata Search
+Keyword Search
+```
+
+You can fuse anything.
+
+---
+
+# Method 2: Weighted Fusion
+
+Weighted Fusion uses actual scores.
+
+Formula:
+
+[
+Final =
+w_1(DenseScore)
++
+w_2(BM25Score)
+]
+
+---
+
+Example
+
+Suppose:
+
+### Dense
+
+| Doc | Score |
+| --- | ----- |
+| A   | 0.95  |
+| B   | 0.90  |
+| C   | 0.85  |
+
+---
+
+### BM25
+
+| Doc | Score |
+| --- | ----- |
+| A   | 15    |
+| B   | 5     |
+| C   | 1     |
+
+---
+
+First normalize scores.
+
+Dense:
+
+| Doc | Score |
+| --- | ----- |
+| A   | 0.95  |
+| B   | 0.90  |
+| C   | 0.85  |
+
+---
+
+BM25 normalized:
+
+| Doc | Score |
+| --- | ----- |
+| A   | 1.0   |
+| B   | 0.33  |
+| C   | 0.07  |
+
+---
+
+Then:
+
+[
+0.7(Dense)
++
+0.3(BM25)
+]
+
+---
+
+For A:
+
+[
+0.7(0.95)
++
+0.3(1.0)
+========
+
+0.965
+]
+
+---
+
+For B:
+
+[
+0.7(0.90)
++
+0.3(0.33)
+=========
+
+0.729
+]
+
+---
+
+Now rank by final score.
+
+---
+
+# Why Weighted Fusion Is Hard
+
+The challenge:
+
+```text
+Dense scores
+and
+BM25 scores
+
+live on different scales
+```
+
+Example:
+
+Dense:
+
+```text
+0.91
+0.89
+0.87
+```
+
+BM25:
+
+```text
+35
+18
+7
+```
+
+Need normalization.
+
+Need tuning.
+
+Need experimentation.
+
+Can break when datasets change.
+
+---
+
+# RRF vs Weighted Fusion
+
+| Feature             | RRF | Weighted Fusion |
+| ------------------- | --- | --------------- |
+| Uses ranks          | ✅   | ❌               |
+| Uses scores         | ❌   | ✅               |
+| Needs normalization | ❌   | ✅               |
+| Easy to implement   | ✅   | ❌               |
+| Robust              | ✅   | ⚠️              |
+| Tunable             | ❌   | ✅               |
+| Most common in RAG  | ✅   | ⚠️              |
+| Production friendly | ✅   | ✅               |
+
+---
+
+# Example in a Production RAG Pipeline
+
+```text
+User Query
+      ↓
+Query Expansion
+      ↓
+ ┌─────────────┐
+ │ Dense Search│
+ └─────────────┘
+      ↓
+
+ ┌─────────────┐
+ │ BM25 Search │
+ └─────────────┘
+
+      ↓
+     RRF
+      ↓
+Top 100 Candidates
+      ↓
+MMR
+      ↓
+Top 20 Candidates
+      ↓
+Cross Encoder Reranker
+      ↓
+Top 5
+      ↓
+LLM
+```
+
+This is very close to what many enterprise-grade RAG systems use.
+
+---
+
+# Which One Should You Learn First?
+
+For production RAG, learn in this order:
+
+```text
+1. Dense Search
+2. BM25
+3. Hybrid Search
+4. RRF
+5. MMR
+6. Cross Encoder Reranker
+7. Context Compression
+```
+
+And if you look at modern systems such as [Elasticsearch](https://www.elastic.co?utm_source=chatgpt.com), [OpenSearch](https://opensearch.org?utm_source=chatgpt.com), [Weaviate](https://weaviate.io?utm_source=chatgpt.com), and [Qdrant](https://qdrant.tech?utm_source=chatgpt.com), you'll find that **RRF has become the default fusion strategy in many hybrid-search deployments** because it works surprisingly well without requiring score calibration.

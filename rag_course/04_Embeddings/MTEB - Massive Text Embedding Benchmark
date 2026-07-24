@@ -1,0 +1,271 @@
+**MTEB** stands for **Massive Text Embedding Benchmark**.
+
+It is a standardized benchmark used to evaluate how good an embedding model is across many real-world NLP tasks.
+
+Think of it as:
+
+> **ImageNet for embeddings**
+
+Just like image models are compared on ImageNet, embedding models are compared on MTEB.
+
+---
+
+# Why was MTEB created?
+
+Before MTEB, every embedding model paper used different datasets and evaluation methods.
+
+For example:
+
+* Model A tested on semantic similarity
+* Model B tested on retrieval
+* Model C tested on clustering
+
+This made comparisons difficult.
+
+MTEB provides:
+
+* Common datasets
+* Common evaluation metrics
+* Common ranking system
+
+so that all embedding models can be compared fairly.
+
+---
+
+# What does MTEB test?
+
+MTEB evaluates embeddings on multiple categories of tasks.
+
+## 1. Retrieval (Most important for RAG)
+
+Example:
+
+Query:
+
+```
+How do transformers work?
+```
+
+Documents:
+
+```
+Doc1: Neural networks...
+Doc2: Transformers use self-attention...
+Doc3: Databases...
+```
+
+A good embedding model should rank:
+
+```
+Doc2 → highest
+Doc1 → second
+Doc3 → last
+```
+
+This is exactly what happens in RAG systems.
+
+---
+
+## 2. Semantic Similarity
+
+Given two sentences:
+
+```
+A: I love dogs
+B: I like dogs
+```
+
+Embeddings should be close together.
+
+But:
+
+```
+A: I love dogs
+B: The stock market crashed
+```
+
+should be far apart.
+
+---
+
+## 3. Classification
+
+Example:
+
+```
+Positive review
+Negative review
+```
+
+Embeddings should contain enough information to separate classes.
+
+---
+
+## 4. Clustering
+
+Documents about:
+
+```
+Sports
+Politics
+Technology
+```
+
+should naturally group together in vector space.
+
+---
+
+## 5. Reranking
+
+Given:
+
+```
+Query
+Candidate documents
+```
+
+Can embeddings identify the best document?
+
+---
+
+## 6. Pair Classification
+
+Example:
+
+```
+Sentence A
+Sentence B
+```
+
+Determine whether they are:
+
+* duplicate
+* paraphrase
+* contradiction
+
+---
+
+## 7. Summarization Evaluation
+
+Measures whether summary embeddings stay close to source embeddings.
+
+---
+
+# How does MTEB score models?
+
+Each task has its own metric.
+
+Examples:
+
+### Retrieval
+
+Uses:
+
+* NDCG@10
+* MAP
+* Recall@k
+
+### Similarity
+
+Uses:
+
+* Spearman correlation
+* Pearson correlation
+
+### Classification
+
+Uses:
+
+* Accuracy
+* F1 score
+
+The scores are normalized and combined into an overall MTEB score.
+
+---
+
+# Example MTEB leaderboard
+
+Typical high-performing models include:
+
+* BGE Large
+* BGE M3
+* E5 Large
+* GTE Large
+* NV-Embed
+* Stella
+* Jina Embeddings
+* OpenAI text-embedding-3-large
+
+The higher the MTEB score, the better the model generally performs across many tasks.
+
+---
+
+# Why should a RAG engineer care?
+
+Because retrieval is one of the MTEB categories.
+
+When you see:
+
+```
+BGE-large-en-v1.5
+MTEB Retrieval Score: 54
+```
+
+it means:
+
+> On average, BGE retrieves relevant documents better than a model scoring 45.
+
+For production RAG systems, MTEB retrieval scores are often a good starting signal when choosing an embedding model.
+
+---
+
+# Example with MiniLM vs BGE
+
+Suppose:
+
+| Model                         | Dimension |        MTEB Score |
+| ----------------------------- | --------: | ----------------: |
+| all-MiniLM-L6-v2              |       384 |            ~55-60 |
+| bge-base-en-v1.5              |       768 |               ~63 |
+| bge-large-en-v1.5             |      1024 |              ~65+ |
+| OpenAI text-embedding-3-large |      3072 |         ~high 60s |
+| NV-Embed-v2                   |      4096 | among the highest |
+
+Higher MTEB usually means better retrieval quality, but also:
+
+* larger vectors
+* more VRAM
+* more storage
+* slower indexing
+
+So production systems balance:
+
+```
+Quality (MTEB)
+vs
+Cost
+vs
+Latency
+```
+
+---
+
+# For your RAG learning
+
+When you read:
+
+```python
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
+```
+
+that model is chosen mostly because:
+
+* tiny
+* fast
+* easy to run on a laptop
+
+Not because it is the highest-scoring MTEB model.
+
+In real production RAG systems, it is common to use stronger models such as BGE, E5, GTE, NV-Embed, Jina, or OpenAI embeddings because they generally achieve higher MTEB retrieval performance and therefore retrieve more relevant chunks.
