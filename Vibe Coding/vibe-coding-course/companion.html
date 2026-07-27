@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocuMind AI — The Vibe Coding Course Companion</title>
+<style>
+  /* ============================================
+     BASE
+     ============================================ */
+  :root {
+    --bg: #0b0d12;
+    --bg-elevated: #14171f;
+    --bg-card: #1a1e29;
+    --border: #2a2f3e;
+    --border-soft: #20242f;
+    --text: #e4e6eb;
+    --text-dim: #8b92a7;
+    --text-faint: #5b6173;
+    --accent: #6366f1;
+    --accent-2: #8b5cf6;
+    --accent-3: #06b6d4;
+    --green: #10b981;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --pink: #ec4899;
+    --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+    --gradient-2: linear-gradient(135deg, #06b6d4 0%, #6366f1 100%);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ============================================
+     LAYOUT
+     ============================================ */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  section { padding: 80px 0; }
+
+  .section-tag {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  h1, h2, h3, h4 { font-weight: 700; line-height: 1.2; }
+
+  h2 {
+    font-size: 36px;
+    margin-bottom: 16px;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  h3 { font-size: 22px; margin-bottom: 12px; color: var(--text); }
+  h4 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
+
+  p { color: var(--text-dim); margin-bottom: 16px; }
+
+  .lead { font-size: 18px; color: var(--text-dim); max-width: 700px; }
+
+  /* ============================================
+     HERO
+     ============================================ */
+  .hero {
+    padding: 100px 0 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 800px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .hero-content { position: relative; z-index: 1; }
+
+  .hero-eyebrow {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-size: 64px;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    font-size: 20px;
+    color: var(--text-dim);
+    max-width: 700px;
+    margin: 0 auto 40px;
+  }
+
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+    font-size: 14px;
+    color: var(--text-faint);
+  }
+
+  .hero-meta span { display: flex; align-items: center; gap: 8px; }
+  .hero-meta .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+
+  /* ============================================
+     ROADMAP
+     ============================================ */
+  .roadmap {
+    position: relative;
+  }
+
+  .roadmap-track {
+    position: relative;
+    padding: 20px 0;
+  }
+
+  .roadmap-step {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 24px;
+    align-items: start;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .roadmap-step::before {
+    content: "";
+    position: absolute;
+    left: 39px;
+    top: 80px;
+    bottom: -24px;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .roadmap-step:last-child::before { display: none; }
+
+  .step-num {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--accent);
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-num.advanced { border-color: var(--orange); color: var(--orange); }
+  .step-num.pro { border-color: var(--pink); color: var(--pink); }
+
+  .step-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.2s;
+  }
+
+  .step-content:hover {
+    border-color: var(--accent);
+    transform: translateX(4px);
+  }
+
+  .step-title { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+  .step-title h3 { margin: 0; }
+
+  .step-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 12px;
+    letter-spacing: 0.05em;
+  }
+  .tag-easy { background: rgba(16, 185, 129, 0.15); color: var(--green); }
+  .tag-medium { background: rgba(245, 158, 11, 0.15); color: var(--orange); }
+  .tag-hard { background: rgba(239, 68, 68, 0.15); color: var(--red); }
+
+  .step-content p { margin: 0; font-size: 15px; }
+
+  /* ============================================
+     ARCHITECTURE DIAGRAM
+     ============================================ */
+  .arch-section { background: var(--bg-elevated); }
+
+  .arch-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    margin-top: 32px;
+    overflow-x: auto;
+  }
+
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .arch-col { display: flex; flex-direction: column; gap: 16px; }
+
+  .arch-col-title {
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .arch-box {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    transition: all 0.2s;
+  }
+
+  .arch-box:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .arch-box .name {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .arch-box .desc {
+    font-size: 12px;
+    color: var(--text-faint);
+    line-height: 1.5;
+  }
+
+  .arch-box.api { border-left: 3px solid var(--accent-3); }
+  .arch-box.service { border-left: 3px solid var(--accent); }
+  .arch-box.db { border-left: 3px solid var(--green); }
+  .arch-box.ai { border-left: 3px solid var(--pink); }
+
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--text-faint);
+    margin: 8px 0;
+  }
+
+  /* ============================================
+     RAG FLOW
+     ============================================ */
+  .rag-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    margin-top: 32px;
+  }
+
+  .rag-phase {
+    margin-bottom: 48px;
+  }
+  .rag-phase:last-child { margin-bottom: 0; }
+
+  .rag-phase-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .rag-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .rag-node {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    min-width: 140px;
+    text-align: center;
+  }
+
+  .rag-node.highlight { border-color: var(--accent); background: rgba(99, 102, 241, 0.05); }
+
+  .rag-node .icon { font-size: 24px; margin-bottom: 6px; }
+  .rag-node .name { font-weight: 600; font-size: 14px; color: var(--text); }
+  .rag-node .sub { font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+
+  .rag-arrow {
+    color: var(--text-faint);
+    font-size: 20px;
+  }
+
+  /* ============================================
+     PROMPT TEMPLATE
+     ============================================ */
+  .template-card {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 24px;
+    font-family: "SF Mono", Monaco, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+
+  .template-card .tk-comment { color: #8b949e; }
+  .template-card .tk-key { color: #79c0ff; font-weight: 600; }
+  .template-card .tk-str { color: #a5d6ff; }
+  .template-card .tk-bul { color: #d2a8ff; }
+
+  /* ============================================
+     CARDS
+     ============================================ */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 32px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.2s;
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .card .icon { font-size: 32px; margin-bottom: 12px; }
+  .card h4 { margin-bottom: 8px; }
+  .card p { font-size: 14px; margin: 0; }
+
+  /* ============================================
+     CHECKLIST
+     ============================================ */
+  .checklist {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-top: 24px;
+  }
+
+  .checklist h4 {
+    color: var(--accent);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 24px 0 12px;
+  }
+  .checklist h4:first-child { margin-top: 0; }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  .check-item::before {
+    content: "☐";
+    color: var(--text-faint);
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  /* ============================================
+     COMPARISON TABLE
+     ============================================ */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  th {
+    background: var(--bg-elevated);
+    font-weight: 600;
+    color: var(--text);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  td { font-size: 14px; color: var(--text-dim); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(99, 102, 241, 0.04); }
+
+  /* ============================================
+     CTA
+     ============================================ */
+  .cta {
+    text-align: center;
+    padding: 80px 24px;
+    background: var(--bg-elevated);
+    border-radius: 24px;
+    margin: 60px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
+  }
+
+  .cta-content { position: relative; z-index: 1; }
+  .cta h2 { margin-bottom: 16px; }
+  .cta p { max-width: 500px; margin: 0 auto 32px; }
+
+  .btn {
+    display: inline-block;
+    background: var(--gradient);
+    color: white;
+    padding: 14px 32px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    transition: transform 0.2s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+
+  /* ============================================
+     FOOTER
+     ============================================ */
+  footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--text-faint);
+    font-size: 13px;
+    border-top: 1px solid var(--border-soft);
+  }
+
+  /* ============================================
+     RESPONSIVE
+     ============================================ */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 40px; }
+    .arch-grid { grid-template-columns: 1fr; }
+    h2 { font-size: 28px; }
+    section { padding: 60px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container hero-content">
+    <div class="hero-eyebrow">The Complete Vibe Coding Course</div>
+    <h1>Vibe Coding<br>& Agentic AI</h1>
+    <p>A beginner-to-pro guide to building real AI SaaS products with AI-assisted development. From "what is this" to "shipping in production."</p>
+    <div class="hero-meta">
+      <span><span class="dot"></span>13 parts</span>
+      <span><span class="dot"></span>1 real project: DocuMind AI</span>
+      <span><span class="dot"></span>100% free & open source stack</span>
+      <span><span class="dot"></span>Production-grade patterns</span>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT IS IT -->
+<section>
+  <div class="container">
+    <span class="section-tag">The 30-second version</span>
+    <h2>What are these things?</h2>
+    <p class="lead">Two ways of using AI to write code. Same goal, different roles for you.</p>
+
+    <div class="cards" style="margin-top: 40px;">
+      <div class="card">
+        <div class="icon">🎨</div>
+        <h4>Vibe Coding</h4>
+        <p><strong>You drive, AI types.</strong> You describe what you want, AI writes the code, you review and guide. You're the architect, AI is the fast junior. Coined by Andrej Karpathy in Feb 2025.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🤖</div>
+        <h4>Agentic AI Coding</h4>
+        <p><strong>AI drives, you tech-lead.</strong> You give high-level goals, the AI plans, writes, tests, and fixes its own bugs. You review the result. 5-10x productivity when done right.</p>
+      </div>
+      <div class="card">
+        <div class="icon">⚡</div>
+        <h4>The Pro Move</h4>
+        <p><strong>Use both.</strong> Vibe for architecture and risky bits. Agentic for boilerplate, refactors, and tests. Switch based on task clarity and risk.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section style="background: var(--bg-elevated);">
+  <div class="container">
+    <span class="section-tag">The roadmap</span>
+    <h2>From zero to shipped</h2>
+    <p class="lead">13 parts, each more advanced than the last. Read in order, build as you go.</p>
+
+    <div class="roadmap" style="margin-top: 48px;">
+      <div class="roadmap-track">
+
+        <div class="roadmap-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title"><h3>What is Vibe Coding?</h3><span class="step-tag tag-easy">EASY</span></div>
+            <p>Definitions, history, the 2 modes, what AI is good/bad at, the mindset shift.</p>
+          </div>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title"><h3>The AI Coding Toolkit</h3><span class="step-tag tag-easy">EASY</span></div>
+            <p>VSCode, Continue.dev, Cline, Aider, Claude Code. Models: Gemini, DeepSeek, Claude. The 2026 stack.</p>
+          </div>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title"><h3>The Mental Model</h3><span class="step-tag tag-easy">EASY</span></div>
+            <p>How AI coding actually works. The loop. The 3 levels (tab/chat/agent). When to use which.</p>
+          </div>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title"><h3>The Art of the Prompt</h3><span class="step-tag tag-medium">MEDIUM</span></div>
+            <p>5 prompt templates that always work. 5 anti-patterns to avoid. How to read AI output.</p>
+          </div>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title"><h3>Project Architecture</h3><span class="step-tag tag-medium">MEDIUM</span></div>
+            <p>Monolith-first. The folder structure that scales. The flow of a request. Why FastAPI.</p>
+          </div>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <div class="step-title"><h3>FastAPI + PostgreSQL</h3><span class="step-tag tag-medium">MEDIUM</span></div>
+            <p>Heavily-commented code: settings, models, schemas, services, auth, endpoints. The foundation.</p>
+          </div>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-num advanced">7</div>
+          <div class="step-content">
+            <div class="step-title"><h3>LangChain Fundamentals</h3><span class="step-tag tag-hard">HARD</span></div>
+            <p>LLM factory, prompt templates, output parsers, LCEL chains, tools, streaming, error handling.</p>
+          </div>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-num advanced">8</div>
+          <div class="step-content">
+            <div class="step-title"><h3>RAG Deep Dive</h3><span class="step-tag tag-hard">HARD</span></div>
+            <p>The pattern that powers every AI SaaS. Vector store, embeddings, retrieval, the full pipeline.</p>
+          </div>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-num pro">9</div>
+          <div class="step-content">
+            <div class="step-title"><h3>Production Concerns</h3><span class="step-tag tag-hard">HARD</span></div>
+            <p>Testing, structured logging, custom exceptions, rate limiting, monitoring with Langfuse.</p>
+          </div>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-num pro">10</div>
+          <div class="step-content">
+            <div class="step-title"><h3>Docker + CI/CD</h3><span class="step-tag tag-hard">HARD</span></div>
+            <p>Multi-stage Dockerfile, Compose for local dev, Alembic migrations, GitHub Actions, deployment.</p>
+          </div>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-num pro">11</div>
+          <div class="step-content">
+            <div class="step-title"><h3>The Vibe Coding Workflow</h3><span class="step-tag tag-hard">HARD</span></div>
+            <p>The 5-step loop. Editor setup. Daily routine. The "I'm stuck" toolkit. What to watch for.</p>
+          </div>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-num pro">12</div>
+          <div class="step-content">
+            <div class="step-title"><h3>Advanced Patterns</h3><span class="step-tag tag-hard">HARD</span></div>
+            <p>Conversational memory, streaming, caching, multi-agent, LangGraph, function calling, cost control.</p>
+          </div>
+        </div>
+
+        <div class="roadmap-step">
+          <div class="step-num pro">13</div>
+          <div class="step-content">
+            <div class="step-title"><h3>Capstone: Ship It</h3><span class="step-tag tag-hard">HARD</span></div>
+            <p>DocuMind AI end-to-end. The launch checklist. The first 30 days. What to build next.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="arch-section">
+  <div class="container">
+    <span class="section-tag">The architecture</span>
+    <h2>What we're building: DocuMind AI</h2>
+    <p class="lead">A multi-tenant SaaS where users upload PDFs and chat with them. Production-grade. Real patterns.</p>
+
+    <div class="arch-container">
+      <div class="arch-grid">
+
+        <div class="arch-col">
+          <div class="arch-col-title">API Layer</div>
+          <div class="arch-box api">
+            <div class="name">/auth</div>
+            <div class="desc">Register, login, JWT issuance</div>
+          </div>
+          <div class="arch-box api">
+            <div class="name">/users</div>
+            <div class="desc">Profile, list, admin ops</div>
+          </div>
+          <div class="arch-box api">
+            <div class="name">/documents</div>
+            <div class="desc">Upload, list, delete PDFs</div>
+          </div>
+          <div class="arch-box api">
+            <div class="name">/chat</div>
+            <div class="desc">RAG-powered chat with streaming</div>
+          </div>
+        </div>
+
+        <div class="arch-col">
+          <div class="arch-col-title">Service Layer</div>
+          <div class="arch-box service">
+            <div class="name">user_service</div>
+            <div class="desc">Auth, CRUD, user logic</div>
+          </div>
+          <div class="arch-box service">
+            <div class="name">document_service</div>
+            <div class="desc">File ops, lifecycle</div>
+          </div>
+          <div class="arch-box service">
+            <div class="name">chat_service</div>
+            <div class="desc">RAG pipeline, history, streaming</div>
+          </div>
+          <div class="arch-box service">
+            <div class="name">llm/</div>
+            <div class="desc">Factory, chains, vector store, tools</div>
+          </div>
+        </div>
+
+        <div class="arch-col">
+          <div class="arch-col-title">Data + AI</div>
+          <div class="arch-box db">
+            <div class="name">PostgreSQL</div>
+            <div class="desc">Users, docs, sessions, messages</div>
+          </div>
+          <div class="arch-box db">
+            <div class="name">ChromaDB</div>
+            <div class="desc">Vector store, embeddings</div>
+          </div>
+          <div class="arch-box db">
+            <div class="name">Redis</div>
+            <div class="desc">Cache, rate limit, ARQ broker</div>
+          </div>
+          <div class="arch-box ai">
+            <div class="name">Gemini / Claude</div>
+            <div class="desc">LLM via LangChain (vendor-agnostic)</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border-soft);">
+        <div class="arch-col-title" style="margin-bottom: 16px;">Background Workers (ARQ + Redis)</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+          <div class="arch-box service">
+            <div class="name">pdf_processor</div>
+            <div class="desc">Extract text → chunk → embed → store</div>
+          </div>
+          <div class="arch-box service">
+            <div class="name">email_worker</div>
+            <div class="desc">Send transactional emails</div>
+          </div>
+          <div class="arch-box service">
+            <div class="name">cleanup_worker</div>
+            <div class="desc">Delete orphans, rotate logs</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin-top: 24px; font-size: 14px; text-align: center;">
+      <strong>Request flow:</strong> HTTP → API layer → Service layer → DB / Vector store / LLM → Response.
+      <br>The API is thin (validation, auth, dispatch). The service layer is fat (all the logic).
+    </p>
+  </div>
+</section>
+
+<!-- RAG FLOW -->
+<section>
+  <div class="container">
+    <span class="section-tag">The pattern that matters</span>
+    <h2>RAG: How "Chat with your docs" works</h2>
+    <p class="lead">Two phases. Indexing is slow and runs in the background. Querying is real-time and must be fast.</p>
+
+    <div class="rag-container">
+
+      <div class="rag-phase">
+        <div class="rag-phase-title">Phase 1: Indexing (one-time per document)</div>
+        <div class="rag-flow">
+          <div class="rag-node">
+            <div class="icon">📄</div>
+            <div class="name">PDF Upload</div>
+            <div class="sub">User uploads file</div>
+          </div>
+          <div class="rag-arrow">→</div>
+          <div class="rag-node">
+            <div class="icon">📖</div>
+            <div class="name">Extract Text</div>
+            <div class="sub">pypdf / pdfplumber</div>
+          </div>
+          <div class="rag-arrow">→</div>
+          <div class="rag-node">
+            <div class="icon">✂️</div>
+            <div class="name">Chunk</div>
+            <div class="sub">1000 chars, 200 overlap</div>
+          </div>
+          <div class="rag-arrow">→</div>
+          <div class="rag-node highlight">
+            <div class="icon">🧠</div>
+            <div class="name">Embed</div>
+            <div class="sub">text-embedding-004</div>
+          </div>
+          <div class="rag-arrow">→</div>
+          <div class="rag-node">
+            <div class="icon">💾</div>
+            <div class="name">Store</div>
+            <div class="sub">ChromaDB with user_id filter</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rag-phase">
+        <div class="rag-phase-title">Phase 2: Querying (every user question)</div>
+        <div class="rag-flow">
+          <div class="rag-node">
+            <div class="icon">💬</div>
+            <div class="name">Question</div>
+            <div class="sub">"What's the refund policy?"</div>
+          </div>
+          <div class="rag-arrow">→</div>
+          <div class="rag-node highlight">
+            <div class="icon">🔍</div>
+            <div class="name">Search</div>
+            <div class="sub">Top 5 chunks, user_id filter</div>
+          </div>
+          <div class="rag-arrow">→</div>
+          <div class="rag-node">
+            <div class="icon">📋</div>
+            <div class="name">Build Prompt</div>
+            <div class="sub">Context + history + question</div>
+          </div>
+          <div class="rag-arrow">→</div>
+          <div class="rag-node highlight">
+            <div class="icon">🤖</div>
+            <div class="name">LLM</div>
+            <div class="sub">Gemini Flash</div>
+          </div>
+          <div class="rag-arrow">→</div>
+          <div class="rag-node">
+            <div class="icon">✨</div>
+            <div class="name">Answer</div>
+            <div class="sub">Streamed, with citations</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <p style="margin-top: 24px; font-size: 14px; text-align: center;">
+      <strong>The security boundary:</strong> every search filters by <code style="background: var(--bg-card); padding: 2px 6px; border-radius: 4px; color: var(--accent);">user_id</code>.
+      Users can only retrieve their own documents. <strong>Never</strong> skip this filter.
+    </p>
+  </div>
+</section>
+
+<!-- PROMPT TEMPLATE -->
+<section style="background: var(--bg-elevated);">
+  <div class="container">
+    <span class="section-tag">The most important skill</span>
+    <h2>The "New Feature" prompt template</h2>
+    <p class="lead">The more you specify, the less the AI has to guess. This is the template pros use.</p>
+
+    <div class="template-card">
+<span class="tk-comment"># Context</span>
+<span class="tk-key">I'm building</span> <span class="tk-str">DocuMind AI</span>, <span class="tk-key">a FastAPI + PostgreSQL SaaS for chatting with PDFs.</span>
+<span class="tk-key">The existing code has</span>: User model, JWT auth, /api/v1/users endpoints.
+PostgreSQL via SQLAlchemy 2.0 async, Alembic for migrations.
+
+<span class="tk-comment"># Goal</span>
+<span class="tk-key">Add a</span> /api/v1/documents <span class="tk-key">endpoint that lets users upload PDFs.</span>
+
+<span class="tk-comment"># Constraints</span>
+- <span class="tk-key">Use the existing User model and auth dependency</span>
+- <span class="tk-key">Store files in</span> /uploads/{user_id}/{doc_id}.pdf
+- <span class="tk-key">Save metadata to a new</span> Document <span class="tk-key">model</span> (id, user_id, filename, size, uploaded_at)
+- <span class="tk-key">Use</span> python-multipart <span class="tk-key">for file uploads</span>
+- <span class="tk-key">Don't add new top-level dependencies</span>
+- <span class="tk-key">Follow the same patterns as the existing</span> /users <span class="tk-key">router</span>
+
+<span class="tk-comment"># Acceptance criteria</span>
+- <span class="tk-bul">☐</span> POST /api/v1/documents <span class="tk-key">accepts a PDF, returns</span> 201 <span class="tk-key">with the document</span>
+- <span class="tk-bul">☐</span> GET /api/v1/documents <span class="tk-key">returns the user's documents</span>
+- <span class="tk-bul">☐</span> DELETE /api/v1/documents/{id} <span class="tk-key">removes file and metadata</span>
+- <span class="tk-bul">☐</span> <span class="tk-key">Returns</span> 401 <span class="tk-key">for unauthenticated,</span> 404 <span class="tk-key">for wrong user</span>
+- <span class="tk-bul">☐</span> pytest <span class="tk-key">tests for the happy path and the auth failure</span>
+    </div>
+
+    <p style="margin-top: 24px; font-size: 14px; text-align: center;">
+      Compare this to "Add a documents endpoint" — and you'll see the difference immediately.
+    </p>
+  </div>
+</section>
+
+<!-- THE LOOP -->
+<section>
+  <div class="container">
+    <span class="section-tag">The daily loop</span>
+    <h2>How pros actually use AI to code</h2>
+    <p class="lead">Same loop, every feature, every day. 5 steps, one habit.</p>
+
+    <div class="cards" style="margin-top: 40px;">
+      <div class="card">
+        <div class="icon">🧠</div>
+        <h4>1. Understand</h4>
+        <p>2-5 minutes. What behavior do I want? What does "done" look like? What could go wrong? How will I test it?</p>
+      </div>
+      <div class="card">
+        <div class="icon">📝</div>
+        <h4>2. Spec</h4>
+        <p>5-15 minutes. Write the spec. Use the templates. The more specific, the better. AI is a junior; juniors need clear tasks.</p>
+      </div>
+      <div class="card">
+        <div class="icon">✨</div>
+        <h4>3. Generate</h4>
+        <p>Pick the right tool. Tab-complete for tiny, chat for small, agent for medium+. Go get coffee while the agent works.</p>
+      </div>
+      <div class="card">
+        <div class="icon">👀</div>
+        <h4>4. Review</h4>
+        <p>Skim 90%, deep-read 10% (auth, security, money). Run the tests. Trust the behavior, not the syntax.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔄</div>
+        <h4>5. Iterate</h4>
+        <p>Tell the AI what's wrong. Be specific. After 3 failed attempts, take over. Commit, push, repeat.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOL COMPARISON -->
+<section style="background: var(--bg-elevated);">
+  <div class="container">
+    <span class="section-tag">The toolkit</span>
+    <h2>What to use (and why)</h2>
+    <p class="lead">Free, open source, no vendor lock-in. The picks for 2026.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Pick</th>
+          <th>Why</th>
+          <th>Alternative</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>IDE</td>
+          <td><strong>VSCode</strong></td>
+          <td>Free, open source, biggest extension ecosystem</td>
+          <td>Cursor (paid, better AI)</td>
+        </tr>
+        <tr>
+          <td>AI assistant</td>
+          <td><strong>Continue.dev</strong></td>
+          <td>Free, open source, BYO model, no lock-in</td>
+          <td>Cursor, Copilot (paid)</td>
+        </tr>
+        <tr>
+          <td>Terminal agent</td>
+          <td><strong>Aider</strong></td>
+          <td>Free, open source, Git-native (commits as it goes)</td>
+          <td>Claude Code (paid, more powerful)</td>
+        </tr>
+        <tr>
+          <td>LLM</td>
+          <td><strong>Gemini 2.5 Flash</strong></td>
+          <td>Generous free tier, fast, good enough for most</td>
+          <td>DeepSeek (cheap), Claude (best)</td>
+        </tr>
+        <tr>
+          <td>Model router</td>
+          <td><strong>OpenRouter</strong></td>
+          <td>One API for 100+ models, pay-as-you-go</td>
+          <td>LiteLLM (self-hosted)</td>
+        </tr>
+        <tr>
+          <td>Web framework</td>
+          <td><strong>FastAPI</strong></td>
+          <td>Async, auto-docs, AI-friendly, Pydantic-native</td>
+          <td>Flask, Django</td>
+        </tr>
+        <tr>
+          <td>Database</td>
+          <td><strong>PostgreSQL 16</strong></td>
+          <td>Free, open source, scales to billions</td>
+          <td>MySQL, MongoDB</td>
+        </tr>
+        <tr>
+          <td>ORM</td>
+          <td><strong>SQLAlchemy 2.0</strong></td>
+          <td>The Python ORM, async support, biggest community</td>
+          <td>Tortoise, SQLModel</td>
+        </tr>
+        <tr>
+          <td>LLM framework</td>
+          <td><strong>LangChain</strong></td>
+          <td>Vendor abstraction — switch providers in 1 line</td>
+          <td>LlamaIndex, direct SDKs</td>
+        </tr>
+        <tr>
+          <td>Vector DB</td>
+          <td><strong>ChromaDB</strong></td>
+          <td>Free, open source, runs locally, easy migration</td>
+          <td>pgvector, Qdrant, Pinecone</td>
+        </tr>
+        <tr>
+          <td>Background jobs</td>
+          <td><strong>ARQ</strong></td>
+          <td>Async, Redis-based, simpler than Celery</td>
+          <td>Celery (more features)</td>
+        </tr>
+        <tr>
+          <td>Observability</td>
+          <td><strong>Langfuse</strong></td>
+          <td>Free tier, traces LLM calls, prompt/response/token visibility</td>
+          <td>LangSmith (paid)</td>
+        </tr>
+        <tr>
+          <td>Deployment</td>
+          <td><strong>Fly.io</strong></td>
+          <td>Free tier, Docker-native, easy</td>
+          <td>Render, Railway, self-host</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- PRE-LAUNCH -->
+<section>
+  <div class="container">
+    <span class="section-tag">The launch checklist</span>
+    <h2>Before you ship anything</h2>
+    <p class="lead">If you can't tick all of these, you're not ready to launch. The good news: each one is small.</p>
+
+    <div class="checklist">
+      <h4>Code Quality</h4>
+      <div class="check-item">All tests pass (`make test`)</div>
+      <div class="check-item">No linter errors (`make lint`)</div>
+      <div class="check-item">No type errors (`mypy app`)</div>
+      <div class="check-item">Coverage >80% on services and API</div>
+      <div class="check-item">No secrets in code (only in env vars)</div>
+      <div class="check-item">All dependencies pinned in requirements.txt</div>
+
+      <h4>Security</h4>
+      <div class="check-item">All endpoints require auth (except /health, /auth/*)</div>
+      <div class="check-item">Passwords are hashed (bcrypt, not MD5)</div>
+      <div class="check-item">JWT tokens have expiry</div>
+      <div class="check-item">CORS is configured (not `*`)</div>
+      <div class="check-item">File uploads have size and type limits</div>
+      <div class="check-item">SQL queries use SQLAlchemy (no string concat)</div>
+      <div class="check-item">User data is filtered by user_id (multi-tenant safety)</div>
+      <div class="check-item">.env is in .gitignore</div>
+      <div class="check-item">Dependencies scanned for vulnerabilities</div>
+
+      <h4>Performance</h4>
+      <div class="check-item">DB queries have indexes on frequently-filtered columns</div>
+      <div class="check-item">LLM calls have max_tokens set</div>
+      <div class="check-item">LLM calls have timeouts</div>
+      <div class="check-item">Expensive operations run in background</div>
+      <div class="check-item">Rate limits are set on expensive endpoints</div>
+
+      <h4>Observability</h4>
+      <div class="check-item">Structured logging (structlog) configured</div>
+      <div class="check-item">LLM calls traced (Langfuse)</div>
+      <div class="check-item">Errors tracked (Sentry or similar)</div>
+      <div class="check-item">Uptime monitoring set up</div>
+      <div class="check-item">Health check endpoint works</div>
+      <div class="check-item">Token usage and cost logged</div>
+
+      <h4>Operations</h4>
+      <div class="check-item">Database backups configured</div>
+      <div class="check-item">Secrets stored in env vars</div>
+      <div class="check-item">CI runs on every PR</div>
+      <div class="check-item">Deployment is automated</div>
+      <div class="check-item">Rollback plan documented</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="container">
+  <div class="cta">
+    <div class="cta-content">
+      <h2>Ready to build?</h2>
+      <p>Open your editor, spin up Continue, paste in a spec, and start coding. The fastest way to learn is to ship.</p>
+      <a href="00-THE-COMPLETE-GUIDE.md" class="btn">Start with Part 1 →</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    The Complete Vibe Coding & Agentic AI Coding Guide · 2026
+    <br><br>
+    Every tool mentioned is free or open source. Every pattern is production-grade. No vendor lock-in. Ship it.
+  </div>
+</footer>
+
+</body>
+</html>
