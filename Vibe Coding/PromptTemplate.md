@@ -17,6 +17,7 @@
 4. Where to Store this Output ?
 5. Dont add new dependencies without asking
 6. Follow existing patterns
+7. Do not use anydeprecated or sunset libraries / packages / sdk 
 
 # Acceptance Criteria
 
@@ -26,7 +27,7 @@
 
 3. Write Test Cases using tool name
 
-
+4. Confirm that the code does not contain any deprecated or sunset libraries / packages / sdk
 
 # Current Things Tried (Optional for Bug Fix)
 
