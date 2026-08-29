@@ -1,0 +1,57 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":automergeMinor",
+    ":automergePatch",
+    "group:allNonMajor"
+  ],
+  "schedule": [
+    // Run on weekends to avoid weekday PR spam.
+    "before 6am on saturday"
+  ],
+  "timezone": "Asia/Kolkata",
+  "prConcurrentLimit": 3,
+  "labels": ["dependencies", "renovate"],
+  "vulnerabilityAlerts": {
+    // Auto-create PRs for security updates, even on weekends.
+    "enabled": true,
+    "schedule": ["at any time"],
+    "labels": ["security", "dependencies"],
+    "automerge": true
+  },
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "matchDatasources": ["docker"],
+      // Update Docker base images weekly.
+      "schedule": ["before 6am on sunday"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      // Update GitHub Actions versions.
+      "groupName": "GitHub Actions"
+    },
+    {
+      "description": "Don't auto-update these critical packages",
+      "matchPackageNames": [
+        "fastapi",
+        "langchain",
+        "langgraph",
+        "pydantic"
+      ],
+      // Major updates still need human review.
+      "matchUpdateTypes": ["major"],
+      "enabled": true,
+      "labels": ["breaking-change"]
+    }
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/venv/**",
+    "**/.venv/**"
+  ]
+}

@@ -1,0 +1,202 @@
+# =============================================================================
+# skill-validation.yml — Skill file validation pipeline
+# Validates your agents' SKILL.md / YAML / Python files
+# Triggered on every PR
+# =============================================================================
+
+name: Skill Validation
+
+concurrency:
+  group: skill-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches: [main, release/**]
+    paths:
+      - "skills/**"
+      - "agents/**"
+      - ".skills/**"
+      - "tests/skills/**"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # JOB 1: YAML / Markdown lint of skill files
+  # ---------------------------------------------------------------------------
+  lint-skill-files:
+    name: Lint skill files (YAML/Markdown)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: yamllint
+        # Validates YAML syntax in all skill manifests and frontmatter.
+        run: |
+          pip install yamllint==1.35.1
+          yamllint -c .yamllint skills/ agents/ .skills/
+      - name: markdownlint
+        # Enforces consistent markdown style.
+        run: |
+          npm install -g markdownlint-cli@0.42.0
+          markdownlint 'skills/**/*.md' 'agents/**/*.md' '.skills/**/*.md'
+      - name: markdown-link-check
+        # Detects broken links in skill examples and docs.
+        uses: lycheeverse/lychee-action@v2.2.0
+        with:
+          # Only check skills/ and agents/ — don't scan the whole repo.
+          args: --dir skills --dir agents --dir .skills --no-progress --verbose
+          # fail: true would fail on any 404. Set to false while links are still being built.
+
+  # ---------------------------------------------------------------------------
+  # JOB 2: Schema validation of skill manifests
+  # Every skill has a manifest. We validate the structure.
+  # ---------------------------------------------------------------------------
+  validate-manifests:
+    name: Validate skill manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.18"
+      - run: uv sync --all-extras --dev
+      - name: Validate manifests against JSON schema
+        # The schema enforces:
+        #   - required fields: name, version, description, inputs, outputs
+        #   - type constraints: inputs must be object, outputs must be object
+        #   - naming: name must be kebab-case, unique across all skills
+        #   - versioning: version must be semver
+        run: |
+          uv run python scripts/validate_skill_manifests.py \
+            --schema schemas/skill-manifest.schema.json \
+            --skills skills/ agents/ .skills/
+      - name: Check for duplicate skill names
+        # Two skills with the same name would shadow each other.
+        run: |
+          uv run python scripts/check_unique_skill_names.py skills/ agents/ .skills/
+      - name: Check version compatibility
+        # Each skill declares which agent versions it supports.
+        # We fail if there's a mismatch.
+        run: |
+          uv run python scripts/check_skill_compat.py \
+            --agent-version $(cat VERSION 2>/dev/null || echo "0.0.0")
+
+  # ---------------------------------------------------------------------------
+  # JOB 3: Tool I/O contract tests
+  # Every skill declares input/output schema. We verify it actually
+  # accepts and produces those shapes.
+  # ---------------------------------------------------------------------------
+  skill-contract-tests:
+    name: Skill I/O contract tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.18"
+      - run: uv sync --all-extras --dev
+      - name: Run skill contract tests
+        # For each skill:
+        #   - load manifest
+        #   - run the skill with example inputs (from manifest.examples)
+        #   - assert output matches declared schema
+        #   - assert error cases return proper error type
+        #   - assert idempotency: same input -> same output
+        run: |
+          uv run pytest tests/skills/ -v \
+            --junitxml=test-results/skill-contracts.xml
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skill-contract-results
+          path: test-results/
+
+  # ---------------------------------------------------------------------------
+  # JOB 4: Skill example executability
+  # The Python code blocks inside skill markdown files are SUPPOSED to run.
+  # We extract them and run them.
+  # ---------------------------------------------------------------------------
+  skill-examples-runnable:
+    name: Skill examples are runnable
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.18"
+      - run: uv sync --all-extras --dev
+      - name: Extract and run code blocks
+        # Reads every .md file, extracts ```python``` code blocks,
+        # runs each in a sandbox, asserts no exceptions.
+        run: |
+          uv run python scripts/run_skill_examples.py \
+            --root skills/ agents/ .skills/ \
+            --timeout 30 \
+            --output skill-examples-report.json
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skill-examples-report
+          path: skill-examples-report.json
+
+  # ---------------------------------------------------------------------------
+  # JOB 5: Agent integration tests
+  # Skills work standalone (above). This tests the agent USING the skills.
+  # ---------------------------------------------------------------------------
+  agent-skill-integration:
+    name: Agent + skill integration
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.18"
+      - run: uv sync --all-extras --dev
+      - name: Run agent-skill integration tests
+        # Tests:
+        #   - agent can discover all available skills
+        #   - given prompt, agent picks the correct skill
+        #   - agent can chain multiple skills
+        #   - sub-agents correctly delegate to skill owners
+        run: |
+          uv run pytest tests/agents/ -v \
+            --junitxml=test-results/agent-integration.xml
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-integration-results
+          path: test-results/

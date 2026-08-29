@@ -1,0 +1,164 @@
+# =============================================================================
+# release.yml — Build, scan, sign, push container images
+# Triggered on: push of a semver tag (v*.*.*)
+# Watches over the homelab auto-pulls new images.
+# =============================================================================
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"  # matches v1.0.0, v1.2.3, etc.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (default: latest)'
+        required: false
+        default: 'latest'
+
+# These permissions are required for signing and attestations.
+permissions:
+  contents: read
+  packages: write        # push to GHCR
+  id-token: write        # OIDC for Sigstore
+  attestations: write    # SLSA provenance
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # JOB 1: Build, scan, SBOM, sign, push
+  # All in one because the steps must be tightly coupled.
+  # ---------------------------------------------------------------------------
+  build-and-push:
+    name: Build, sign, push image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- BuildKit is required for cache-mounts and SBOM generation -----
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # --- Log in to GitHub Container Registry (GHCR) -----
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # --- (Optional) Also push to DockerHub -----
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        # Set DOCKERHUB_USERNAME and DOCKERHUB_TOKEN as repo secrets.
+
+      # --- Extract metadata (tags, labels) for the image -----
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            # on tag push (v1.0.0), image is tagged: v1.0.0, v1.0, v1, latest
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+            # on manual dispatch, use the provided tag
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
+          labels: |
+            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
+            org.opencontainers.image.description=AI SaaS product
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.licenses=MIT
+            # ^ These labels are read by Syft/Cosign and show up in the registry UI.
+
+      # --- Build AND push, with SBOM + provenance built in -----
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64   # support both Intel + ARM
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # 'provenance: true' + SBOM: GitHub automatically:
+          #   1. Generates an SBOM (SPDX JSON) for the image
+          #   2. Generates SLSA provenance (proves where/when/how built)
+          #   3. Attaches both to the image
+          #   4. Publishes the attestation to your repo's "Attestations" tab
+          provenance: true
+          sbom: true
+          # Cache layers between runs (huge speedup on subsequent builds).
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # --- Generate a richer SBOM with Syft (more detail than Docker's) -----
+      - name: Generate SBOM with Syft
+        uses: anchore/sbom-action@v0.17.7
+        with:
+          image: ${{ steps.build.outputs.digest }}
+          format: spdx-json
+          artifact-name: sbom.spdx.json
+
+      # --- Sign the image with Cosign (keyless, via OIDC) -----
+      # Anyone with cosign can then verify: cosign verify $IMAGE
+      - name: Sign image with Cosign
+        uses: sigstore/cosign-installer@v3.7.0
+      - name: Cosign sign (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+
+      # --- Generate SLSA provenance attestation (alternative to Docker's) -----
+      - name: Generate SLSA provenance
+        uses: slsa-framework/slsa-github-generator@v1.9.0
+        id: slsa
+        with:
+          image-oci: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          image-tag: ${{ steps.meta.outputs.version }}
+          digest: ${{ steps.build.outputs.digest }}
+      # The attestation is published automatically by the action.
+
+      # --- Notify Watchtower via webhook (optional) -----
+      # Watchtower also polls automatically every 5 minutes by default,
+      # so this is just to speed up the deploy.
+      - name: Trigger Watchtower
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.WATCHTOWER_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{"text":"New image pushed: ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}"}' \
+            || echo "Webhook failed (non-fatal, Watchtower will poll)"
+        # Set WATCHTOWER_WEBHOOK as a repo secret if you use one.
+
+  # ---------------------------------------------------------------------------
+  # JOB 2: Create a GitHub Release with notes
+  # ---------------------------------------------------------------------------
+  github-release:
+    name: GitHub Release
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          # Attach the SBOM to the release.
+          files: |
+            sbom.spdx.json

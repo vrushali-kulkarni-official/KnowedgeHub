@@ -1,0 +1,307 @@
+# =============================================================================
+# ai-evals.yml — AI agent & LLM evaluation pipeline
+# Triggered on: every PR + nightly
+# This is THE workflow that catches prompt regressions, hallucinations,
+# prompt-injection vulnerabilities, and PII leakage.
+# =============================================================================
+
+name: AI Evaluations
+
+concurrency:
+  group: ai-evals-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches: [main, release/**]
+  push:
+    branches: [main]
+  schedule:
+    # Full red team + cost analysis at 04:00 UTC nightly.
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # JOB 1: Promptfoo — prompt regression + LLM red team
+  # Tests that prompts still produce expected outputs after changes.
+  # ---------------------------------------------------------------------------
+  promptfoo:
+    name: Prompt regression (Promptfoo)
+    runs-on: ubuntu-latest
+    # These envs come from your repo's Settings > Secrets > Actions.
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}      # for OpenAI models
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}      # for Gemini
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }} # for Claude
+      LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }} # for tracing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - name: Install Promptfoo
+        run: npm install -g promptfoo@0.96.0
+      - name: Run prompt regression
+        # promptfooconfig.yaml in your repo root defines:
+        #  - which prompts to test
+        #  - which LLM providers to test against
+        #  - which test cases (a CSV or YAML dataset)
+        #  - which assertions (contains, equals, llm-rubric, etc.)
+        # Exit code is non-zero on any test failure.
+        run: |
+          promptfoo eval \
+            --config promptfooconfig.yaml \
+            --output promptfoo-results.json \
+            --output promptfoo-results.html \
+            --cache  # cache responses to save money on re-runs
+      - name: LLM red team (jailbreaks, prompt injection)
+        # Promptfoo has a built-in red team generator that runs hundreds
+        # of attack prompts against your LLM.
+        run: |
+          promptfoo redteam run \
+            --config redteam.yaml \
+            --output redteam-results.html \
+            --output redteam-results.json || true
+        # We don't fail the build on red team — these are reports.
+        # You review them, fix the issues, re-run.
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: promptfoo-reports
+          path: |
+            promptfoo-results.html
+            promptfoo-results.json
+            redteam-results.html
+            redteam-results.json
+
+  # ---------------------------------------------------------------------------
+  # JOB 2: DeepEval — LLM metrics (hallucination, bias, toxicity, G-Eval)
+  # ---------------------------------------------------------------------------
+  deepeval:
+    name: LLM metrics (DeepEval)
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.18"
+      - run: uv sync --all-extras --dev
+      - name: Run DeepEval
+        # DeepEval tests live in tests/ai_evals/test_deepeval.py
+        # Each test uses a metric:
+        #   - HallucinationMetric: are facts made up?
+        #   - AnswerRelevancyMetric: does the answer address the question?
+        #   - BiasMetric: is output biased?
+        #   - ToxicityMetric: is output toxic?
+        #   - G-Eval: custom criteria, LLM-as-judge
+        #   - FaithfulnessMetric: (also good for RAG)
+        # --threshold: fail if metric score is below this.
+        run: |
+          uv run deepeval test run tests/ai_evals/ \
+            --threshold 0.7 \
+            --output-json deepeval-report.json
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepeval-report
+          path: deepeval-report.json
+
+  # ---------------------------------------------------------------------------
+  # JOB 3: RAGAS — RAG-specific metrics
+  # CRITICAL for your Qdrant + LangChain stack.
+  # ---------------------------------------------------------------------------
+  ragas:
+    name: RAG metrics (RAGAS)
+    runs-on: ubuntu-latest
+    # RAGAS needs actual Qdrant + Postgres running.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+        ports: ["5432:5432"]
+      qdrant:
+        image: qdrant/qdrant:v1.12.0
+        ports: ["6333:6333"]
+    env:
+      DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/testdb
+      QDRANT_URL: http://localhost:6333
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.18"
+      - run: uv sync --all-extras --dev
+      - name: Seed test corpus into Qdrant
+        # Loads a small "golden" corpus of documents for retrieval tests.
+        run: uv run python scripts/seed_test_corpus.py
+      - name: Run RAGAS evaluation
+        # RAGAS measures:
+        #   Faithfulness:    is the answer derived from the retrieved context?
+        #   ContextPrecision: how relevant is the retrieved context?
+        #   ContextRecall:   did we retrieve all the needed context?
+        #   AnswerRelevancy: is the answer relevant to the question?
+        #   AnswerSimilarity: how similar to the reference answer?
+        run: |
+          uv run python -m tests.ai_evals.test_ragas \
+            --output ragas-report.json
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ragas-report
+          path: ragas-report.json
+
+  # ---------------------------------------------------------------------------
+  # JOB 4: Garak — LLM vulnerability scanner (nightly only — slow)
+  # ---------------------------------------------------------------------------
+  garak:
+    name: LLM vuln scan (Garak)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install Garak
+        run: pip install garak==0.10.1
+      - name: Run Garak
+        # Garak probes test for:
+        #   - prompt injection
+        #   - jailbreaks (DAN, etc.)
+        #   - toxicity generation
+        #   - PII leakage
+        #   - hallucination
+        #   - misinformation
+        # --report_prefix: where to save the report
+        # --probes: which probe categories to run
+        run: |
+          python -m garak \
+            --model_type openai \
+            --model_name gpt-4o-mini \
+            --probes promptinject,jailbreak,leakage,toxicity \
+            --report_prefix garak-report
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: garak-report
+          path: garak-report.*
+
+  # ---------------------------------------------------------------------------
+  # JOB 5: Rebuff — prompt injection self-test
+  # ---------------------------------------------------------------------------
+  rebuff:
+    name: Prompt injection (Rebuff)
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.18"
+      - run: uv sync --all-extras --dev
+      - name: Run Rebuff tests
+        # Verifies that Rebuff successfully detects and blocks
+        # the prompt injections in your test fixtures.
+        run: uv run pytest tests/ai_evals/test_rebuff.py -v
+
+  # ---------------------------------------------------------------------------
+  # JOB 6: PII detection (Presidio)
+  # Scans every agent response for leaked PII (emails, SSNs, credit cards, etc).
+  # ---------------------------------------------------------------------------
+  pii-presidio:
+    name: PII leakage (Presidio)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.18"
+      - run: uv sync --all-extras --dev
+      - name: Run PII detection
+        # Runs every test response through Presidio analyzer.
+        # Fails if PII is detected and not properly redacted.
+        run: |
+          uv run python -m tests.ai_evals.test_pii \
+            --output pii-report.json
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pii-report
+          path: pii-report.json
+
+  # ---------------------------------------------------------------------------
+  # JOB 7: Agent behavior — tool selection, planning, cost, latency
+  # ---------------------------------------------------------------------------
+  agent-behavior:
+    name: Agent behavior (tool use, cost, latency)
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.18"
+      - run: uv sync --all-extras --dev
+      - name: Run agent behavior tests
+        # Tests for:
+        #   - tool_selection_accuracy: did the agent pick the right tool?
+        #   - tool_call_schema: are tool args valid?
+        #   - plan_order: did the agent do A->B->C in the right order?
+        #   - max_steps: did the agent terminate (not loop forever)?
+        #   - token_budget: stayed under N tokens?
+        #   - latency_p95: P95 latency under X seconds?
+        #   - permission_boundary: did NOT call tools outside its allowlist?
+        #   - idempotency: same input -> same tool call sequence
+        run: uv run pytest tests/ai_evals/test_agent_behavior.py -v

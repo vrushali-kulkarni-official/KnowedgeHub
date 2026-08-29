@@ -1,0 +1,13 @@
+
+/app, runtime env, packages ---> ingredients / dependency 
+docker file ---> recipe / steps
+docker build --> cooking / build the image
+docker image --> sample dish / image file (blueprint)
+docker container --> dish being served / running image
+
+---------------
+
+docker compose --> food order  / list of container to run 
+docker hub     --> kitchen / place where reciepe, ingredient, cooking
+docker runtime --> hotel / runtime env 
+

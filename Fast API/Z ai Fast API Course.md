@@ -32,6 +32,7 @@ def root():
 ```
 
 **Concepts learned:**
+
 - `FastAPI()` is the main app object
 - `@app.get(path)` registers a path operation
 - Functions can return dicts, lists, strings, numbers — FastAPI auto-converts to JSON
@@ -62,6 +63,7 @@ def read_user(username: str):
 Try: `/items/5` ✅ | `/items/abc` ❌ (auto 422 error because `abc` is not int)
 
 **Concepts learned:**
+
 - Path parameters are extracted from `{}` in the route
 - Type hints (`: int`, `: str`) enable automatic validation
 - Invalid input returns a clean 422 error automatically
@@ -95,6 +97,7 @@ def search(q: str | None = None):
 ```
 
 **Concepts learned:**
+
 - Parameters with default values → query params
 - `str | None = None` makes it optional (Python 3.10+ syntax)
 - `bool` is auto-converted (`true`, `True`, `1`, `yes` → True)
@@ -124,6 +127,7 @@ def read_user_item(
 Try: `/users/1/items/foo?q=hello&short=true`
 
 **Concepts learned:**
+
 - Path params and query params can mix freely
 - Order matters: required path params, then optional query params
 - FastAPI resolves them by name, not by position
@@ -159,11 +163,13 @@ def create_item(item: Item):
 ```
 
 Send POST with body:
+
 ```json
 { "name": "Laptop", "price": 999.99, "tax": 0.1 }
 ```
 
 **Concepts learned:**
+
 - `BaseModel` from Pydantic defines the shape of request data
 - Type-annotated fields are validated automatically
 - Default values make fields optional
@@ -196,6 +202,7 @@ def update_item(item_id: int, item: Item, q: str | None = None):
 ```
 
 **Concepts learned:**
+
 - FastAPI auto-detects: path params (in path), Pydantic models (in body), primitives (as query)
 - One endpoint can elegantly combine all three input sources
 
@@ -241,6 +248,7 @@ def get_user(id: int):
 ```
 
 **Concepts learned:**
+
 - `response_model` declares the output schema
 - Sensitive fields are stripped automatically
 - Works with dicts OR model instances as return values
@@ -290,6 +298,7 @@ def read_numbers(
 ```
 
 **Concepts learned:**
+
 - `Query()` and `Path()` add validation metadata
 - `ge`, `le`, `gt`, `lt` for numeric constraints
 - `min_length`, `max_length`, `pattern` for strings
@@ -333,6 +342,7 @@ def create_items(items: list[Item]):
 ```
 
 Send:
+
 ```json
 {
   "name": "Laptop",
@@ -343,6 +353,7 @@ Send:
 ```
 
 **Concepts learned:**
+
 - `Field()` validates Pydantic model fields
 - Pydantic models can nest other models
 - Body can be a `list[Model]` for bulk operations
@@ -381,6 +392,7 @@ async def upload_multiple(files: list[UploadFile]):
 ```
 
 **Concepts learned:**
+
 - `Form()` reads form-encoded fields (not JSON)
 - `UploadFile` streams files efficiently (async)
 - `await file.read()` reads bytes; for huge files use `await file.write()` to disk
@@ -429,6 +441,7 @@ def read_unicorn(name: str):
 ```
 
 **Concepts learned:**
+
 - `HTTPException` is the standard way to return error responses
 - Custom exception classes + `@app.exception_handler` for global handling
 - `request` parameter gives access to the raw Request object
@@ -466,6 +479,7 @@ def read_users(commons: dict = Depends(common_parameters)):
 ```
 
 **Concepts learned:**
+
 - `Depends()` injects a function's return value into your endpoint
 - Dependencies themselves can have dependencies (recursive)
 - Reduces boilerplate dramatically
@@ -518,6 +532,7 @@ def check_token(token: str | None = Cookie(default=None)):
 ```
 
 **Concepts learned:**
+
 - Classes with `__init__` can be dependencies — parameters become the dependency's inputs
 - Dependencies can depend on other dependencies
 - `Cookie()`, `Header()` can be used inside dependencies
@@ -556,6 +571,7 @@ def read_users(db=Depends(get_db)):
 ```
 
 **Concepts learned:**
+
 - `yield` dependencies provide setup + teardown in one function
 - The code before `yield` runs before the endpoint
 - The code after `yield` (in `finally`) runs after, even on errors
@@ -599,6 +615,7 @@ def root():
 ```
 
 **Concepts learned:**
+
 - Middleware runs on every request before/after route handlers
 - `@app.middleware("http")` registers a function with `(request, call_next)`
 - `CORSMiddleware` is the standard solution for browser CORS issues
@@ -728,10 +745,12 @@ def read_users_me(current_user: Annotated[User, Depends(get_current_active_user)
 ```
 
 Test flow:
+
 1. POST `/token` with form `username=alice&password=secret123` → get JWT
 2. GET `/users/me` with header `Authorization: Bearer <token>`
 
 **Concepts learned:**
+
 - `OAuth2PasswordBearer` defines the auth scheme and token endpoint
 - `OAuth2PasswordRequestForm` is a built-in form dependency for login
 - `passlib` handles password hashing safely
@@ -830,6 +849,7 @@ def delete_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
 ```
 
 **Concepts learned:**
+
 - SQLAlchemy ORM maps Python classes to DB tables
 - Pydantic schemas validate input/output; ORM models persist data — keep them separate
 - `from_attributes = True` lets Pydantic read from ORM objects
@@ -908,6 +928,7 @@ def root():
 ```
 
 **Concepts learned:**
+
 - `APIRouter` is a mini-app: routes, tags, prefix, dependencies
 - `include_router` mounts it under the main app
 - `prefix` applies to all routes in the router
@@ -946,6 +967,7 @@ def send_notification(email: str, background_tasks: BackgroundTasks):
 ```
 
 **Concepts learned:**
+
 - `BackgroundTasks` runs functions after the response
 - Multiple tasks can be queued; they run in order
 - For heavy/long tasks, prefer Celery or RQ — BackgroundTasks is for lightweight work
@@ -1031,6 +1053,7 @@ if __name__ == "__main__":
 Run with `python main.py` — it'll execute the tests directly.
 
 **Concepts learned:**
+
 - `async def` + `await` for non-blocking IO (DB drivers, HTTP clients, file IO)
 - `WebSocket` enables real-time bidirectional communication
 - `WebSocketDisconnect` handles client drops gracefully
@@ -1043,16 +1066,16 @@ Run with `python main.py` — it'll execute the tests directly.
 
 Now that you've completed all 20 levels, explore:
 
-| Topic | Library / Approach |
-|---|---|
-| Async DB | `databases`, `SQLAlchemy 2.0 async`, `Tortoise ORM` |
-| Task queues | `Celery`, `RQ`, `Dramatiq` |
-| Caching | `fastapi-cache2`, Redis |
-| Rate limiting | `slowapi` |
-| OpenTelemetry | Distributed tracing |
-| GraphQL | `strawberry-graphql` + FastAPI integration |
-| Deployment | `gunicorn -k uvicorn.workers.UvicornWorker` behind Nginx |
-| Docker | Multi-stage builds with `tiangolo/uvicorn-gunicorn-fastapi` |
+| Topic         | Library / Approach                                          |
+| ------------- | ----------------------------------------------------------- |
+| Async DB      | `databases`, `SQLAlchemy 2.0 async`, `Tortoise ORM`         |
+| Task queues   | `Celery`, `RQ`, `Dramatiq`                                  |
+| Caching       | `fastapi-cache2`, Redis                                     |
+| Rate limiting | `slowapi`                                                   |
+| OpenTelemetry | Distributed tracing                                         |
+| GraphQL       | `strawberry-graphql` + FastAPI integration                  |
+| Deployment    | `gunicorn -k uvicorn.workers.UvicornWorker` behind Nginx    |
+| Docker        | Multi-stage builds with `tiangolo/uvicorn-gunicorn-fastapi` |
 
 ### 🧠 Mental Model Summary
 
@@ -1065,6 +1088,7 @@ Now that you've completed all 20 levels, explore:
 7. **Docs** = auto-generated at `/docs` from your type hints
 
 Practice by building these projects in order:
+
 - 📘 A **TODO API** (Levels 1–11)
 - 🔐 An **auth system** (Levels 12–16)
 - 🛒 A **mini e-commerce backend** (Levels 17–20)

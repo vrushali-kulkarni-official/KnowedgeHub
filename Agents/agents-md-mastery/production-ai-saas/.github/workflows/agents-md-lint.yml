@@ -1,0 +1,89 @@
+name: AGENTS.md Lint
+# Runs on every PR that touches AGENTS.md or any sub-agent file.
+# Blocks the PR if any safety rule is violated.
+
+on:
+  pull_request:
+    paths:
+      - "AGENTS.md"
+      - "AGENTS.local.md"
+      - "AGENTS.example.md"
+      - "sub-agents/**"
+      - ".github/agents/**"
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint AGENTS.md files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Fetch full history so gitleaks can scan it
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run AGENTS.md linter
+        run: |
+          python scripts/lint-agents-md.py AGENTS.md sub-agents/
+
+      - name: Scan for secrets with gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --source . --no-banner --redact
+
+      - name: Check file sizes (root only)
+        run: |
+          SIZE=$(wc -c < AGENTS.md)
+          echo "AGENTS.md size: $SIZE bytes"
+          if [ "$SIZE" -gt 8000 ]; then
+            echo "❌ AGENTS.md exceeds 8000 bytes. Split into sub-agents."
+            exit 1
+          fi
+
+      - name: Check sub-agent file sizes
+        run: |
+          for f in sub-agents/*.md; do
+            SIZE=$(wc -c < "$f")
+            echo "$f: $SIZE bytes"
+            if [ "$SIZE" -gt 8000 ]; then
+              echo "❌ $f exceeds 8000 bytes. Trim or split."
+              exit 1
+            fi
+          done
+
+      - name: Validate Markdown structure
+        run: |
+          python -c "
+          import re
+          from pathlib import Path
+          for f in list(Path('.').glob('AGENTS.md')) + list(Path('sub-agents').glob('*.md')):
+              text = f.read_text()
+              # Every file should have an h1 and at least 3 h2s
+              h1 = len(re.findall(r'^# ', text, re.MULTILINE))
+              h2 = len(re.findall(r'^## ', text, re.MULTILINE))
+              assert h1 >= 1, f'{f}: missing h1'
+              assert h2 >= 3, f'{f}: needs at least 3 h2 sections, has {h2}'
+              print(f'✅ {f}: {h1} h1, {h2} h2')
+          "
+
+  test:
+    name: Behavior tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pytest
+        run: pip install pytest
+      - name: Run behavior tests
+        run: |
+          # Tests don't need a full env — they inspect the AGENTS.md files
+          pytest tests/agents/ -v

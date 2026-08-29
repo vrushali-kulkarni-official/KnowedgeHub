@@ -1,0 +1,197 @@
+# =============================================================================
+# pyproject.toml — Single source of truth for ALL Python tool config
+# Putting everything in one file avoids 6 different config files floating
+# around your repo.
+# =============================================================================
+
+[project]
+name = "ai-saas"
+version = "0.1.0"
+description = "AI SaaS product"
+requires-python = ">=3.12"
+# Your runtime deps go here.
+
+# =============================================================================
+# Ruff (linter + formatter — replaces flake8, isort, Black, pyupgrade)
+# =============================================================================
+[tool.ruff]
+# Same line length as Black's default. Change if you have a team preference.
+line-length = 100
+target-version = "py312"
+# Look in your actual source dirs.
+src = ["brain", "services", "agents", "skills", "tests"]
+
+[tool.ruff.lint]
+# 'E' = pycodestyle, 'W' = warnings, 'F' = pyflakes, 'I' = isort,
+# 'B' = bugbear, 'UP' = pyupgrade, 'C4' = comprehensions, 'SIM' = simplify,
+# 'S' = security (bandit-like!), 'RUF' = ruff-specific.
+select = ["E", "W", "F", "I", "B", "UP", "C4", "SIM", "S", "RUF", "ASYNC"]
+# 'S101' = assert allowed (we use asserts in tests)
+# 'E501' = line too long (handled by formatter)
+ignore = ["S101", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Test code is allowed to be more permissive.
+"tests/**/*.py" = ["S101", "S105", "S106"]  # asserts, fake passwords OK
+"scripts/**/*.py" = ["S101", "T201"]        # print OK in scripts
+
+[tool.ruff.format]
+# Black-compatible settings.
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+# =============================================================================
+# Mypy
+# =============================================================================
+[tool.mypy]
+python_version = "3.12"
+strict = true
+# 'warn_unused_ignores' catches dead '# type: ignore' comments.
+warn_unused_ignores = true
+# 'disallow_untyped_defs' = every function must have type hints.
+disallow_untyped_defs = true
+# 'no_implicit_optional' = None must be explicit, not implicit.
+no_implicit_optional = true
+# 'check_return_types' = verify return type annotations.
+check_return_types = true
+# Allow third-party libs without type stubs to be ignored.
+ignore_missing_imports = false
+# Plugins
+plugins = ["pydantic.mypy"]
+# Excludes
+exclude = ["tests/"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+# Test code doesn't need full typing.
+
+# =============================================================================
+# Pyright
+# =============================================================================
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+include = ["brain", "services", "agents", "skills"]
+exclude = ["**/tests/**", "**/migrations/**", "**/__pycache__"]
+# 'reportMissingTypeStubs' = false: don't fail on missing third-party type stubs.
+reportMissingTypeStubs = false
+# Use Mypy-compatibility mode (less surprises).
+useLibraryCodeForTypes = true
+
+# =============================================================================
+# Pytest
+# =============================================================================
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+# Default flags for all `pytest` invocations.
+addopts = [
+    "-ra",                # show summary of all warnings/errors
+    "--strict-markers",   # fail on unknown markers
+    "--strict-config",    # fail on config errors
+    "--showlocals",       # show local vars in tracebacks
+    "--tb=short",         # shorter traceback format
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests that need external services",
+    "ai: marks LLM/agent tests (cost money!)",
+    "security: marks security tests",
+]
+# Async support
+asyncio_mode = "auto"
+
+# =============================================================================
+# Coverage
+# =============================================================================
+[tool.coverage.run]
+# Measure only your source code, not tests themselves.
+source = ["brain", "services", "agents", "skills"]
+# 'branch = true' measures branch coverage (if/else), not just lines.
+branch = true
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+# Fail if coverage drops below 80%. Tighten as you stabilize.
+fail_under = 80
+# Show lines that weren't covered.
+show_missing = true
+# Skip files that are 100% excluded from coverage (e.g. abstract base classes).
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+# =============================================================================
+# mutmut (mutation testing)
+# =============================================================================
+[tool.mutmut]
+# Only mutate YOUR code, not libraries.
+paths_to_mutate = "brain/,services/,agents/,skills/"
+# Don't mutate test code.
+tests_dir = "tests/"
+# Runner to use.
+runner = "uv run pytest -x -q"
+# Show diff for each mutation.
+backup = false
+
+# =============================================================================
+# Bandit
+# =============================================================================
+[tool.bandit]
+# Only report HIGH severity by default (bandit has Low/Medium/High).
+# Adjust to "medium" or "low" to be stricter.
+severity = "high"
+# Skip asserts in tests.
+exclude_dirs = ["tests/", "migrations/"]
+# Common safe patterns to skip.
+skips = ["B101"]  # assert usage
+
+# =============================================================================
+# Hypothesis (property-based testing)
+# =============================================================================
+[tool.hypothesis]
+# max_examples: how many random inputs to try per test.
+max_examples = 100
+# deadline: fail if a single test takes longer than this (ms).
+deadline = 5000
+# Verbose: show what Hypothesis is doing.
+verbosity = 1
+# Database for replaying failing examples.
+database = "~/.hypothesis"
+
+# =============================================================================
+# uv (package manager)
+# =============================================================================
+[tool.uv]
+# dev-dependencies: only installed in dev/CI.
+dev-dependencies = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "pytest-asyncio>=0.23",
+    "hypothesis>=6.100",
+    "mutmut>=3.0",
+    "httpx>=0.27",
+    "schemathesis>=3.27",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "pyright>=1.1",
+    "bandit>=1.7",
+    "pip-audit>=2.7",
+    "deepeval>=1.0",
+    "ragas>=0.1",
+    "rebuff>=0.1",
+    "presidio-analyzer>=2.2",
+    "presidio-analyzer-engine>=0.0",
+    "garak>=0.10",
+    "locust>=2.31",
+    "pip-licenses>=5.0",
+]

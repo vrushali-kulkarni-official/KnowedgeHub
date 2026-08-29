@@ -1,0 +1,95 @@
+# =============================================================================
+# .pre-commit-config.yaml — Runs checks LOCALLY before you commit
+# Install: `uv tool install pre-commit && pre-commit install`
+# Now every `git commit` runs these checks. Catches 80% of issues
+# before you even push to CI. Saves CI minutes.
+# =============================================================================
+
+repos:
+  # ----- Pre-commit hooks (built-in) -----
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        # Don't fail on multi-document YAML (k8s uses it).
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+        # Don't commit files > 500KB.
+        args: [--maxkb=500]
+      - id: detect-private-key
+        # Catches accidentally-committed SSH keys.
+
+  # ----- Ruff (lint + format) — replaces Black, isort, flake8 -----
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # ----- Mypy -----
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.2
+    hooks:
+      - id: mypy
+        # Mypy is slow — only run on changed files.
+        files: ^(brain|services|agents|skills)/.*\.py$
+        additional_dependencies:
+          - pydantic
+          - types-redis
+          - types-requests
+
+  # ----- Bandit (security) -----
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: [-c, pyproject.toml]
+        additional_dependencies: ["bandit[toml]"]
+
+  # ----- Gitleaks (secret scan) -----
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+
+  # ----- actionlint (GitHub Actions workflow lint) -----
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
+
+  # ----- ShellCheck (for shell scripts and 'run:' blocks) -----
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+
+  # ----- yamllint -----
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [-c, .yamllint]
+
+  # ----- markdownlint -----
+  - repo: https://github.com/DavidAnson/markdownlint
+    rev: v0.42.0
+    hooks:
+      - id: markdownlint
+        args: ["--fix"]
+
+  # ----- Conventional Commits (commit message format) -----
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.4.0
+    hooks:
+      - id: conventional-pre-commit
+        # Allowed types: feat, fix, docs, style, refactor, perf, test, build,
+        # ci, chore, revert.
+        stages: [commit-msg]

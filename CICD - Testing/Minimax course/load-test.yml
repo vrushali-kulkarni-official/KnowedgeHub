@@ -1,0 +1,105 @@
+# =============================================================================
+# load-test.yml — Performance & load testing (nightly only)
+# Run k6 and Locust against a deployed staging environment.
+# =============================================================================
+
+name: Load Tests
+
+on:
+  schedule:
+    # 02:00 UTC every night — when traffic is low.
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Base URL to test (default: staging)'
+        required: false
+        default: 'https://staging.your-domain.com'
+
+concurrency:
+  group: load-test
+  cancel-in-progress: false  # don't cancel, let it finish
+
+permissions:
+  contents: read
+
+env:
+  # The user can override at trigger time.
+  TARGET_URL: ${{ github.event.inputs.target_url || 'https://staging.your-domain.com' }}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # JOB 1: k6 — API smoke + load
+  # k6 is JS-based. Best for "does the API hold up under X RPS".
+  # ---------------------------------------------------------------------------
+  k6-smoke:
+    name: k6 smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run k6
+        # k6-action wraps the official k6 binary.
+        # -e: print env vars in the test output (handy for debugging)
+        # --vus: virtual users (concurrent)
+        # --duration: how long to run
+        # Thresholds: fail if P95 latency > 500ms, or error rate > 1%
+        uses: grafana/k6-action@v1.0.0
+        with:
+          filename: tests/load/k6/smoke.js
+          flags: --vus 10 --duration 30s
+        env:
+          BASE_URL: ${{ env.TARGET_URL }}
+      - name: Run k6 load
+        # Heavier: 50 VUs for 2 minutes.
+        uses: grafana/k6-action@v1.0.0
+        with:
+          filename: tests/load/k6/load.js
+          flags: --vus 50 --duration 120s
+        env:
+          BASE_URL: ${{ env.TARGET_URL }}
+
+  # ---------------------------------------------------------------------------
+  # JOB 2: Locust — realistic user behavior
+  # Locust is Python-based. Best for "simulate real users doing real flows".
+  # ---------------------------------------------------------------------------
+  locust:
+    name: Locust distributed load
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ env.TARGET_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.18"
+      - run: uv sync --all-extras --dev
+      - name: Install Locust
+        run: uv pip install locust==2.31.6
+      - name: Run Locust headless
+        # -u 100: 100 concurrent users
+        # -r 10: ramp up 10 users/sec
+        # --run-time 2m: run for 2 minutes
+        # --headless: no UI, just run and exit
+        # --html: report file
+        # --csv: csv stats
+        # Exit code is non-zero if any threshold (defined in locustfile.py) fails.
+        run: |
+          locust -f tests/load/locustfile.py \
+            --host $BASE_URL \
+            -u 100 -r 10 \
+            --run-time 2m \
+            --headless \
+            --html locust-report.html \
+            --csv locust-stats
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: locust-reports
+          path: |
+            locust-report.html
+            locust-stats_*.csv

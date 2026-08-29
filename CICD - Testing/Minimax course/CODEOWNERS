@@ -1,0 +1,26 @@
+# CODEOWNERS — auto-assigns reviewers based on what files changed.
+# When a PR touches a matching path, GitHub requests review from these users/teams.
+# Use this to enforce expert review on security-sensitive code.
+
+# Default owners for everything
+*       @your-username
+
+# Security-sensitive files need security team review
+/.github/workflows/    @your-username
+/.github/dependabot.yml @your-username
+/pyproject.toml        @your-username
+/uv.lock               @your-username
+/Dockerfile            @your-username
+/docker-compose*.yml   @your-username
+/.env.example          @your-username
+
+# AI-specific code needs ML/AI review
+/brain/                @your-username
+/agents/               @your-username
+/skills/               @your-username
+/.skills/              @your-username
+/tests/ai_evals/       @your-username
+
+# Production deployment files
+/release.yml            @your-username
+/infra/                 @your-username

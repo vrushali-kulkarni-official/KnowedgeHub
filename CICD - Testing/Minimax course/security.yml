@@ -1,0 +1,359 @@
+# =============================================================================
+# security.yml — Security scanning pipeline
+# Runs on every PR + nightly (deep scans)
+# Tools cover: SAST, secrets, dependencies, containers, IaC, DAST, licenses
+# =============================================================================
+
+name: Security
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches: [main, release/**]
+  push:
+    branches: [main, release/**]
+  schedule:
+    # Run deep scans at 03:00 UTC every night. Adjust to your timezone.
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # Needed for CodeQL to upload its results to the Security tab.
+  security-events: write
+  actions: read
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # SAST: Static Application Security Testing
+  # Analyzes source code for security vulnerabilities WITHOUT running it.
+  # Three tools for defense in depth — they each catch different things.
+  # ---------------------------------------------------------------------------
+  sast-codeql:
+    name: SAST (CodeQL)
+    runs-on: ubuntu-latest
+    # Only run codeql on PRs/main, not on the nightly deep scan (it's slow).
+    if: github.event_name != 'schedule'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          # 'security-and-quality' includes both vuln queries AND code quality.
+          # Languages you actually use. Each language adds scan time.
+          languages: python, javascript, github-actions
+          # queries: security-and-quality   # (this is the default)
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+        # Results show up in: Security tab > Code scanning alerts.
+        # That's your dashboard for tracking vulns over time.
+
+  sast-bandit:
+    name: SAST (Bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install Bandit
+        run: pip install bandit==1.7.10
+      - name: Run Bandit
+        # -r: recursive, -f: format, -o: output file
+        # -lll: only report HIGH severity (bandit has Low/Medium/High)
+        # Skip tests/ since test code is lower risk.
+        run: |
+          bandit -r brain/ services/ agents/ skills/ \
+            -f json -o bandit-report.json -lll
+          bandit -r brain/ services/ agents/ skills/ \
+            -f txt  # also print to console for the log
+      - name: Upload Bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  sast-semgrep:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Semgrep scan
+        # 'p/security-audit': Semgrep's curated security ruleset (free, OSS).
+        # 'p/owasp-top-ten': OWASP Top 10 checks.
+        # 'p/python': Python-specific best practices.
+        # 'p/langchain': LangChain-specific security patterns (!!).
+        # 'p/fastapi': FastAPI-specific patterns.
+        run: |
+          semgrep ci \
+            --config p/security-audit \
+            --config p/owasp-top-ten \
+            --config p/python \
+            --config p/fastapi \
+            --config p/secrets \
+            --json --output=semgrep-report.json \
+            || true  # don't fail build, report only
+      - name: Upload Semgrep report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-report
+          path: semgrep-report.json
+
+  # ---------------------------------------------------------------------------
+  # Dependency scanning
+  # ---------------------------------------------------------------------------
+  deps-pip-audit:
+    name: Dependencies (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.18"
+      - name: Install uv deps
+        run: uv sync --all-extras --dev
+      - name: Run pip-audit
+        # -r requirements.txt: also audit your legacy requirements file
+        # --strict: fail on any vulnerability
+        run: |
+          uv run pip-audit \
+            --requirement pyproject.toml \
+            --format json --output pip-audit-report.json \
+            --strict || true
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: pip-audit-report.json
+
+  deps-osv:
+    name: Dependencies (OSV-Scanner)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run OSV-Scanner
+        # Google-maintained vuln DB. Scans lockfiles directly.
+        # Complements pip-audit (different data sources).
+        uses: google/osv-scanner-action@v1.8.2
+        with:
+          # Scan your Python project AND the GitHub Actions you use.
+          # Third-party actions are a common attack vector.
+          scan-args: |-
+            --recursive
+            --format=json
+            --output=osv-report.json
+            --lockfile=requirements.txt
+            --lockfile=uv.lock
+            --lockfile=pyproject.toml
+            .
+
+  # ---------------------------------------------------------------------------
+  # Secret scanning
+  # Catches accidentally-committed API keys, passwords, tokens.
+  # ---------------------------------------------------------------------------
+  secrets-gitleaks:
+    name: Secrets (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history (gitleaks scans all commits)
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2.3.6
+        env:
+          # Where to upload the SARIF report (visible in Security tab).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # By default fails the build on any leak.
+
+  secrets-trufflehog:
+    name: Secrets (TruffleHog) [nightly]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: TruffleHog
+        # --only-verified: only report secrets it could ACTUALLY verify are real
+        # (by hitting the API). Reduces false positives dramatically.
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+  # ---------------------------------------------------------------------------
+  # Container security
+  # Scans the Dockerfile + the built image.
+  # ---------------------------------------------------------------------------
+  container-hadolint:
+    name: Dockerfile lint (Hadolint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          failure-threshold: warning  # fail on warnings, not just errors
+
+  container-trivy:
+    name: Container scan (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (do not push)
+        run: docker build -t app:test .
+      - name: Trivy filesystem scan
+        # Scans the source tree for misconfig + vulns.
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"  # fail build on HIGH/CRITICAL
+          format: sarif
+          output: trivy-fs.sarif
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: image
+          scan-ref: app:test
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          format: sarif
+          output: trivy-image.sarif
+      - name: Upload Trivy results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-fs.sarif
+      - name: Upload image results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-image.sarif
+
+  container-grype:
+    name: Container scan (Grype)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t app:test .
+      - name: Grype scan
+        # Second-opinion vulnerability scanner. Different vuln DB than Trivy.
+        # If Trivy misses something, Grype often catches it.
+        uses: anchore/scan-action@v6
+        with:
+          image: app:test
+          severity-cutoff: high
+          fail-build: true
+          output-format: sarif
+
+  # ---------------------------------------------------------------------------
+  # IaC scanning (Infrastructure as Code)
+  # Your docker-compose.yml, GitHub Actions, etc.
+  # ---------------------------------------------------------------------------
+  iac-checkov:
+    name: IaC (Checkov)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkov
+        # Scans: Dockerfile, docker-compose.yml, .github/workflows/*.yml,
+        # Kubernetes manifests, Terraform, CloudFormation, ARM, Bicep.
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: dockerfile dockerfile-compose github_actions kubernetes terraform
+          output_format: sarif
+          output_file_path: checkov.sarif
+          quiet: true
+          # fail_on_check: HIGH  # optional: only fail on high severity
+      - name: Upload Checkov SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+
+  # ---------------------------------------------------------------------------
+  # License compliance
+  # Some licenses (GPL, AGPL) are dangerous in proprietary SaaS.
+  # ---------------------------------------------------------------------------
+  license-compliance:
+    name: License compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.18"
+      - run: uv sync --all-extras --dev
+      - name: Check licenses
+        # Fails if a dep has a license in the forbidden list.
+        # Adjust the list for your legal situation.
+        run: |
+          uv run pip-licenses \
+            --format=markdown \
+            --output-file=licenses.md \
+            --fail-on="GPL;AGPL;SSPL;Commons-Clause"
+      - name: Upload license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: licenses
+          path: licenses.md
+
+  # ---------------------------------------------------------------------------
+  # OpenSSF Scorecard — audits the security of your GitHub Actions workflows
+  # and the third-party actions you depend on.
+  # ---------------------------------------------------------------------------
+  scorecard:
+    name: OpenSSF Scorecard
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    permissions:
+      # Scorecard needs these to call the GitHub API on your behalf.
+      security-events: write
+      actions: read
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Scorecard
+        uses: ossf/scorecard-action@v2.4.1
+        with:
+          results_file: scorecard.sarif
+          results_format: sarif
+          # publish_results: true  # uncomment to publish publicly
+      - name: Upload to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: scorecard.sarif

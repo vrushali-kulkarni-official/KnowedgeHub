@@ -1,0 +1,1097 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Testing Journey — A 2026 Field Guide for Your AI SaaS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f7f5f0;
+    --card:#ffffff;
+    --line:#e9e3d6;
+    --line-soft:#f0ebde;
+    --ink:#14171e;
+    --ink-2:#3a4256;
+    --ink-3:#7c7a72;
+    --primary:#2f6f5e;
+    --primary-soft:#d8e7e0;
+    --accent:#c97b3f;
+    --accent-soft:#f3e2cf;
+    --rose:#b06367;
+    --rose-soft:#efd9d9;
+    --indigo:#3b4f7a;
+    --code-bg:#1f2430;
+    --code-ink:#e6e6e6;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Outfit',sans-serif;-webkit-font-smoothing:antialiased}
+  body{position:relative;overflow-x:hidden}
+  body::before,body::after{
+    content:"";position:fixed;width:520px;height:520px;border-radius:50%;filter:blur(80px);opacity:.5;z-index:0;pointer-events:none;
+  }
+  body::before{background:radial-gradient(circle,var(--primary-soft) 0%,transparent 70%);top:-180px;right:-160px}
+  body::after{background:radial-gradient(circle,var(--accent-soft) 0%,transparent 70%);bottom:-200px;left:-180px;opacity:.4}
+  main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:48px 28px 96px}
+
+  .hero{padding:32px 0 48px;border-bottom:1px solid var(--line)}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--primary);background:var(--primary-soft);padding:6px 12px;border-radius:99px;font-weight:600}
+  h1{font-family:'DM Serif Display',serif;font-weight:400;font-size:clamp(40px,6vw,68px);line-height:1.05;letter-spacing:-.01em;margin:18px 0 14px;color:var(--ink)}
+  h1 em{font-style:italic;color:var(--primary)}
+  .lede{font-size:19px;line-height:1.55;color:var(--ink-2);max-width:720px;margin:0 0 24px}
+  .stack-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{font-size:12px;padding:5px 10px;border-radius:6px;background:white;border:1px solid var(--line);color:var(--ink-2);font-weight:500}
+  .chip strong{color:var(--ink);font-weight:600}
+
+  section{margin-top:72px;scroll-margin-top:24px}
+  h2{font-family:'DM Serif Display',serif;font-weight:400;font-size:clamp(28px,3.5vw,38px);line-height:1.15;margin:0 0 8px;color:var(--ink);letter-spacing:-.005em}
+  h2 .num{color:var(--primary);font-family:'Outfit',sans-serif;font-weight:600;font-size:14px;letter-spacing:.1em;display:block;margin-bottom:6px;text-transform:uppercase}
+  h3{font-family:'Outfit',sans-serif;font-weight:600;font-size:20px;margin:28px 0 10px;color:var(--ink)}
+  h4{font-family:'Outfit',sans-serif;font-weight:600;font-size:15px;margin:0 0 6px;color:var(--ink);letter-spacing:.01em}
+  p{margin:0 0 14px;line-height:1.65;color:var(--ink-2);font-size:15.5px}
+  p strong, li strong{color:var(--ink);font-weight:600}
+  .muted{color:var(--ink-3)}
+  a{color:var(--primary);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--primary-soft)}
+  a:hover{text-decoration-color:var(--primary)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+  .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media (max-width:780px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+  .callout{border-left:3px solid var(--primary);background:var(--primary-soft);padding:14px 18px;border-radius:0 10px 10px 0;margin:18px 0;font-size:14.5px;color:var(--ink-2)}
+  .callout.warn{border-color:var(--accent);background:var(--accent-soft)}
+  .callout.rose{border-color:var(--rose);background:var(--rose-soft)}
+  .callout strong{color:var(--ink)}
+
+  .timeline{position:relative;margin-top:36px}
+  .timeline::before{content:"";position:absolute;left:22px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--primary) 0%,var(--accent) 100%);border-radius:2px}
+  .stage{position:relative;padding-left:64px;margin-bottom:36px}
+  .stage-icon{position:absolute;left:4px;top:0;width:38px;height:38px;border-radius:50%;background:white;border:2px solid var(--primary);display:flex;align-items:center;justify-content:center;color:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.05)}
+  .stage-icon.alt{border-color:var(--accent);color:var(--accent)}
+  .stage h3{font-family:'DM Serif Display',serif;font-weight:400;font-size:24px;margin:4px 0 4px}
+  .stage .stage-sub{font-size:13px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:6px}
+  .stage-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:24px;margin-top:14px}
+  @media (max-width:880px){.stage-grid{grid-template-columns:1fr}}
+  .stage-card{background:white;border:1px solid var(--line);border-radius:12px;padding:18px}
+  .stage-card h4{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--primary);margin:0 0 8px;font-weight:600}
+  .stage-card.warn h4{color:var(--accent)}
+  .stage-card.alt{background:#fbf9f4}
+
+  .kv{display:grid;grid-template-columns:120px 1fr;gap:14px;padding:8px 0;border-bottom:1px dashed var(--line-soft);font-size:14.5px}
+  .kv:last-child{border-bottom:none}
+  .kv .k{color:var(--ink-3);font-weight:500}
+  .kv .v{color:var(--ink-2)}
+
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:16px 18px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.55;margin:0 0 14px}
+  code{font-family:'JetBrains Mono',monospace;font-size:.9em;background:var(--line-soft);padding:1px 6px;border-radius:4px;color:var(--ink)}
+  pre code{background:transparent;padding:0;color:inherit;font-size:13px}
+
+  .pyramid{display:flex;flex-direction:column;align-items:center;gap:8px;margin:30px 0 14px}
+  .pyr{height:54px;display:flex;align-items:center;justify-content:center;color:white;font-weight:600;border-radius:6px;padding:0 16px;text-align:center;letter-spacing:.01em}
+  .pyr-1{width:32%;background:var(--primary)}
+  .pyr-2{width:50%;background:#3d8773}
+  .pyr-3{width:70%;background:#5a9d8a}
+  .pyr-4{width:90%;background:#8dbab0}
+  .pyr-5{width:100%;background:#c4d8d2;color:var(--ink)}
+
+  .bench-row{display:grid;grid-template-columns:160px 1fr 80px;gap:14px;align-items:center;padding:6px 0;font-size:14px}
+  .bench-row .label{color:var(--ink-2);font-weight:500}
+  .bar-bg{height:14px;background:var(--line-soft);border-radius:7px;overflow:hidden}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),#4a8e7c);border-radius:7px}
+  .bar-fill.alt{background:linear-gradient(90deg,var(--accent),#e09a5d)}
+  .bar-fill.rose{background:linear-gradient(90deg,var(--rose),#c97c80)}
+  .bench-row .val{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;background:white;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  th{background:#fbf9f4;font-weight:600;color:var(--ink);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+  tr:last-child td{border-bottom:none}
+  td code{font-size:12px}
+
+  .row{display:flex;gap:12px;align-items:flex-start}
+  .row svg{flex-shrink:0;margin-top:2px;color:var(--primary)}
+  ul.tight{margin:6px 0 0 0;padding-left:18px}
+  ul.tight li{margin:4px 0;font-size:14.5px;color:var(--ink-2)}
+  .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--primary-soft);color:var(--primary);font-weight:600;letter-spacing:.04em;margin-right:6px}
+  .pill.alt{background:var(--accent-soft);color:var(--accent)}
+  .pill.rose{background:var(--rose-soft);color:var(--rose)}
+  .divider{height:1px;background:var(--line);margin:48px 0}
+
+  .toc{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;background:white;border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:24px}
+  .toc a{text-decoration:none;color:var(--ink-2);font-size:13.5px;padding:6px 10px;border-radius:6px;display:flex;align-items:center;gap:8px}
+  .toc a:hover{background:var(--line-soft);color:var(--ink)}
+  .toc a .n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--primary);font-weight:600;width:22px}
+  @media (max-width:780px){.toc{grid-template-columns:1fr}}
+
+  .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0}
+  .flow-node{background:white;border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;font-weight:500;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .flow-arrow{color:var(--ink-3)}
+  .flow-node.primary{background:var(--primary-soft);border-color:var(--primary);color:var(--primary);font-weight:600}
+  .flow-node.accent{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+
+  .end-card{background:linear-gradient(135deg,var(--primary) 0%,#234d41 100%);color:white;padding:30px 32px;border-radius:16px;margin-top:60px}
+  .end-card h3{color:white;font-family:'DM Serif Display',serif;font-weight:400;font-size:26px;margin:0 0 10px}
+  .end-card p{color:rgba(255,255,255,.85);margin:0}
+  .end-card strong{color:white}
+</style>
+</head>
+<body>
+<main>
+
+  <header class="hero">
+    <span class="eyebrow">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      2026 FIELD GUIDE · v1
+    </span>
+    <h1>The <em>Testing Journey</em><br/>for your AI SaaS.</h1>
+    <p class="lede">A complete, stage-by-stage playbook — from the first line of code to a chaotic Tuesday in production — for a beginner building with Python, FastAPI, Postgres, Qdrant, LangChain, LangGraph, Redis, Docker, GitHub Actions, and Ubuntu servers. Every test is mapped to the moment in the journey where it belongs.</p>
+    <div class="stack-row">
+      <span class="chip"><strong>Python</strong> · FastAPI</span>
+      <span class="chip"><strong>Postgres</strong> · SQLAlchemy 2.0</span>
+      <span class="chip"><strong>Qdrant</strong> vector DB</span>
+      <span class="chip"><strong>LangChain</strong> · LangGraph</span>
+      <span class="chip"><strong>Redis</strong> · JWT · OAuth</span>
+      <span class="chip"><strong>Docker</strong> · GitHub Actions</span>
+      <span class="chip"><strong>Ubuntu</strong> servers</span>
+    </div>
+
+    <nav class="toc" aria-label="Table of contents">
+      <a href="#mindset"><span class="n">00</span> The testing mindset</a>
+      <a href="#s0"><span class="n">01</span> Stage 0 — Before any code</a>
+      <a href="#s1"><span class="n">02</span> Stage 1 — First line of code</a>
+      <a href="#s2"><span class="n">03</span> Stage 2 — Pure functions</a>
+      <a href="#s3"><span class="n">04</span> Stage 3 — Components</a>
+      <a href="#s4"><span class="n">05</span> Stage 4 — Services & APIs</a>
+      <a href="#s5"><span class="n">06</span> Stage 5 — Auth & security</a>
+      <a href="#s6"><span class="n">07</span> Stage 6 — AI / LLM features</a>
+      <a href="#s7"><span class="n">08</span> Stage 7 — UI & end-to-end</a>
+      <a href="#s8"><span class="n">09</span> Stage 8 — Pre-deploy gate</a>
+      <a href="#s9"><span class="n">10</span> Stage 9 — Release (canary / flags)</a>
+      <a href="#s10"><span class="n">11</span> Stage 10 — Production reality</a>
+      <a href="#pipelines"><span class="n">12</span> CI/CD pipelines</a>
+      <a href="#ai"><span class="n">13</span> AI for testing (2026)</a>
+      <a href="#devsecops"><span class="n">14</span> DevSecOps & white/black box</a>
+      <a href="#cheatsheet"><span class="n">15</span> The cheat sheet</a>
+    </nav>
+  </header>
+
+  <section id="mindset">
+    <h2><span class="num">00 · The foundation</span> The testing mindset.</h2>
+    <p>Before we touch any tool, you need three mental models. They will quietly decide every decision you make for the rest of this guide.</p>
+
+    <h3>1. The cost of a bug grows 10× every step it survives</h3>
+    <p>A typo caught by your editor costs <strong>0 minutes</strong>. A typo caught by your unit test costs <strong>2 minutes</strong>. A typo caught in staging costs <strong>30 minutes</strong>. A typo that ships to a paying customer costs <strong>hours — or a churned account</strong>. The single biggest reason to test is <em>to find bugs at the cheapest possible moment</em>.</p>
+
+    <div class="bench-row"><span class="label">Caught in editor</span><div class="bar-bg"><div class="bar-fill" style="width:2%"></div></div><span class="val">$0</span></div>
+    <div class="bench-row"><span class="label">Caught in unit test</span><div class="bar-bg"><div class="bar-fill" style="width:6%"></div></div><span class="val">~$5</span></div>
+    <div class="bench-row"><span class="label">Caught in PR review</span><div class="bar-bg"><div class="bar-fill" style="width:14%"></div></div><span class="val">~$30</span></div>
+    <div class="bench-row"><span class="label">Caught in staging</span><div class="bar-bg"><div class="bar-fill alt" style="width:32%"></div></div><span class="val">~$150</span></div>
+    <div class="bench-row"><span class="label">Caught in production</span><div class="bar-bg"><div class="bar-fill rose" style="width:78%"></div></div><span class="val">~$1,500+</span></div>
+    <div class="bench-row"><span class="label">Caught by customer</span><div class="bar-bg"><div class="bar-fill rose" style="width:100%"></div></div><span class="val">∞ trust</span></div>
+    <p class="muted" style="font-size:13px;margin-top:8px">Numbers are the industry rule of thumb (IBM Systems Sciences Institute, refreshed by many since). The point isn't precision — it's that you want to push detection as far left as possible.</p>
+
+    <h3>2. The testing pyramid tells you <em>how much</em> of each kind to write</h3>
+    <div class="pyramid" aria-label="Testing pyramid">
+      <div class="pyr pyr-1">E2E / UI · a handful</div>
+      <div class="pyr pyr-2">Integration / API · dozens</div>
+      <div class="pyr pyr-3">Component · hundreds</div>
+      <div class="pyr pyr-4">Unit · thousands</div>
+      <div class="pyr pyr-5">Static (lint / types) · automatic, on every keystroke</div>
+    </div>
+    <p>The bottom of the pyramid is the <strong>cheapest, fastest, most reliable</strong> layer. The top is the <strong>slowest, flakiest, most realistic</strong> layer. So you write a <em>lot</em> at the bottom and a <em>little</em> at the top. If your E2E suite is bigger than your unit suite, something is off.</p>
+
+    <h3>3. Shift-left AND shift-right</h3>
+    <div class="flow">
+      <div class="flow-node">Plan</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary">Code</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary">Test in CI</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary">Deploy</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node accent">Monitor in prod</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node accent">Chaos / synthetics</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node">Learn</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node">Plan</div>
+    </div>
+    <p><strong>Shift-left</strong> = move testing earlier in the timeline (lint on save, PR checks, fast unit tests). <strong>Shift-right</strong> = keep testing after deploy (synthetic checks, real-user monitoring, chaos experiments). In 2026 the two are not opposites — they're the same loop, just at different speeds.</p>
+
+    <div class="callout">
+      <strong>The 2026 twist:</strong> AI assistants now write a large share of your code. That same AI can <em>also</em> write your tests, generate edge cases, and judge subjective outputs like LLM responses. We'll cover that in <a href="#ai">section 13</a>. For now, just remember: <em>AI-generated code is not tested code until your tests pass.</em>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section>
+    <h2><span class="num">The journey</span> Stage by stage, what you test and when.</h2>
+    <p>Below is the spine of this whole guide. We'll follow a single feature from idea to production — say, "<em>users can upload a PDF and ask questions about it</em>" — and look at every kind of test that touches it along the way. Each stage answers: <strong>why this test, how to do it in your stack, and when in the journey.</strong></p>
+
+    <div class="timeline">
+
+      <article class="stage" id="s0">
+        <div class="stage-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </div>
+        <div class="stage-sub">Stage 0</div>
+        <h3>Before any code is written.</h3>
+        <p>This is the stage most beginners skip. Don't.</p>
+
+        <div class="stage-grid">
+          <div class="stage-card">
+            <h4>Why this stage exists</h4>
+            <p>A bug in your <em>requirements</em> is the most expensive bug of all — because everything you build on top of it will also be wrong. Testing starts by testing the <em>idea</em>.</p>
+          </div>
+          <div class="stage-card warn">
+            <h4>What you actually do</h4>
+            <ul class="tight">
+              <li><strong>Threat modeling</strong> — draw the data flow, list what could go wrong (STRIDE is the classic 2026 standard).</li>
+              <li><strong>Acceptance criteria</strong> — write Given/When/Then for each user story. These become your first tests.</li>
+              <li><strong>Test plan</strong> — one paragraph: what types of tests will cover this feature?</li>
+            </ul>
+          </div>
+        </div>
+
+        <h4>Example: "Upload PDF and ask questions" — acceptance criteria</h4>
+<pre><code># Given a logged-in user
+# When they POST /v1/docs with a 1 MB PDF
+# Then the API returns 202 with a doc_id
+# And within 30 s the doc is searchable
+# And asking "what is page 3 about?" returns an answer grounded in the PDF</code></pre>
+        <p>These four lines <em>are</em> tests. They will resurface, almost word-for-word, in your E2E and integration tests later.</p>
+
+        <div class="callout">
+          <strong>For your AI SaaS specifically:</strong> threat-model the prompt. What if a user uploads a 1 GB PDF? What if the PDF is just a picture of text (OCR needed)? What if a user uploads someone else's confidential data? Decide <em>before</em> coding — every decision becomes a test.
+        </div>
+      </article>
+
+      <article class="stage" id="s1">
+        <div class="stage-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+        </div>
+        <div class="stage-sub">Stage 1</div>
+        <h3>The first line of code.</h3>
+        <p>You're typing a function. The cheapest test possible fires <em>before you save the file</em>.</p>
+
+        <div class="stage-grid">
+          <div class="stage-card">
+            <h4>What you test (automatically)</h4>
+            <ul class="tight">
+              <li><strong>Linting</strong> — style + obvious bugs (ruff).</li>
+              <li><strong>Formatting</strong> — black / ruff format.</li>
+              <li><strong>Type checking</strong> — mypy or pyright.</li>
+              <li><strong>Secret scanning</strong> — gitleaks, trufflehog.</li>
+            </ul>
+          </div>
+          <div class="stage-card warn">
+            <h4>Why it matters</h4>
+            <p>These run on every save (in VS Code) and on every commit (pre-commit hook). They catch 30–50% of beginner mistakes for $0 of effort. They never get tired, never get skipped, and cost milliseconds.</p>
+          </div>
+        </div>
+
+        <h4>The pre-commit hook that protects you</h4>
+<pre><code># .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks: [{id: mypy, additional_dependencies: [types-all]}]
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks: [{id: gitleaks}]</code></pre>
+
+        <div class="row">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <p class="muted" style="font-size:14px;margin:0"><strong>When in the journey:</strong> every keystroke (via VS Code) and every commit (via pre-commit). This is the bottom of the pyramid — but it's actually below the pyramid: it's <em>static testing</em> and it never breaks.</p>
+        </div>
+      </article>
+
+      <article class="stage" id="s2">
+        <div class="stage-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/></svg>
+        </div>
+        <div class="stage-sub">Stage 2</div>
+        <h3>Pure functions and small units.</h3>
+        <p>You write a function like <code>chunk_text(pdf_text)</code>. It takes input, returns output, no DB, no network, no LLM. This is the <strong>happiest place to test</strong>.</p>
+
+        <div class="stage-grid">
+          <div class="stage-card">
+            <h4>What you test</h4>
+            <ul class="tight">
+              <li><strong>Unit tests</strong> — one function, one behavior.</li>
+              <li><strong>Property-based tests</strong> — describe a property, the tool invents the inputs (hypothesis).</li>
+              <li><strong>Snapshot tests</strong> — record the output once, alert on change.</li>
+              <li><strong>Mutation testing</strong> — verify your tests would actually catch a bug (mutmut).</li>
+            </ul>
+          </div>
+          <div class="stage-card warn">
+            <h4>Why this stage is the foundation of everything</h4>
+            <p>Fast (milliseconds), deterministic (same input = same output), isolated (no setup), easy to write. If you skip these, every later test has to compensate — and the pyramid inverts.</p>
+          </div>
+        </div>
+
+        <h4>Your stack: a real unit test (pytest)</h4>
+<pre><code># tests/unit/test_chunking.py
+import pytest
+from brain.chunking import chunk_text
+
+def test_chunk_text_splits_on_paragraphs():
+    text = "First paragraph.\n\nSecond paragraph.\n\nThird."
+    chunks = chunk_text(text, max_chars=30)
+    assert chunks == ["First paragraph.", "Second paragraph.", "Third."]
+
+def test_chunk_text_never_exceeds_max():
+    text = "a " * 10_000
+    chunks = chunk_text(text, max_chars=500)
+    assert all(len(c) &lt;= 500 for c in chunks)
+
+@pytest.mark.parametrize("text,size", [("", 0), ("x", 1), ("x"*200, 2)])
+def test_chunk_text_edge_cases(text, size):
+    assert len(chunk_text(text, max_chars=100)) == size</code></pre>
+
+        <h4>Property-based test (hypothesis) — the 2026 pro move</h4>
+<pre><code>from hypothesis import given, strategies as st
+
+@given(st.text(min_size=0, max_size=2000))
+def test_chunk_text_never_crashes_on_any_string(s):
+    chunks = chunk_text(s, max_chars=100)
+    # Property: every chunk is a substring of the original,
+    # and the join reconstructs the input.
+    assert "".join(chunks) == s
+    assert all(c in s for c in chunks)</code></pre>
+
+        <div class="callout">
+          <strong>Why bother with property tests?</strong> A junior dev can think of 5 examples. Hypothesis tries thousands of weird strings — empty strings, emoji, control characters, 1 MB blobs. It finds the bug you didn't know to test for. It's free with <code>hypothesis</code>.
+        </div>
+
+        <p class="muted" style="font-size:14px"><strong>When in the journey:</strong> every time you write a function. Tests live next to the code in <code>tests/unit/</code>. Runs in &lt;1 s on every save and &lt;10 s in CI. This is the layer you write the <em>most</em> of.</p>
+      </article>
+
+      <article class="stage" id="s3">
+        <div class="stage-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h7v7"/></svg>
+        </div>
+        <div class="stage-sub">Stage 3</div>
+        <h3>Components — bigger chunks that work together.</h3>
+        <p>Your <code>DocumentService</code> class now ties together: download from S3, extract text, chunk, embed, store in Qdrant, save metadata in Postgres. It's still a single Python process, but it does real work.</p>
+
+        <div class="stage-grid">
+          <div class="stage-card">
+            <h4>What you test</h4>
+            <ul class="tight">
+              <li><strong>Component tests</strong> — the class with its <em>real</em> collaborators, but using fakes for slow/expensive ones.</li>
+              <li><strong>Contract tests</strong> — "I promise to send Qdrant vectors of this shape" (Pact).</li>
+              <li><strong>Behaviour tests</strong> — does the doc end up in both Postgres and Qdrant?</li>
+            </ul>
+          </div>
+          <div class="stage-card warn">
+            <h4>Why it matters</h4>
+            <p>You catch integration bugs (wrong column name, wrong vector dimension) without paying the cost of a real network. The fake services give you speed; the real Postgres/Qdrant containers give you realism. You want both.</p>
+          </div>
+        </div>
+
+        <h4>Your stack: component test with fakes</h4>
+<pre><code># tests/components/test_document_service.py
+import pytest
+from services.document_service import DocumentService
+from services.fakes import FakeS3, FakeEmbedder
+
+@pytest.fixture
+def svc(pg_session, qdrant_container, fake_embedder):
+    return DocumentService(
+        s3=FakeS3(),
+        embedder=fake_embedder,         # fake — fast, deterministic
+        qdrant=qdrant_container,        # real — but isolated per test
+        db=pg_session,
+    )
+
+def test_upload_creates_doc_and_chunks(svc, qdrant_container):
+    doc_id = svc.upload(b"hello world", filename="a.txt")
+    assert svc.get(doc_id).status == "ready"
+    assert qdrant_container.count("docs") == 1
+    # Property: every chunk's vector has the right dimension
+    pts = qdrant_container.scroll("docs", with_vectors=True)
+    assert all(len(p.vector) == 768 for p in pts)</code></pre>
+
+        <div class="row">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+          <p class="muted" style="font-size:14px;margin:0"><strong>When in the journey:</strong> every time you finish a service. Runs in a few seconds. Lives in <code>tests/components/</code>. This is the layer the 2026 pro teams <em>also</em> run locally with Docker Compose for parity with prod.</p>
+        </div>
+      </article>
+
+      <article class="stage" id="s4">
+        <div class="stage-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <div class="stage-sub">Stage 4</div>
+        <h3>Services & APIs — wiring it up to the world.</h3>
+        <p>Your FastAPI app is alive. Routes exist, Postgres is real, Qdrant is real, Redis caches real things. Now you verify the system behaves correctly when everything talks to everything.</p>
+
+        <div class="stage-grid">
+          <div class="stage-card">
+            <h4>What you test</h4>
+            <ul class="tight">
+              <li><strong>Integration tests</strong> — full stack with real Postgres, Qdrant, Redis, but in Docker.</li>
+              <li><strong>API tests</strong> — every endpoint, every status code, every error path.</li>
+              <li><strong>Schema-fuzz testing</strong> — schemathesis hammers your OpenAPI schema with weird inputs.</li>
+              <li><strong>Migration tests</strong> — Alembic upgrade → downgrade → upgrade must round-trip.</li>
+            </ul>
+          </div>
+          <div class="stage-card warn">
+            <h4>The "Testcontainers" pattern (the 2026 default)</h4>
+            <p>Don't mock Postgres. Don't mock Qdrant. Spin up a real Postgres in Docker for the test, run your test, throw it away. <code>testcontainers-python</code> does this in 4 lines. You get the speed of mocks with the realism of prod.</p>
+          </div>
+        </div>
+
+        <h4>Your stack: API integration test</h4>
+<pre><code># tests/integration/test_docs_api.py
+from fastapi.testclient import TestClient
+from testcontainers.postgres import PostgresContainer
+from testcontainers.qdrant import QdrantContainer
+import pytest
+
+@pytest.fixture(scope="module")
+def pg(): return PostgresContainer("pgvector/pgvector:pg16").start()
+
+@pytest.fixture(scope="module")
+def qdrant(): return QdrantContainer("qdrant/qdrant:v1.12").start()
+
+@pytest.fixture
+def app(pg, qdrant, monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", pg.get_connection_url())
+    monkeypatch.setenv("QDRANT_URL", qdrant.get_container_host_ip() + ":6333")
+    from main import create_app
+    return create_app()
+
+def test_upload_returns_202_and_doc_id(app):
+    c = TestClient(app)
+    r = c.post("/v1/docs", files={"file": ("a.pdf", b"%PDF-1.4 ...")},
+               headers={"Authorization": "Bearer " + get_test_token()})
+    assert r.status_code == 202
+    assert "doc_id" in r.json()
+
+def test_unauthorized_upload_is_401(app):
+    c = TestClient(app)
+    r = c.post("/v1/docs", files={"file": ("a.pdf", b"...")})
+    assert r.status_code == 401   # stage 5 will expand on this</code></pre>
+
+        <h4>Schemathesis — let the computer break your API</h4>
+<pre><code># tests/integration/test_api_contract.py
+import schemathesis
+from main import app
+
+schema = schemathesis.from_asgi("/openapi.json", app)
+
+@schema.parametrize()
+def test_api(case):
+    # Throws hundreds of weird-but-valid inputs at your API
+    case.call_and_validate()</code></pre>
+
+        <div class="callout warn">
+          <strong>Beginner pitfall:</strong> people write integration tests that <em>talk to their laptop's Postgres</em>. Always use Testcontainers or a dedicated test DB. Otherwise one teammate's bad data breaks everyone.
+        </div>
+      </article>
+
+      <article class="stage" id="s5">
+        <div class="stage-icon alt" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="stage-sub">Stage 5</div>
+        <h3>Auth, security, and the bad guys.</h3>
+        <p>You're exposing your app on the internet. Time to assume the worst — and prove it can't happen.</p>
+
+        <div class="stage-grid">
+          <div class="stage-card">
+            <h4>What you test</h4>
+            <ul class="tight">
+              <li><strong>Auth tests</strong> — invalid tokens, expired tokens, missing scopes, wrong audience.</li>
+              <li><strong>Authz tests</strong> — user A cannot read user B's docs (IDOR bugs).</li>
+              <li><strong>SAST</strong> — static analysis of your code (Bandit, Semgrep, GitHub CodeQL).</li>
+              <li><strong>Dependency scan (SCA)</strong> — known CVEs in your libraries (pip-audit, Snyk, Trivy).</li>
+              <li><strong>Secret scan</strong> — already in pre-commit, but also in CI on every push.</li>
+            </ul>
+          </div>
+          <div class="stage-card warn">
+            <h4>Why security tests are special</h4>
+            <p>Every other test asks "does the happy path work?" Security tests ask "<strong>what if someone tries to break it on purpose?</strong>" You need both questions, every release.</p>
+          </div>
+        </div>
+
+        <h4>Your stack: auth & authz tests</h4>
+<pre><code>def test_missing_token_returns_401(client): ...
+def test_expired_token_returns_401(client, expired_token): ...
+def test_wrong_audience_returns_401(client, wrong_aud_token): ...
+def test_user_cannot_read_other_users_doc(client, user_b_token, doc_of_a):
+    r = client.get(f"/v1/docs/{doc_of_a.id}",
+                   headers={"Authorization": f"Bearer {user_b_token}"})
+    assert r.status_code == 403
+
+@pytest.mark.parametrize("payload", [
+    {"role": "admin"},                   # trying to escalate
+    {"sub": "00000000-0000-0000-0000-000000000000"},
+    {"exp": 99999999999},                # far-future exp
+])
+def test_jwt_tampering_is_rejected(client, payload, valid_token):
+    forged = jwt.encode(payload, "wrong-secret", algorithm="HS256")
+    r = client.get("/v1/me", headers={"Authorization": f"Bearer {forged}"})
+    assert r.status_code == 401</code></pre>
+
+        <h4>Static analysis in CI</h4>
+<pre><code># .github/workflows/security.yml
+name: security
+on: [push, pull_request]
+jobs:
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install bandit semgrep
+      - run: bandit -r brain services -f json
+      - run: semgrep --config=auto --error
+      - uses: github/codeql-action/init@v3
+        with: {languages: python}
+      - uses: github/codeql-action/analyze@v3
+  deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pip-audit
+      - run: pip-audit -r requirements.txt --strict</code></pre>
+
+        <div class="row">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          <p class="muted" style="font-size:14px;margin:0"><strong>When in the journey:</strong> auth tests live with integration tests. SAST/SCA run on every PR. <em>White-box</em> testing (where you know the code) is what SAST does. <em>Black-box</em> testing (where you don't) is what your pen-tester does — see <a href="#devsecops">section 14</a>.</p>
+        </div>
+      </article>
+
+      <article class="stage" id="s6">
+        <div class="stage-icon alt" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+        </div>
+        <div class="stage-sub">Stage 6</div>
+        <h3>AI / LLM features — the hard one.</h3>
+        <p>This is the stage that didn't exist in 2018 and now consumes half your test budget. A function that calls an LLM is not deterministic. So you can't just check <code>==</code>. You need a new vocabulary.</p>
+
+        <div class="stage-grid">
+          <div class="stage-card">
+            <h4>What you test</h4>
+            <ul class="tight">
+              <li><strong>Retrieval quality</strong> — does Qdrant return the right chunks? (Recall@K, MRR).</li>
+              <li><strong>Answer quality</strong> — is the LLM's answer correct, grounded, relevant? (LLM-as-judge).</li>
+              <li><strong>Hallucination</strong> — does the answer invent facts not in the PDF? (DeepEval, RAGAS).</li>
+              <li><strong>Latency & cost</strong> — p50 / p95 latency, tokens per request, dollars per request.</li>
+              <li><strong>Refusal & safety</strong> — does it refuse to answer when it should?</li>
+              <li><strong>Prompt regression</strong> — change a prompt, did quality go up or down?</li>
+              <li><strong>LangGraph state tests</strong> — does the agent reach the right state?</li>
+            </ul>
+          </div>
+          <div class="stage-card warn">
+            <h4>Why this is its own discipline</h4>
+            <p>An LLM can pass 100 traditional tests and still be terrible for users. Quality is <em>statistical</em>, not boolean. So you build <strong>eval datasets</strong> (50–500 question/answer pairs), run them on every prompt change, and track a quality score over time.</p>
+          </div>
+        </div>
+
+        <h4>Your stack: a RAG eval test (DeepEval + RAGAS)</h4>
+<pre><code># tests/ai/test_rag_quality.py
+from deepeval import assert_test
+from deepeval.test_case import LLMTestCase
+from deepeval.metrics import (
+    AnswerRelevancyMetric, FaithfulnessMetric, ContextualRecallMetric
+)
+from brain.rag import answer
+
+EVAL_SET = [
+    LLMTestCase(
+        input="What's the refund policy on page 4?",
+        expected_output="30-day money-back guarantee, no questions asked.",
+        actual_output=answer("What's the refund policy on page 4?"),
+        retrieval_context=[...],   # populated by your RAG
+    )
+]
+
+def test_answer_is_faithful_to_pdf():
+    assert_test(EVAL_SET[0], [
+        FaithfulnessMetric(threshold=0.85),       # no hallucination
+        AnswerRelevancyMetric(threshold=0.8),     # actually answers
+    ])</code></pre>
+
+        <h4>LangGraph — testing the agent's state machine</h4>
+<pre><code>from brain.graph import build_graph
+
+def test_graph_reaches_answer_state():
+    graph = build_graph()
+    result = graph.invoke({"question": "summarize page 2"})
+    # The graph should have visited 'retrieve' then 'answer' then END
+    assert [n.name for n in result["__trace__"]] == ["retrieve", "answer"]
+    assert "answer" in result
+    assert result["citations"]                   # always cites sources
+
+def test_graph_refuses_when_no_docs_found():
+    graph = build_graph()
+    result = graph.invoke({"question": "irrelevant question",
+                           "indexed_docs": []})
+    assert result["answer"].startswith("I don't have information")</code></pre>
+
+        <div class="callout">
+          <strong>For your free-tier Gemini setup:</strong> add <a href="https://docs.smith.langchain.com">LangSmith</a> tracing (free tier) so every test run logs the full prompt, retrieved chunks, and response. You'll thank yourself the first time quality mysteriously drops.
+        </div>
+
+        <p class="muted" style="font-size:14px"><strong>When in the journey:</strong> eval tests run on every PR that touches <code>brain/</code> or prompts. The eval set lives in <code>tests/ai/golden_set.jsonl</code> and grows every time a user finds a real failure.</p>
+      </article>
+
+      <article class="stage" id="s7">
+        <div class="stage-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <div class="stage-sub">Stage 7</div>
+        <h3>UI & end-to-end.</h3>
+        <p>Your Streamlit (or React) page renders, the user clicks, things happen, answers appear. Time to verify the whole story as a real user would.</p>
+
+        <div class="stage-grid">
+          <div class="stage-card">
+            <h4>What you test</h4>
+            <ul class="tight">
+              <li><strong>Component tests</strong> (UI) — one widget behaves correctly (Streamlit AppTest).</li>
+              <li><strong>E2E tests</strong> — drive a real browser through the real user journey (Playwright).</li>
+              <li><strong>Visual regression</strong> — screenshot diffs catch "I accidentally moved that button" (Percy / Playwright snapshots).</li>
+              <li><strong>Accessibility</strong> — axe-core inside Playwright.</li>
+            </ul>
+          </div>
+          <div class="stage-card warn">
+            <h4>The rule: very few E2E tests, all of them critical.</h4>
+            <p>E2E is slow, flaky, and expensive. So you only automate the <strong>money path</strong>: signup → login → pay → first success. Everything else stays at a lower layer.</p>
+          </div>
+        </div>
+
+        <h4>Your stack: Playwright E2E</h4>
+<pre><code># tests/e2e/test_upload_flow.py
+from playwright.sync_api import expect
+
+def test_new_user_can_upload_and_ask(pw_page, fresh_user):
+    pw_page.goto("/signup")
+    pw_page.fill("input[name=email]", fresh_user.email)
+    pw_page.fill("input[name=password]", "Strong-Pass-123!")
+    pw_page.click("button[type=submit]")
+
+    pw_page.set_input_files("input[type=file]", "tests/fixtures/sample.pdf")
+    pw_page.click("text=Upload")
+    expect(pw_page.locator("[data-test=upload-status]")).to_have_text("Ready", timeout=30_000)
+
+    pw_page.fill("textarea[name=question]", "What's on page 2?")
+    pw_page.click("button:has-text('Ask')")
+    expect(pw_page.locator("[data-test=answer]")).to_be_visible()
+    expect(pw_page.locator("[data-test=citations] li")).to_have_count(>=1)</code></pre>
+
+        <div class="row">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+          <p class="muted" style="font-size:14px;margin:0"><strong>When in the journey:</strong> nightly + before any release. Not on every PR (too slow). Use the same Playwright suite for <em>smoke testing</em> right after deploy — see stage 8.</p>
+        </div>
+      </article>
+
+      <article class="stage" id="s8">
+        <div class="stage-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>
+        </div>
+        <div class="stage-sub">Stage 8</div>
+        <h3>Pre-deploy gate — "is this build safe to ship?"</h3>
+        <p>You have a Docker image. You are about to push it to your Ubuntu server. One last wall of checks. If any of these fails, the deploy is blocked.</p>
+
+        <div class="stage-grid">
+          <div class="stage-card">
+            <h4>The wall of checks</h4>
+            <ul class="tight">
+              <li><span class="pill">Smoke</span> Spin up the image, hit <code>/healthz</code>, hit one happy-path endpoint.</li>
+              <li><span class="pill alt">Container scan</span> Trivy / Grype on the image — known CVEs in your base image.</li>
+              <li><span class="pill alt">SBOM</span> Software Bill of Materials — list of every dep (CycloneDX).</li>
+              <li><span class="pill rose">DAST</span> Dynamic scan of the running app (OWASP ZAP baseline).</li>
+              <li><span class="pill rose">License</span> No GPL-tainted deps if you want to stay proprietary.</li>
+              <li><span class="pill">Perf budget</span> A 5-min k6 smoke against staging — p95 &lt; 800 ms?</li>
+            </ul>
+          </div>
+          <div class="stage-card warn">
+            <h4>Why a gate?</h4>
+            <p>Catching a high-severity CVE in your base image <em>after</em> it's in prod is a 2 a.m. job. Catching it before the push is a 2-minute job. The gate turns that into a process.</p>
+          </div>
+        </div>
+
+        <h4>Trivy in your pre-deploy step</h4>
+<pre><code>- name: Build &amp; scan image
+  run: |
+    docker build -t myapp:${{ github.sha }} .
+    trivy image --severity HIGH,CRITICAL --exit-code 1 myapp:${{ github.sha }}
+    trivy image --format cyclonedx --output sbom.json myapp:${{ github.sha }}
+    # Fail the deploy if anything high or critical shows up</code></pre>
+
+        <p class="muted" style="font-size:14px"><strong>Smoke testing explained:</strong> the lightest possible end-to-end check you can run. Does the service start? Does <code>/healthz</code> return 200? Can you log in? If smoke fails, you don't even try the full E2E — you assume the build is broken and roll back.</p>
+      </article>
+
+      <article class="stage" id="s9">
+        <div class="stage-icon alt" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <div class="stage-sub">Stage 9</div>
+        <h3>Releasing — canary, blue-green, and feature flags.</h3>
+        <p>You have a green build. You <em>could</em> ship it to 100% of users in one go. In 2026, you don't.</p>
+
+        <div class="stage-grid">
+          <div class="stage-card">
+            <h4>The three release patterns</h4>
+            <ul class="tight">
+              <li><strong>Canary release</strong> — 1% of traffic hits the new version; you watch error rate and latency; if green, ramp to 10%, 50%, 100%.</li>
+              <li><strong>Blue-green</strong> — keep the old version (blue) live; deploy the new (green) next to it; flip the load balancer; if anything breaks, flip back.</li>
+              <li><strong>Feature flag</strong> — code is deployed, but the <em>feature</em> is off for everyone (or for 1%) via a config flag. No redeploy to turn it off.</li>
+            </ul>
+          </div>
+          <div class="stage-card warn">
+            <h4>Why this is a "test" stage</h4>
+            <p>The new version is the <em>canary</em> — you're literally using real users as a final test, in a controlled way. The metrics you watch (error rate, p95 latency, conversion) ARE your production test suite.</p>
+          </div>
+        </div>
+
+        <h4>Feature flag in your FastAPI app (Unleash or Flagsmith — both free tiers)</h4>
+<pre><code># brain/features.py
+from unleash import UnleashClient
+client = UnleashClient(url=os.environ["UNLEASH_URL"],
+                       app_name="myapp",
+                       api_key=os.environ["UNLEASH_TOKEN"])
+
+def answer_question(q: str) -> str:
+    if client.is_enabled("new-rag-pipeline"):
+        return new_pipeline(q)        # only 5% of users see this
+    return old_pipeline(q)            # everyone else still gets the safe path</code></pre>
+
+        <h4>Canary check in your GitHub Actions</h4>
+<pre><code>- name: Deploy canary (1%)
+  run: ./scripts/deploy.sh canary 1
+- name: Wait &amp; observe
+  run: sleep 300
+- name: Compare error rates (canary vs stable)
+  run: ./scripts/canary_gate.sh
+  # Gate fails if canary error rate &gt; 1.5x stable, or p95 &gt; 1.5x stable</code></pre>
+
+        <p class="muted" style="font-size:14px"><strong>When in the journey:</strong> every release, for the lifetime of the product. Flags are how you test in prod without risking prod.</p>
+      </article>
+
+      <article class="stage" id="s10">
+        <div class="stage-icon alt" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <div class="stage-sub">Stage 10</div>
+        <h3>Production reality — testing never stops.</h3>
+        <p>Your code is in front of real users. The testing doesn't end — it just changes shape. Three big ideas live here.</p>
+
+        <div class="stage-grid">
+          <div class="stage-card">
+            <h4>1. Synthetic monitoring</h4>
+            <p>A simulated user runs the smoke flow every 1 minute from 5 regions. If it fails, you get paged. This is your "test in prod" insurance.</p>
+            <h4>2. Real User Monitoring (RUM)</h4>
+            <p>Capture latency, errors, and UX metrics from real browsers (Sentry, Datadog, Grafana Faro).</p>
+            <h4>3. Chaos engineering</h4>
+            <p>Deliberately kill Postgres. Throttle the network. Inject 500 ms latency into Qdrant. Verify your app <em>survives gracefully</em> (LitmusChaos, ChaosMesh).</p>
+          </div>
+          <div class="stage-card warn">
+            <h4>4. Load & performance testing</h4>
+            <p>Find the breaking point <em>before</em> your users do. k6, Locust, or Grafana Cloud's k6 are the 2026 standards. Run weekly, not just pre-release.</p>
+            <h4>5. A/B testing</h4>
+            <p>Two versions, real users, real revenue. Statistics tells you which one wins. Distinct from canary: canary = "is it safe?" A/B = "is it <em>better</em>?"</p>
+            <h4>6. Alpha & beta programs</h4>
+            <p>Alpha = internal dogfood. Beta = a small invited cohort. Both are "tests" run on real users with managed expectations.</p>
+          </div>
+        </div>
+
+        <h4>Your stack: k6 load test</h4>
+<pre><code>// load-test.js  (k6)
+import http from 'k6/http';
+import { check } from 'k6';
+
+export const options = {
+  stages: [
+    { duration: '1m', target: 50 },     // ramp to 50 users
+    { duration: '3m', target: 200 },    // 200 users
+    { duration: '1m', target: 0 },
+  ],
+  thresholds: {
+    http_req_duration: ['p(95)&lt;800'], // fail if p95 &gt; 800ms
+    http_req_failed:   ['rate&lt;0.01'],  // fail if &gt;1% errors
+  },
+};
+
+export default function () {
+  const r = http.post(`${__ENV.BASE}/v1/ask`, JSON.stringify({q: "hi"}),
+                      { headers: { "Content-Type": "application/json",
+                                   "Authorization": `Bearer ${__ENV.TOKEN}` }});
+  check(r, { '200': r =&gt; r.status === 200 });
+}</code></pre>
+
+        <h4>Chaos experiment (the simplest one)</h4>
+<pre><code># chaos/kill_postgres.yml
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:  { name: kill-pg }
+spec:
+  action: pod-kill
+  mode:   one
+  selector:
+    namespaces: [prod]
+    labelSelectors: { app: postgres }</code></pre>
+
+        <div class="callout rose">
+          <strong>Beginner warning:</strong> chaos engineering on a real production system before you have observability and on-call is reckless. Start chaos only after you have dashboards, alerts, and a runbook. The 2026 safe order: <em>observability → canary → synthetics → chaos</em>.
+        </div>
+
+        <h3>Regression testing — the permanent background</h3>
+        <p>Every test in every previous stage is a regression test the moment the next release happens. The trick is to keep the suite <em>fast and trustworthy</em>: under 10 minutes, never flaky, always re-run before a release. In CI, run only the impacted tests for fast PR feedback (<em>test impact analysis</em>), and the full suite nightly.</p>
+      </article>
+
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section id="pipelines">
+    <h2><span class="num">12 · Pipelines</span> How it all runs automatically.</h2>
+    <p>All the stages above are useless if they only run "when I remember." In 2026, the bar is: <strong>every test runs on every push, automatically, in the right order, in parallel, with results blocking the merge</strong>. GitHub Actions is the right tool for a beginner on your stack — free for public repos, generous free tier for private.</p>
+
+    <h3>The pipeline shape (the 2026 standard)</h3>
+    <div class="flow">
+      <div class="flow-node">PR opened</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary">Lint + Types</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary">Unit (matrix)</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary">Component</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary">Integration (Testcontainers)</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary">AI eval (golden set)</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node primary">SAST + SCA</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node accent">Build image</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node accent">Trivy + SBOM</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node accent">E2E (Playwright)</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node accent">k6 smoke</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node">Merge allowed ✓</div>
+    </div>
+
+    <h3>One GitHub Actions file, the bones of it</h3>
+<pre><code># .github/workflows/ci.yml
+name: ci
+on:
+  pull_request: { branches: [main] }
+  push:        { branches: [main] }
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps: [checkout, setup-python, pip install -r requirements-dev.txt,
+            run: ruff check ., run: ruff format --check .,
+            run: mypy brain services, run: gitleaks detect --redact]
+
+  unit:
+    runs-on: ubuntu-latest
+    strategy: { matrix: { py: ["3.11", "3.12"] } }
+    steps: [checkout, setup-python, pip install -r requirements.txt pytest pytest-cov,
+            run: pytest tests/unit -q --cov=brain --cov=services --cov-fail-under=80]
+
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres: { image: pgvector/pgvector:pg16, env: { POSTGRES_PASSWORD: test },
+                  ports: [5432:5432] }
+      qdrant:   { image: qdrant/qdrant:v1.12, ports: [6333:6333] }
+      redis:    { image: redis:7-alpine,      ports: [6379:6379] }
+    steps: [checkout, setup-python,
+            run: pytest tests/integration tests/components -q
+            env: { DATABASE_URL: postgres://postgres:test@localhost:5432/test,
+                   QDRANT_URL: http://localhost:6333, REDIS_URL: redis://localhost:6379 }]
+
+  ai-eval:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.changed_files, 'brain/')
+    steps: [checkout, setup-python,
+            run: pytest tests/ai -q]
+    env: { GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }} }
+
+  security:
+    runs-on: ubuntu-latest
+    steps: [checkout, run: pip install bandit semgrep pip-audit,
+            run: bandit -r brain services -q,
+            run: semgrep --config=auto --error,
+            run: pip-audit -r requirements.txt --strict]
+
+  build:
+    needs: [lint, unit, integration, security]
+    runs-on: ubuntu-latest
+    steps: [checkout, run: docker build -t myapp:${{ github.sha }} .,
+            run: docker save myapp:${{ github.sha }} | trivy image --input - --severity HIGH,CRITICAL --exit-code 1]
+
+  e2e:
+    needs: build
+    runs-on: ubuntu-latest
+    steps: [checkout, run: docker compose up -d,
+            run: npx playwright install --with-deps,
+            run: npx playwright test]
+
+  # Branch protection on `main` requires: lint, unit, integration, security, build, e2e ✓</code></pre>
+
+    <div class="callout">
+      <strong>Branch protection rule (do this once, in GitHub Settings → Branches):</strong> require all of <code>lint</code>, <code>unit</code>, <code>integration</code>, <code>security</code>, <code>build</code>, <code>e2e</code> to pass before <code>main</code> can be updated. That's how you make the test suite non-negotiable.
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section id="ai">
+    <h2><span class="num">13 · AI for testing</span> The 2026 cheat code.</h2>
+    <p>In 2026, AI is used in <em>four distinct ways</em> across the testing journey. They are not magic — they're tools you point at the right problem.</p>
+
+    <div class="grid-3" style="margin-top:20px">
+      <div class="card">
+        <h4>1. AI generates test cases</h4>
+        <p>Point an LLM at a function and ask "what edge cases am I missing?" Tools: <code>Qodo (CodiumAI)</code>, <code>Diffblue Cover</code> (Java), <code>Meticulous</code>, GitHub Copilot in test mode. For your stack: <strong>Copilot Chat + pytest</strong> is the lowest-friction combo.</p>
+        <p class="muted" style="font-size:13px">Example prompt: <em>"Given this function, list 10 inputs that could break it. Then write pytest cases for each."</em></p>
+      </div>
+      <div class="card">
+        <h4>2. AI judges subjective output</h4>
+        <p>For LLM features, an LLM-as-judge scores the answer for faithfulness, relevance, tone. Tools: <code>DeepEval</code>, <code>RAGAS</code>, <code>Promptfoo</code>, <code>LangSmith evaluators</code>. You saw the example in Stage 6.</p>
+      </div>
+      <div class="card">
+        <h4>3. AI heals flaky tests</h4>
+        <p>When a Playwright selector breaks because a CSS class renamed itself, an AI agent rewrites the selector. Tools: <code>Healenium</code>, <code>Testim</code>, <code>Mabl</code>, <code>QA Wolf</code>. Big time-saver for UI tests.</p>
+      </div>
+    </div>
+
+    <h3>4. AI tests security and monitors production</h3>
+    <p>LLM agents now drive OWASP ZAP-style scans with reasoning ("that endpoint returned 500 with a stack trace — try a path traversal"). Tools: <code>BurpGPT</code>, <code>Strawberry</code>. For monitoring, AI summarises Sentry/Datadog alerts into runbooks and suggests fixes.</p>
+
+    <h3>How to use AI for testing in your project (the safe 2026 way)</h3>
+    <ul class="tight">
+      <li><strong>Use AI to draft tests, but you own correctness.</strong> A generated test that never fails is worse than no test — it gives false confidence. Always run mutation testing to verify.</li>
+      <li><strong>Use AI to grow your eval set.</strong> Every real user complaint is a candidate test case. Feed it to the LLM, get 20 variations, add to <code>golden_set.jsonl</code>.</li>
+      <li><strong>Use AI as a reviewer, not an oracle.</strong> AI in the PR review catches things humans miss. <code>coderabbit</code>, <code>Sourcery</code>, <code>Codeium Reviewer</code> are good free tiers.</li>
+      <li><strong>Never let AI touch prod without a human in the loop.</strong> AI in canary gate decisions? Sure — but a human can override in one click.</li>
+    </ul>
+
+    <div class="callout warn">
+      <strong>The honest truth about 2026:</strong> AI makes you faster, not safer. It writes more code, so you need more tests. It writes tests, so you need mutation testing to verify they actually test. The leverage is real — but the discipline is the same.
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section id="devsecops">
+    <h2><span class="num">14 · DevSecOps</span> White box, black box, and the AppSec review.</h2>
+    <p>You've heard the term "DevSecOps." It just means: security is part of the same pipeline, not a separate team you hand things to at the end. Three flavors of security testing show up across the journey.</p>
+
+    <div class="grid-3" style="margin-top:18px">
+      <div class="card">
+        <h4>White-box (you know the code)</h4>
+        <p>You read the source and look for vulns. <strong>SAST</strong> tools automate this: Bandit, Semgrep, CodeQL, SonarQube. Run on every PR. Catches SQLi, XSS, deserialization bugs, hardcoded secrets.</p>
+        <p class="muted" style="font-size:13px">You are doing white-box when you write a security unit test that asserts "<code>SELECT * WHERE id={user_input}</code> is never reached."</p>
+      </div>
+      <div class="card">
+        <h4>Black-box (you don't)</h4>
+        <p>You poke the running app like an attacker. <strong>DAST</strong> tools: OWASP ZAP, Burp Suite. Run against staging. Catches misconfigurations, missing auth, IDOR.</p>
+        <p class="muted" style="font-size:13px">"Black box" because the tool sees only HTTP — no source code. Best for finding "what's exposed that shouldn't be."</p>
+      </div>
+      <div class="card">
+        <h4>Grey-box (a little of both)</h4>
+        <p>You give the attacker one account and a known schema. Most realistic pen tests are grey-box. Tools: StackHawk, prowler, nuclei.</p>
+      </div>
+    </div>
+
+    <h3>The AppSec review (the human part)</h3>
+    <p>Twice a year, an AppSec engineer (in-house or contracted) does a deeper review: threat model refresh, architecture risk analysis, secrets-handling audit, dependency-graph review, infra-as-code scan. It's a meeting, not a tool — but it's the highest-signal security activity you can do.</p>
+
+    <h3>Penetration testing vs bug bounty</h3>
+    <ul class="tight">
+      <li><strong>Pen test</strong> — a paid, time-boxed engagement (1–2 weeks, $5–25k). You get a report, you fix the high-severity findings.</li>
+      <li><strong>Bug bounty</strong> — open invitation, paid per finding. Cheap to start (HackerOne, Bugcrowd), scales with the size of your product.</li>
+      <li><strong>For a beginner SaaS</strong>: skip both for the first year. SAST + SCA + DAST + a yearly external pen test is enough.</li>
+    </ul>
+
+    <h3>The other "boxes" the industry uses</h3>
+    <ul class="tight">
+      <li><strong>Alpha testing</strong> = the team uses the product themselves (dogfooding).</li>
+      <li><strong>Beta testing</strong> = a real cohort of users tries the product pre-launch; you collect feedback.</li>
+      <li><strong>Smoke testing</strong> = the bare-minimum checks before any further testing (you saw this in stage 8).</li>
+      <li><strong>Sanity testing</strong> = a quick check after a small bugfix ("did the fix work and not break anything obvious?").</li>
+      <li><strong>Acceptance testing (UAT)</strong> = the customer or product owner verifies the feature meets their criteria. The Given/When/Then lines from Stage 0 <em>are</em> the acceptance tests.</li>
+    </ul>
+  </section>
+
+  <div class="divider"></div>
+
+  <section id="cheatsheet">
+    <h2><span class="num">15 · The cheat sheet</span> Print this. Pin it next to your monitor.</h2>
+
+    <table>
+      <thead>
+        <tr><th style="width:18%">Test type</th><th>What it catches</th><th>When</th><th>Tool (your stack)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Linting &amp; formatting</strong></td><td>Style, unused vars, obvious bugs</td><td>Every keystroke + every commit</td><td><code>ruff</code>, <code>black</code>, <code>mypy</code>, <code>pre-commit</code></td></tr>
+        <tr><td><strong>Secret scan</strong></td><td>API keys, DB URLs, tokens committed by accident</td><td>Pre-commit + every PR</td><td><code>gitleaks</code>, <code>trufflehog</code></td></tr>
+        <tr><td><strong>Unit test</strong></td><td>Wrong logic in one function</td><td>With every function (TDD or post-hoc)</td><td><code>pytest</code>, <code>hypothesis</code>, <code>freezegun</code></td></tr>
+        <tr><td><strong>Property-based test</strong></td><td>Edge cases you didn't think of</td><td>For pure, deterministic functions</td><td><code>hypothesis</code></td></tr>
+        <tr><td><strong>Mutation test</strong></td><td>Tests that don't actually test anything</td><td>Quarterly, on critical modules</td><td><code>mutmut</code></td></tr>
+        <tr><td><strong>Component test</strong></td><td>Bugs at module boundaries</td><td>Each new service class</td><td><code>pytest</code> + <code>testcontainers</code> for Qdrant/PG/Redis</td></tr>
+        <tr><td><strong>Contract test</strong></td><td>Schema drift between services</td><td>When you publish or consume an API</td><td><code>pact-python</code>, <code>schemathesis</code></td></tr>
+        <tr><td><strong>Integration / API test</strong></td><td>Wrong wiring across modules</td><td>Every PR</td><td><code>fastapi.testclient</code>, <code>httpx</code>, <code>testcontainers</code></td></tr>
+        <tr><td><strong>Auth / Authz test</strong></td><td>Token bypass, IDOR, missing scope</td><td>Every PR + dedicated security suite</td><td><code>pytest</code> + <code>python-jose</code></td></tr>
+        <tr><td><strong>AI / LLM eval</strong></td><td>Hallucination, retrieval misses, tone</td><td>Every PR touching <code>brain/</code>; nightly full eval</td><td><code>DeepEval</code>, <code>RAGAS</code>, <code>promptfoo</code>, <code>LangSmith</code></td></tr>
+        <tr><td><strong>LangGraph state test</strong></td><td>Wrong state transitions, dead ends</td><td>Every PR on agent logic</td><td><code>pytest</code> + graph.invoke</td></tr>
+        <tr><td><strong>E2E / browser test</strong></td><td>The whole user journey</td><td>Pre-release + nightly</td><td><code>playwright</code></td></tr>
+        <tr><td><strong>Visual regression</strong></td><td>UI moved/broke unexpectedly</td><td>Pre-release</td><td><code>playwright --update-snapshots</code>, <code>percy</code></td></tr>
+        <tr><td><strong>Accessibility</strong></td><td>Screen-reader, contrast, keyboard</td><td>Pre-release</td><td><code>@axe-core/playwright</code></td></tr>
+        <tr><td><strong>Smoke test</strong></td><td>"Is the deploy alive at all?"</td><td>Right after every deploy</td><td><code>curl /healthz</code> + Playwright smoke</td></tr>
+        <tr><td><strong>SAST</strong></td><td>Vulnerable code patterns</td><td>Every PR</td><td><code>bandit</code>, <code>semgrep</code>, <code>CodeQL</code></td></tr>
+        <tr><td><strong>SCA / dependency scan</strong></td><td>Known CVEs in your libs</td><td>Every PR + nightly</td><td><code>pip-audit</code>, <code>trivy fs</code>, <code>safety</code></td></tr>
+        <tr><td><strong>Container scan</strong></td><td>CVEs in your base image</td><td>Pre-deploy</td><td><code>trivy image</code>, <code>grype</code></td></tr>
+        <tr><td><strong>DAST</strong></td><td>Runtime vulns against the live app</td><td>Pre-deploy against staging</td><td><code>OWASP ZAP</code>, <code>StackHawk</code></td></tr>
+        <tr><td><strong>SBOM</strong></td><td>Inventory of every component</td><td>Every build</td><td><code>cyclonedx-bom</code>, <code>trivy --format cyclonedx</code></td></tr>
+        <tr><td><strong>License compliance</strong></td><td>GPL in a proprietary product</td><td>Every PR</td><td><code>pip-licenses</code>, <code>syft</code></td></tr>
+        <tr><td><strong>Load &amp; performance</strong></td><td>Breaking point, p95 latency</td><td>Pre-release + weekly on staging</td><td><code>k6</code>, <code>locust</code></td></tr>
+        <tr><td><strong>Chaos engineering</strong></td><td>Behaviour when infra fails</td><td>Monthly game day on staging</td><td><code>chaos-mesh</code>, <code>litmuschaos</code></td></tr>
+        <tr><td><strong>Synthetic monitoring</strong></td><td>"Is prod up <em>right now</em>?"</td><td>Every minute, forever</td><td><code>checkly</code>, <code>grafana</code> + browser checks</td></tr>
+        <tr><td><strong>Real User Monitoring</strong></td><td>Latency &amp; errors from real browsers</td><td>Always on</td><td><code>Sentry</code>, <code>Datadog RUM</code>, <code>Grafana Faro</code></td></tr>
+        <tr><td><strong>Canary release</strong></td><td>New version under real load</td><td>Every release</td><td>Argo Rollouts, Flagger, plain <code>nginx</code> weights</td></tr>
+        <tr><td><strong>Feature flag</strong></td><td>Decouple deploy from release</td><td>Always available</td><td><code>Unleash</code>, <code>Flagsmith</code>, <code>LaunchDarkly</code></td></tr>
+        <tr><td><strong>A/B test</strong></td><td>Which version wins on a metric</td><td>When you have a hypothesis to prove</td><td><code>GrowthBook</code>, <code>PostHog</code>, <code>Statsig</code></td></tr>
+        <tr><td><strong>Pen test / AppSec</strong></td><td>Human-driven deep review</td><td>Yearly + after big architectural changes</td><td>External firm + internal review</td></tr>
+        <tr><td><strong>Alpha / Beta</strong></td><td>Real-world feedback before GA</td><td>Pre-launch</td><td>Dogfooding + a private beta cohort</td></tr>
+        <tr><td><strong>Regression</strong></td><td>"Did the old stuff break?"</td><td>Every PR (impacted) + nightly (full)</td><td>Everything above, on a schedule</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="end-card">
+    <h3>If you only remember five things…</h3>
+    <p>1. <strong>Test cheap layers first.</strong> Lint and unit tests run in milliseconds — that's where 80% of bugs should die.</p>
+    <p>2. <strong>Use real Postgres, real Qdrant, real Redis</strong> in tests via Testcontainers. Mocks hide real bugs.</p>
+    <p>3. <strong>For LLM features, build a golden eval set</strong> and treat quality like a metric on a dashboard, not a boolean.</p>
+    <p>4. <strong>Block the merge</strong> in GitHub branch protection. A test suite you can ignore isn't a test suite.</p>
+    <p>5. <strong>Ship behind a feature flag.</strong> Deploy ≠ release. The cheapest rollback is one that doesn't need a deploy.</p>
+  </div>
+
+</main>
+</body>
+</html>

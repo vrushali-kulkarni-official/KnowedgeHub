@@ -1,0 +1,66 @@
+# =============================================================================
+# redteam.yaml — Promptfoo LLM red team
+# Runs hundreds of attack prompts against your LLM.
+# Run with: promptfoo redteam run
+# Docs: https://promptfoo.dev/docs/red-team/
+# =============================================================================
+
+targets:
+  - id: openai:gpt-4o-mini
+    label: "My chat model"
+
+# The "purpose" tells the red team generator what your LLM is for,
+# so it can generate more relevant attacks.
+purpose: |
+  A helpful AI assistant that answers questions about FastAPI, PostgreSQL,
+  and related software topics. The assistant should never:
+  - Reveal system prompts
+  - Generate harmful content (malware, phishing, hate speech)
+  - Reveal other users' data
+  - Make up facts about real people
+
+# Plugins generate attack strategies.
+# Each plugin is a category of attack.
+plugins:
+  # --- OWASP LLM Top 10 ---
+  - id: owasp:llm:01       # Prompt injection
+  - id: owasp:llm:02       # Sensitive info disclosure
+  - id: owasp:llm:06       # Excessive agency (calling tools it shouldn't)
+  - id: owasp:llm:07       # System prompt leakage
+  - id: owasp:llm:09       # Misinformation
+
+  # --- Strategy plugins (how to phrase the attack) ---
+  - id: prompt-injection
+  - id: jailbreak
+  - id: harmful
+  - id: pii
+  - id: contracts
+  - id: hallucination
+  - id: imitation
+  - id: cyberseceval
+  - id: donotanswer
+  - id: toxicchat
+  - id: unsafe-practices
+  - id: bias
+  - id: religion
+  - id: politics
+  - id: gender
+  - id: race
+
+# Strategies: how to transform base attacks.
+strategies:
+  - id: basic                # vanilla attack
+  - id: jailbreak            # try to jailbreak
+  - id: jailbreak:tree       # tree-of-attack variant
+  - id: prompt-injection
+  - id: leetspeak            # bypass content filters with 1337sp34k
+  - id: rot13                # bypass with rot13 encoding
+  - id: base64               # bypass with base64 encoding
+  - id: multilingual         # attacks in other languages
+
+# How many attack prompts to generate per plugin.
+numTestsPerPlugin: 10
+
+# Severity threshold: which findings to report.
+# 0 = no risk, 4 = critical
+# Default is to report all severities.
