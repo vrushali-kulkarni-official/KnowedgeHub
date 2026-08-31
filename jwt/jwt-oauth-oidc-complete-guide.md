@@ -660,7 +660,7 @@ OAuth 2.0 defines 4 ways to get a token. Pick the right one.
 - **Use when:** the access token expired and you need a new one without bothering the user.
 - **Use cases:** every API call after 14 minutes.
 
-### Device Code — for input-constrained devices
+### — for input-constrained devices
 
 - **Use when:** the user has a TV, a CLI, a smart device with no browser.
 - **Use cases:** `aws sso login`, `gh auth login`, smart TV auth.

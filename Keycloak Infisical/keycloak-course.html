@@ -1,0 +1,2684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Keycloak, OAuth/OIDC/JWT & Infisical — Complete Course</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-elev: #161b22;
+    --bg-elev2: #1c2128;
+    --border: #30363d;
+    --border-soft: #21262d;
+    --text: #e6edf3;
+    --text-soft: #c9d1d9;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-soft: #1f6feb;
+    --success: #3fb950;
+    --warn: #d29922;
+    --danger: #f85149;
+    --code-bg: #0a0e14;
+    --code-border: #30363d;
+    --link: #58a6ff;
+    --link-hover: #79c0ff;
+    --table-stripe: #161b22;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 16px;
+  }
+  code, pre {
+    font-family: "SF Mono", "JetBrains Mono", "Fira Code", "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: 14px;
+  }
+
+  /* ---------- Layout ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 0;
+    max-width: 1500px;
+    margin: 0 auto;
+  }
+  .sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--bg-elev);
+    border-right: 1px solid var(--border);
+    padding: 24px 18px;
+  }
+  .sidebar h1 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .sidebar .sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+  .toc {
+    list-style: none;
+  }
+  .toc li {
+    margin: 2px 0;
+  }
+  .toc a {
+    display: block;
+    padding: 5px 10px;
+    color: var(--text-soft);
+    text-decoration: none;
+    font-size: 13px;
+    border-radius: 5px;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .toc a:hover {
+    background: var(--bg-elev2);
+    color: var(--accent);
+  }
+  .toc a.l2 {
+    padding-left: 24px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .toc a.l3 {
+    padding-left: 38px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--success));
+    width: 0%;
+    z-index: 1000;
+    transition: width 0.1s linear;
+  }
+  .theme-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .theme-toggle:hover {
+    background: var(--bg-elev2);
+  }
+
+  /* ---------- Main content ---------- */
+  main {
+    padding: 48px 60px;
+    max-width: 920px;
+  }
+  .hero {
+    background: linear-gradient(135deg, var(--bg-elev), var(--bg-elev2));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 40px 36px;
+    margin-bottom: 48px;
+  }
+  .hero h1 {
+    font-size: 32px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+  .hero p.lede {
+    font-size: 17px;
+    color: var(--text-soft);
+    margin-bottom: 24px;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .meta-card {
+    background: var(--bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .meta-card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .meta-card .value {
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  h2 {
+    font-size: 26px;
+    margin: 56px 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    scroll-margin-top: 80px;
+  }
+  h2 .module-num {
+    color: var(--accent);
+    margin-right: 12px;
+    font-family: monospace;
+  }
+  h3 {
+    font-size: 20px;
+    margin: 36px 0 14px;
+    color: var(--text);
+    scroll-margin-top: 80px;
+  }
+  h4 {
+    font-size: 16px;
+    margin: 24px 0 10px;
+    color: var(--text-soft);
+  }
+  p {
+    margin: 14px 0;
+    color: var(--text-soft);
+  }
+  ul, ol {
+    margin: 14px 0 14px 24px;
+    color: var(--text-soft);
+  }
+  li {
+    margin: 6px 0;
+  }
+  strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+  em { color: var(--text-soft); }
+  a {
+    color: var(--link);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--link);
+  }
+  a:hover {
+    color: var(--link-hover);
+    border-bottom-style: solid;
+  }
+
+  /* ---------- Tables ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: top;
+  }
+  th {
+    background: var(--bg-elev2);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 13px;
+  }
+  tr:last-child td {
+    border-bottom: none;
+  }
+  tr:nth-child(even) td {
+    background: var(--table-stripe);
+  }
+
+  /* ---------- Code ---------- */
+  code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13.5px;
+    color: #ff7b72;
+    border: 1px solid var(--code-border);
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    margin: 16px 0;
+    position: relative;
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-soft);
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+  pre.lang-bash code .com,
+  pre.lang-shell code .com,
+  pre.lang-yaml code .com,
+  pre.lang-dockerfile code .com,
+  pre.lang-python code .com {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  pre.lang-bash code .kw,
+  pre.lang-shell code .kw,
+  pre.lang-yaml code .kw,
+  pre.lang-dockerfile code .kw,
+  pre.lang-python code .kw {
+    color: #ff7b72;
+  }
+  pre.lang-bash code .str,
+  pre.lang-shell code .str,
+  pre.lang-yaml code .str,
+  pre.lang-dockerfile code .str,
+  pre.lang-python code .str {
+    color: #a5d6ff;
+  }
+  pre.lang-bash code .var,
+  pre.lang-shell code .var,
+  pre.lang-yaml code .var,
+  pre.lang-dockerfile code .var,
+  pre.lang-python code .var {
+    color: #d2a8ff;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--bg-elev2);
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 11px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+    font-family: -apple-system, sans-serif;
+  }
+  pre:hover .copy-btn {
+    opacity: 1;
+  }
+  .copy-btn:hover {
+    background: var(--accent-soft);
+    color: white;
+  }
+  .copy-btn.copied {
+    background: var(--success);
+    color: white;
+  }
+
+  /* ---------- Diagrams ---------- */
+  .diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    overflow-x: auto;
+    font-size: 13.5px;
+    line-height: 1.4;
+  }
+  .diagram pre {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* ---------- Callouts ---------- */
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: var(--bg-elev);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 20px 0;
+  }
+  .callout.warn {
+    border-left-color: var(--warn);
+  }
+  .callout.danger {
+    border-left-color: var(--danger);
+  }
+  .callout.success {
+    border-left-color: var(--success);
+  }
+  .callout-title {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .callout p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ---------- Checklist ---------- */
+  .checklist {
+    list-style: none;
+    margin: 14px 0 14px 0;
+  }
+  .checklist li {
+    padding: 6px 0 6px 30px;
+    position: relative;
+    color: var(--text-soft);
+  }
+  .checklist li::before {
+    content: "□";
+    position: absolute;
+    left: 8px;
+    color: var(--text-muted);
+    font-size: 18px;
+    top: 4px;
+  }
+
+  /* ---------- References ---------- */
+  .references {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .references h2 {
+    border-bottom: none;
+    margin-top: 0;
+  }
+  .references ol {
+    margin-left: 0;
+    padding-left: 0;
+    list-style: none;
+    counter-reset: refs;
+  }
+  .references li {
+    counter-increment: refs;
+    padding: 6px 0 6px 36px;
+    position: relative;
+    font-size: 13.5px;
+    color: var(--text-muted);
+  }
+  .references li::before {
+    content: "[" counter(refs) "]";
+    position: absolute;
+    left: 0;
+    color: var(--text-soft);
+    font-weight: 600;
+  }
+
+  /* ---------- Light mode ---------- */
+  body.light {
+    --bg: #ffffff;
+    --bg-elev: #f6f8fa;
+    --bg-elev2: #eef1f4;
+    --border: #d0d7de;
+    --border-soft: #d8dee4;
+    --text: #1f2328;
+    --text-soft: #2d333b;
+    --text-muted: #656d76;
+    --code-bg: #f6f8fa;
+    --code-border: #d0d7de;
+    --table-stripe: #f6f8fa;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+  body.light code {
+    color: #cf222e;
+  }
+  body.light pre code {
+    color: var(--text-soft);
+  }
+  body.light .hero {
+    background: linear-gradient(135deg, #f6f8fa, #eef1f4);
+  }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 1024px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+    .sidebar {
+      position: static;
+      height: auto;
+      max-height: 60vh;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    main {
+      padding: 32px 24px;
+    }
+    .meta-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 600px) {
+    main {
+      padding: 24px 16px;
+    }
+    .hero {
+      padding: 28px 20px;
+    }
+    .hero h1 {
+      font-size: 24px;
+    }
+    h2 { font-size: 22px; }
+    h3 { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+<button class="theme-toggle" id="theme-toggle" title="Toggle theme">🌙</button>
+
+<div class="layout">
+  <aside class="sidebar">
+    <h1>Keycloak, OAuth &amp; Infisical</h1>
+    <div class="sub">Complete course for your AI SaaS</div>
+    <ul class="toc" id="toc">
+      <li><a href="#hero">Start here</a></li>
+      <li><a href="#m0">Module 0 — Why central auth</a></li>
+      <li><a href="#m1" class="l2">JWT, from scratch</a></li>
+      <li><a href="#m2" class="l2">OAuth 2.0 &amp; 2.1</a></li>
+      <li><a href="#m3" class="l2">OpenID Connect</a></li>
+      <li><a href="#m4" class="l2">Keycloak in depth</a></li>
+      <li><a href="#m5" class="l2">Infisical in depth</a></li>
+      <li><a href="#m6" class="l2">Reverse proxy &amp; Cloudflare</a></li>
+      <li><a href="#m7" class="l2">FastAPI integration</a></li>
+      <li><a href="#m8" class="l2">End-to-end implementation</a></li>
+      <li><a href="#m9" class="l2">Security hardening</a></li>
+      <li><a href="#m10" class="l2">What's next</a></li>
+      <li><a href="#refs">References</a></li>
+    </ul>
+  </aside>
+
+  <main>
+    <section class="hero" id="hero">
+      <h1>Keycloak, OAuth/OIDC/JWT, and Infisical — A Complete Course for Your AI SaaS Stack</h1>
+      <p class="lede">A beginner-to-advanced walkthrough with production-grade implementation steps for <strong>Keycloak</strong>, <strong>OAuth 2.0/2.1</strong>, <strong>OpenID Connect</strong>, <strong>JWT</strong>, and <strong>Infisical</strong> — wired into your Python / FastAPI / Docker / Cloudflare stack.</p>
+      <div class="meta-grid">
+        <div class="meta-card">
+          <div class="label">Your stack</div>
+          <div class="value">Python, FastAPI, PostgreSQL, MongoDB, Qdrant, LangChain, LangGraph, Deep Agents, Redis, Docker, GitHub, WatchTower, Ubuntu 26, CloudFlare</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">What we're adding</div>
+          <div class="value">Keycloak (identity), Infisical (secrets + PKI), Traefik (reverse proxy). All free, all open source, all production-grade.</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Reading time</div>
+          <div class="value">~90 minutes. Bookmark and revisit. This is reference material, not bedtime reading.</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Outcome</div>
+          <div class="value">A full production stack: identity, secrets, certificates, reverse proxy, tunnel, monitoring, backups — all wired up and ready to deploy.</div>
+        </div>
+      </div>
+    </section>
+
+<h2 id="m0"><span class="module-num">M0</span>Why Central Auth and Central Secrets Matter</h2>
+<p>Before you write a single line of code, you need a mental model. Almost every security disaster in the history of software came from teams thinking <em>"we can roll our own auth later."</em> Don't be that team.</p>
+
+<h3>0.1 The three problems people confuse</h3>
+<p>Most developers conflate three different problems. They are not the same problem, and the solutions to each are different libraries, different protocols, and different operational models.</p>
+
+<table>
+  <thead><tr><th>Problem</th><th>What it answers</th><th>Example question</th><th>Typical solution</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Authentication</strong> (AuthN)</td><td><em>Who is this user?</em></td><td>"Is this request really from Alice?"</td><td>OIDC, SAML, Keycloak</td></tr>
+    <tr><td><strong>Authorization</strong> (AuthZ)</td><td><em>What is this user allowed to do?</em></td><td>"Can Alice delete this record?"</td><td>OAuth 2.0 scopes, RBAC, Keycloak roles</td></tr>
+    <tr><td><strong>Secrets management</strong></td><td><em>Where do we keep API keys, DB passwords, TLS certs?</em></td><td>"How does my FastAPI process get the DB password without it being in <code>.env</code> on the dev's laptop?"</td><td>Infisical, HashiCorp Vault, OpenBao</td></tr>
+  </tbody>
+</table>
+
+<p>A common beginner mistake: "I'll just put passwords in the database, hash them with bcrypt, and write my own session middleware." That solves <em>one</em> piece of authentication for <em>one</em> app. It does not solve:</p>
+<ul>
+  <li>Single sign-on (SSO) across multiple apps</li>
+  <li>Federated identity (let users log in with Google, GitHub, Microsoft)</li>
+  <li>Multi-factor authentication (MFA / TOTP / passkeys)</li>
+  <li>Password reset flows</li>
+  <li>Account lockout after failed logins</li>
+  <li>Audit logs of who did what, when</li>
+  <li>Token revocation when a user is fired</li>
+  <li>Centralized enforcement of password complexity rules</li>
+  <li>Anomaly detection (impossible travel, brute force)</li>
+</ul>
+
+<p>Every one of those is something Keycloak does out of the box. Every one of them is also a place custom auth code introduces vulnerabilities. <strong>The most dangerous part of any auth system is the part the team did not write.</strong></p>
+
+<h3>0.2 The "central auth" security model</h3>
+<p>Instead of every app having its own login, you have one <strong>identity provider</strong> (Keycloak) and every app delegates auth to it. The apps trust Keycloak, not the user's password.</p>
+
+<div class="diagram"><pre>┌──────────┐     ┌──────────┐     ┌──────────┐
+│ FastAPI  │     │ Streamlit│     │ Landing  │
+│ Backend  │     │ Frontend │     │ Page     │
+└────┬─────┘     └────┬─────┘     └────┬─────┘
+     │                │                │
+     │  OIDC / OAuth  │  OIDC / OAuth  │  OIDC / OAuth
+     ▼                ▼                ▼
+   ┌──────────────────────────────┐
+   │   Keycloak (Identity Hub)    │
+   │   - Users / Groups / Roles   │
+   │   - Passwords / MFA / Passkey│
+   │   - OIDC & SAML & OAuth 2.0  │
+   │   - Audit logs               │
+   └──────────────────────────────┘</pre></div>
+
+<p>If a vulnerability is discovered in the auth flow, you patch <strong>one</strong> place, and every app gets the fix. If a user is fired, you revoke their session in <strong>one</strong> place, and they lose access to every app immediately. If a regulator asks "who accessed this data on March 15?", you have a single audit log to query.</p>
+
+<p>This is the same architecture used by Google Workspace, GitHub Enterprise, Salesforce — but you can self-host it free with Keycloak.</p>
+
+<h3>0.3 The "central secrets" security model</h3>
+<p>Same logic, different domain. Instead of <code>.env</code> files scattered across developer laptops, CI runners, and production servers, secrets live in one encrypted vault (Infisical). Apps fetch what they need at startup, with a short-lived token that expires.</p>
+
+<div class="diagram"><pre>┌──────────────┐  short-lived tokens  ┌──────────────┐
+│   FastAPI    │ ───────────────────► │  Infisical   │
+│   Worker     │                      │  (Vault)     │
+│   CI/CD      │ ◄─────────────────── │              │
+└──────────────┘  secrets as env vars └──────────────┘</pre></div>
+
+<p>Why this matters:</p>
+<ul>
+  <li>A developer's laptop is stolen → no production secrets on disk</li>
+  <li>A log line accidentally prints an env var → no real secret leaks because the secret was a <em>reference</em>, not the value</li>
+  <li>A secret needs to be rotated → you rotate it in one place, and every connected service picks up the new value within seconds</li>
+  <li>An audit shows "who read the DB password, and when" → you have a queryable log</li>
+</ul>
+
+<h3>0.4 What "free" actually means in this stack</h3>
+<table>
+  <thead><tr><th>Tool</th><th>License</th><th>Who else uses it</th></tr></thead>
+  <tbody>
+    <tr><td>Keycloak</td><td>Apache 2.0</td><td>Red Hat builds and sells a supported version (RH-SSO); the community version is identical core code</td></tr>
+    <tr><td>Infisical</td><td>MIT</td><td>Y Combinator-backed; thousands of companies</td></tr>
+    <tr><td>Traefik</td><td>MIT</td><td>Used by millions of Docker deployments</td></tr>
+    <tr><td>PostgreSQL</td><td>PostgreSQL License</td><td>The world's most-used database</td></tr>
+    <tr><td>Redis</td><td>BSD</td><td>Industry standard cache / queue</td></tr>
+    <tr><td>FastAPI</td><td>MIT</td><td>Industry standard Python async framework</td></tr>
+    <tr><td>PyJWT</td><td>MIT</td><td>Used by Django, Flask-JWT-Extended, FastAPI</td></tr>
+  </tbody>
+</table>
+
+<p>There is no "free but worse" here. You are using the same code that companies pay six figures a year to license with support contracts. The only thing you give up is the support ticket.</p>
+
+<h2 id="m1"><span class="module-num">M1</span>JSON Web Tokens (JWT), From Scratch</h2>
+<p>JWT is the token format that almost every modern auth system uses. You will see it inside Keycloak, OAuth, OIDC, and dozens of other places. If you do not understand JWT deeply, you cannot debug auth issues, you cannot reason about token expiration, and you cannot spot the security footguns.</p>
+
+<h3>1.1 What a JWT actually is</h3>
+<p>A JWT is a string that looks like this:</p>
+
+<pre><code>eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsImV4cCI6MTczNTY4OTYwMH0.signature_here_abc123</code></pre>
+
+<p>Three parts, separated by dots:</p>
+<ol>
+  <li><strong>Header</strong> (base64url-encoded JSON)</li>
+  <li><strong>Payload</strong> (base64url-encoded JSON)</li>
+  <li><strong>Signature</strong> (cryptographic signature over the first two)</li>
+</ol>
+
+<p>Each part is base64url-encoded — that means anyone with the token can read it. <em>Encoding is not encryption.</em> A JWT is a signed JSON, not an encrypted one. If you need encrypted, that is JWE (JSON Web Encryption), which is a different thing.</p>
+
+<p>Let's decode the parts:</p>
+
+<pre><code class="lang-json">// Header
+{
+  "alg": "RS256",   // signing algorithm
+  "typ": "JWT",     // token type
+  "kid": "key-2024" // key ID, used to look up the verification key
+}
+
+// Payload
+{
+  "sub": "1234567890",     // subject = user ID
+  "name": "Alice",
+  "email": "alice@example.com",
+  "exp": 1735689600,        // expiration time (Unix epoch seconds)
+  "iat": 1735686000,        // issued at
+  "iss": "https://auth.your-saas.com/realms/prod",  // issuer
+  "aud": "fastapi-backend" // audience = intended recipient
+}
+
+// Signature
+RSASSA-PKCS1-v1_5-SHA256(
+  base64url(header) + "." + base64url(payload),
+  private_key_of_issuer
+)</code></pre>
+
+<p>Anyone can read the payload, but only the holder of the issuer's private key can create a valid signature. Conversely, anyone with the issuer's <em>public</em> key can verify that a signature was made by that issuer. The math is asymmetric.</p>
+
+<h3>1.2 The three signing algorithm families</h3>
+<table>
+  <thead><tr><th>Family</th><th>Algorithms</th><th>Key model</th><th>When to use</th></tr></thead>
+  <tbody>
+    <tr><td><strong>HMAC</strong> (symmetric)</td><td>HS256, HS384, HS512</td><td>One shared secret signs <em>and</em> verifies</td><td>Same service issues and verifies; high-entropy secret (32+ random bytes)</td></tr>
+    <tr><td><strong>RSA / ECDSA / EdDSA</strong> (asymmetric)</td><td>RS256, ES256, EdDSA, PS256</td><td>Private key signs, public key verifies</td><td>Distributed systems: one issuer, many verifiers</td></tr>
+    <tr><td><strong>none</strong></td><td><code>none</code></td><td>No signature</td><td><strong>Never use in production. This is a footgun. Reject on sight.</strong></td></tr>
+  </tbody>
+</table>
+
+<p>For Keycloak, which is the central identity provider in your stack, the right choice is asymmetric (RS256, ES256, or EdDSA). Why?</p>
+<ul>
+  <li>Your FastAPI service can verify a token using Keycloak's <em>public</em> key</li>
+  <li>Your FastAPI service does not have any secret that lets it <em>forge</em> tokens</li>
+  <li>A compromise of your FastAPI service cannot escalate into a token-minting capability</li>
+</ul>
+
+<p>This is the principle of <strong>least privilege for verifiers</strong>: they should not be able to mint, only check.</p>
+
+<h3>1.3 The standard claims you must understand</h3>
+<p>These are the fields you'll see in every OIDC-compliant token. They have precise meanings defined by RFC 7519 and the OIDC core spec.</p>
+
+<table>
+  <thead><tr><th>Claim</th><th>Full name</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><code>iss</code></td><td>Issuer</td><td>URL of the token issuer. For Keycloak: <code>https://auth.your-saas.com/realms/prod</code></td></tr>
+    <tr><td><code>sub</code></td><td>Subject</td><td>A stable, unique identifier for the user. For Keycloak: a UUID per user per realm</td></tr>
+    <tr><td><code>aud</code></td><td>Audience</td><td>The intended recipient. For an access token intended for the FastAPI API: the client ID of the API. <strong>This is your protection against token-substitution attacks.</strong></td></tr>
+    <tr><td><code>exp</code></td><td>Expiration</td><td>Unix epoch seconds. The token must be rejected after this time.</td></tr>
+    <tr><td><code>iat</code></td><td>Issued at</td><td>Unix epoch seconds. When the token was minted.</td></tr>
+    <tr><td><code>nbf</code></td><td>Not before</td><td>Unix epoch seconds. The token is invalid before this time.</td></tr>
+    <tr><td><code>jti</code></td><td>JWT ID</td><td>A unique identifier for this specific token. Used for replay detection and revocation.</td></tr>
+    <tr><td><code>auth_time</code></td><td>Authentication time (OIDC-specific)</td><td>When the user actually authenticated. Useful for step-up auth.</td></tr>
+    <tr><td><code>acr</code></td><td>Authentication context class reference (OIDC)</td><td>What level of auth was done (e.g., <code>0</code> = password, <code>1</code> = MFA, <code>2</code> = passkey)</td></tr>
+    <tr><td><code>amr</code></td><td>Authentication methods reference (OIDC)</td><td>Array of methods used, e.g. <code>["pwd", "otp", "passkey"]</code></td></tr>
+    <tr><td><code>nonce</code></td><td>Nonce (OIDC)</td><td>Random value the client set in the auth request, echoed back in the ID token. Prevents replay.</td></tr>
+    <tr><td><code>scope</code></td><td>Scope (OAuth)</td><td>Space-separated list of permissions, e.g. <code>openid profile email</code></td></tr>
+    <tr><td><code>realm_access</code></td><td>Keycloak custom</td><td><code>{ "roles": ["user", "admin"] }</code> — realm-level roles</td></tr>
+    <tr><td><code>resource_access</code></td><td>Keycloak custom</td><td><code>{ "fastapi-backend": { "roles": ["api-admin"] } }</code> — client-level roles</td></tr>
+  </tbody>
+</table>
+
+<p>For FastAPI specifically, you'll inspect <code>sub</code> to know <em>which</em> user is calling, <code>aud</code> to confirm the token was meant for <em>your</em> service, <code>exp</code> to know if it's still valid, and <code>realm_access</code> / <code>resource_access</code> for role checks.</p>
+
+<h3>1.4 How signature verification actually works</h3>
+<p>This is the part most tutorials gloss over. When your FastAPI service receives a token, it does this:</p>
+<ol>
+  <li>Parse token into <code>header.payload.signature</code></li>
+  <li>Read <code>header.kid</code> (key ID)</li>
+  <li>Fetch the issuer's public keys from <code>&lt;issuer&gt;/.well-known/openid-configuration</code> → that JSON has <code>jwks_uri</code>, which points to the JWKS endpoint</li>
+  <li>Find the public key whose <code>kid</code> matches the token's <code>header.kid</code></li>
+  <li>Verify the signature using that public key and the algorithm in <code>header.alg</code></li>
+  <li>Verify that the current time is before <code>exp</code> and after <code>nbf</code> (with small clock skew tolerance)</li>
+  <li>Verify that <code>iss</code> matches the expected issuer (exact match, not substring)</li>
+  <li>Verify that <code>aud</code> contains your service identifier</li>
+  <li>If any check fails → reject with 401 Unauthorized</li>
+</ol>
+
+<p>Steps 3 and 4 are key. Keycloak publishes its signing keys at:</p>
+
+<pre><code>https://auth.your-saas.com/realms/&lt;realm&gt;/protocol/openid-connect/certs</code></pre>
+
+<p>This endpoint is called the <strong>JWKS</strong> (JSON Web Key Set) endpoint. It returns a JSON document listing every public key the realm currently uses to sign tokens. Keycloak rotates these keys periodically. Your FastAPI service must:</p>
+<ul>
+  <li>Cache the JWKS document (don't fetch it on every request — that's a DoS waiting to happen)</li>
+  <li>Refresh the cache when it sees an unknown <code>kid</code></li>
+  <li>Verify that the <code>kid</code> is actually one of the keys Keycloak published (not one an attacker invented)</li>
+</ul>
+
+<h3>1.5 Common JWT attacks and why naive code is dangerous</h3>
+<p>These are real CVEs from real systems. Read them. Then never write that code.</p>
+
+<div class="callout danger">
+  <div class="callout-title">⚠️ Attack 1: <code>alg: none</code></div>
+  <p>In 2015, a famous vulnerability surfaced: a library accepted tokens with <code>"alg": "none"</code> and treated them as valid. The attacker could mint a token with whatever claims they wanted, the library would skip signature verification, and the attacker was in.</p>
+</div>
+
+<pre><code># This token should be REJECTED, but vulnerable libraries accept it
+eyJhbGciOiJub25lIn0.eyJzdWIiOiJhZG1pbiIsImV4cCI6OTk5OTk5OTk5OX0.</code></pre>
+
+<p>Defense: always pass an explicit <code>algorithms=["RS256"]</code> list to your JWT library. Never let <code>alg</code> from the header determine which algorithm you use.</p>
+
+<div class="callout danger">
+  <div class="callout-title">⚠️ Attack 2: Algorithm confusion (HS256 vs RS256)</div>
+  <p>This is the one the libraries have actually gotten wrong. The attack: the verifier code says "use the algorithm in the token header." An attacker sends an HS256-signed token. The library interprets the <em>public key</em> (which the verifier fetched as an RSA public key) as an HMAC shared secret. The attacker signs with the public key, the library verifies with the same public key, and accepts the token. This is <strong>CVE-2026-48526</strong> in PyJWT 2.x and a long history in other libraries <a href="#ref1">[1]</a>. Defense: pin the algorithm. Do not derive it from the token.</p>
+</div>
+
+<div class="callout warn">
+  <div class="callout-title">⚠️ Other attacks to remember</div>
+  <ul>
+    <li><strong>Weak HMAC secret:</strong> HS256 with a 6-character secret is brute-forceable in seconds. Use 32+ random bytes.</li>
+    <li><strong>Not validating <code>exp</code>:</strong> A leaked token is valid forever. Always check <code>exp</code>.</li>
+    <li><strong>Not validating <code>aud</code>:</strong> A token meant for service A can be used to call service B. Always check <code>aud</code>.</li>
+    <li><strong>Trusting the user-id (<code>sub</code>) without re-checking:</strong> JWT payload is <em>not</em> a database. Query your DB after validating the token for current attributes.</li>
+  </ul>
+</div>
+
+<h3>1.6 JWT is <em>not</em> a session. Stop treating it like one.</h3>
+<p>This is the most common architectural mistake. A JWT is a <strong>signed statement of claims at a point in time</strong>. It is not state.</p>
+<ul>
+  <li>You cannot reliably "revoke" a JWT before its <code>exp</code>. There is no central list of "live tokens" in the default setup. (You can build one with token introspection, but it's not free.)</li>
+  <li>A token with 24-hour expiry is valid for 24 hours, period. If a user logs out, the token still works until <code>exp</code>.</li>
+  <li>A token with role <code>admin</code> in the payload is an admin until <code>exp</code>, even if you just removed the role from the user.</li>
+</ul>
+
+<p>The right architecture:</p>
+<ul>
+  <li>Access tokens: short lifetime (5–15 minutes)</li>
+  <li>Refresh tokens: longer lifetime, stored server-side, revocable</li>
+  <li>A logout endpoint that revokes the <em>refresh</em> token, ending the session</li>
+  <li>For sensitive operations, call the userinfo endpoint or query your DB</li>
+</ul>
+
+<h3>1.7 Mental model summary</h3>
+<div class="callout success">
+  <div class="callout-title">The mental model</div>
+  <p>A JWT is a sealed envelope with a wax stamp. The envelope is not locked — anyone can read it. But the stamp proves it came from the issuer, and the signature proves no one tampered with the contents. Your job, as a verifier, is to check the seal, check the date, check the addressee, and reject anything that fails.</p>
+</div>
+
+<h2 id="m2"><span class="module-num">M2</span>OAuth 2.0 and OAuth 2.1</h2>
+<p>OAuth 2.0 is the most widely deployed authorization protocol in the world. Every "Sign in with Google" button you've ever clicked uses it. It is also widely misunderstood, and the misunderstandings lead to real vulnerabilities.</p>
+
+<h3>2.1 What OAuth is — and what it is not</h3>
+<p><strong>OAuth 2.0 is an authorization delegation framework.</strong> It is <em>not</em> an authentication protocol. Saying "we use OAuth to log in" is a category error. Authentication answers "who is this user?" OAuth answers "is this user allowed to access this resource on my behalf?"</p>
+
+<p>The protocol that <em>is</em> authentication is <strong>OpenID Connect (OIDC)</strong>, which is built <em>on top of</em> OAuth 2.0. OIDC adds the ID token that proves identity. We will cover OIDC in Module 3.</p>
+
+<p>This confusion causes real bugs. A team uses OAuth's access token to authenticate the user, stores the <code>sub</code> claim, and never verifies that the user actually exists. Then an attacker can mint a fake token (or replay a leaked one), pass it to the API, and the API trusts it because the signature is valid — but the user might have been deleted, banned, or never existed.</p>
+
+<h3>2.2 The four roles</h3>
+<p>OAuth defines four roles. Every flow involves all four.</p>
+<table>
+  <thead><tr><th>Role</th><th>What it is</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Resource Owner</strong></td><td>The human (or sometimes a machine) who owns the data</td><td>You, when you click "Allow" on a Google sign-in dialog</td></tr>
+    <tr><td><strong>Client</strong></td><td>The app that wants to act on the resource owner's behalf</td><td>A third-party calendar app wanting to read your Google Calendar</td></tr>
+    <tr><td><strong>Authorization Server</strong></td><td>The service that authenticates the user and issues tokens</td><td>Google, Keycloak, Okta, Auth0</td></tr>
+    <tr><td><strong>Resource Server</strong></td><td>The API that holds the protected data</td><td>Google Calendar API</td></tr>
+  </tbody>
+</table>
+
+<p>In your stack, Keycloak is the Authorization Server. Your FastAPI backend is the Resource Server. The user's browser session is the Resource Owner. The Streamlit frontend or LangChain agent is the Client.</p>
+
+<h3>2.3 The grant types you need to know</h3>
+<p>A "grant type" is the mechanism a client uses to obtain an access token. OAuth 2.0 has six, but two of them are deprecated (Implicit, Resource Owner Password) and two are very specialized. For 95% of real apps, you need exactly three.</p>
+
+<h4>2.3.1 Authorization Code + PKCE (for any user-facing client)</h4>
+<p>This is the canonical flow. It is mandatory in OAuth 2.1 for <em>all</em> clients, including confidential server-side ones.</p>
+
+<div class="diagram"><pre>┌─────────┐                ┌─────────┐               ┌─────────┐
+│  User   │                │ Client  │               │   AS    │
+│ (RO)    │                │ (App)   │               │ (KC)    │
+└────┬────┘                └────┬────┘               └────┬────┘
+     │ 1. Click "Login"         │                         │
+     ├─────────────────────────►│                         │
+     │                          │ 2. Generate code_verifier
+     │                          │    code_challenge = SHA256(verifier)
+     │                          │ 3. 302 Redirect to /authorize
+     │ 4. Browser follows redirect                        │
+     ├───────────────────────────────────────────────────►│
+     │ 5. Login form            │                         │
+     │◄──────────────────────────────────────────────────┤
+     │ 6. Submit credentials    │                         │
+     ├───────────────────────────────────────────────────►│
+     │ 7. AS redirects back     │                         │
+     │    to redirect_uri       │                         │
+     │    with ?code=xyz123     │                         │
+     │◄──────────────────────────────────────────────────┤
+     │ 8. Browser follows       │                         │
+     ├─────────────────────────►│                         │
+     │                          │ 9. POST /token          │
+     │                          │    grant_type=authorization_code
+     │                          │    &code=xyz123         │
+     │                          │    &code_verifier=...   │
+     │                          ├────────────────────────►│
+     │                          │ 10. AS verifies code,  │
+     │                          │     verifier, client   │
+     │                          │ 11. Return tokens       │
+     │                          │ {access_token,         │
+     │                          │  id_token,             │
+     │                          │  refresh_token}        │
+     │                          │◄────────────────────────┤
+     │                          │ 12. Use access_token   │
+     │                          │     to call API:        │
+     │                          │     Authorization:      │
+     │                          │      Bearer <token>     │</pre></div>
+
+<p><strong>Why PKCE matters (the security argument):</strong> Without PKCE, the authorization code is the only thing protecting the user's identity. If an attacker can intercept the redirect (a malicious browser extension, a phishing site, a poorly-configured mobile app), they get the code, exchange it for tokens at the token endpoint, and now they're authenticated as the user.</p>
+
+<p>With PKCE, the attacker also needs the <code>code_verifier</code> — a 43-character random string the client generated locally and never sent over the wire. Without it, the token endpoint rejects the code. PKCE binds the token exchange to the client that initiated the request.</p>
+
+<p><strong>Use this flow for:</strong></p>
+<ul>
+  <li>FastAPI backend with a frontend (Streamlit, React, Vue)</li>
+  <li>Single-page applications (SPAs)</li>
+  <li>Mobile apps</li>
+  <li>Native desktop apps</li>
+</ul>
+
+<h4>2.3.2 Client Credentials (for machine-to-machine)</h4>
+<p>No user. No browser. Service A authenticates to Keycloak with its <code>client_id</code> and <code>client_secret</code>, gets an access token, and calls Service B.</p>
+
+<pre><code>POST /token
+  grant_type=client_credentials
+  client_id=service-a
+  client_secret=abc123
+→ { access_token: "eyJ...", expires_in: 600 }</code></pre>
+
+<p><strong>Use this for:</strong> backend-to-backend, cron jobs, LangChain agents calling internal APIs, CI/CD pipelines.</p>
+<p><strong>Important:</strong> In Keycloak, you must enable "Service accounts roles" on the client for this to work. By default, only the <code>admin-cli</code> client has it.</p>
+
+<h4>2.3.3 Refresh Token</h4>
+<p>Access tokens are short-lived (5–15 minutes). Refresh tokens are long-lived (hours to days). The client uses the refresh token to get a new access token without bothering the user.</p>
+
+<p><strong>Keycloak default:</strong> refresh tokens are single-use. Every refresh issues a new refresh token and invalidates the old one. This is called <strong>refresh token rotation</strong>, and it's required by OAuth 2.1 for public clients because it limits the damage of a stolen refresh token (the attacker uses it once, the legitimate user's next refresh fails, and the system detects the breach).</p>
+
+<h4>2.3.4 Deprecated flows you should NOT use</h4>
+<ul>
+  <li><strong>Implicit grant</strong> (<code>response_type=token</code>): tokens were returned in the URL fragment. Vulnerable to history-theft and referrer leaks. Removed in OAuth 2.1.</li>
+  <li><strong>Resource Owner Password Credentials (ROPC)</strong>: the app collected the user's username and password directly. Deprecated in OAuth 2.0, removed in OAuth 2.1.</li>
+  <li><strong>Client credentials with a public client</strong>: public clients can't keep secrets, so they shouldn't use the client credentials flow. Use authorization code + PKCE instead.</li>
+</ul>
+
+<h3>2.4 OAuth 2.1 — what's new and why you should care</h3>
+<p>OAuth 2.1 is the in-progress consolidation of OAuth 2.0 with ten years of security best practices <a href="#ref2">[2]</a>. It removes the deprecated flows and makes PKCE mandatory for everyone.</p>
+
+<table>
+  <thead><tr><th>Change</th><th>OAuth 2.0</th><th>OAuth 2.1</th></tr></thead>
+  <tbody>
+    <tr><td>PKCE for authorization code flow</td><td>Optional (recommended for public clients)</td><td><strong>Mandatory for all clients</strong></td></tr>
+    <tr><td>Implicit grant</td><td>Allowed</td><td><strong>Removed</strong></td></tr>
+    <tr><td>Resource Owner Password Credentials</td><td>Allowed (discouraged)</td><td><strong>Removed</strong></td></tr>
+    <tr><td>Redirect URI matching</td><td>Loose (some implementations allowed wildcards)</td><td><strong>Exact string match only</strong></td></tr>
+    <tr><td>Refresh tokens for public clients</td><td>Allowed with caveats</td><td><strong>Must be sender-constrained OR rotated</strong></td></tr>
+    <tr><td>Bearer tokens in URL query strings</td><td>Allowed</td><td><strong>Discouraged; use header or body</strong></td></tr>
+    <tr><td>Client types</td><td>Confusing trichotomy</td><td>Simplified: confidential = has credentials, public = doesn't</td></tr>
+  </tbody>
+</table>
+
+<p>Keycloak has supported all of these for years. If you configure Keycloak correctly, you are already OAuth 2.1 compliant.</p>
+
+<h3>2.5 Scopes</h3>
+<p>Scopes are how the client tells the authorization server <em>what</em> it wants access to. They are space-separated strings in the authorization request:</p>
+
+<pre><code>scope=openid profile email https://your-api.com/scope/admin</code></pre>
+
+<p>The <code>openid</code> scope is what makes the request an OIDC request instead of plain OAuth. The other standard scopes (<code>profile</code>, <code>email</code>, <code>address</code>, <code>phone</code>) are OIDC-defined. Anything else is application-defined.</p>
+
+<h3>2.6 Mental model summary</h3>
+<div class="callout success">
+  <div class="callout-title">The mental model</div>
+  <p>OAuth 2.0 is a delegation protocol. A user goes to an authorization server, says "I authorize this app to access these resources on my behalf," and the authorization server hands the app a token. The app uses that token at the resource server. Three flows cover 95% of cases: authorization code with PKCE (interactive), client credentials (machine-to-machine), and refresh token (renewal). OAuth 2.1 removes the dangerous old flows and makes PKCE mandatory.</p>
+</div>
+
+<h2 id="m3"><span class="module-num">M3</span>OpenID Connect (OIDC)</h2>
+<p>OIDC is the layer on top of OAuth 2.0 that adds identity. If you want to know <em>who</em> the user is (not just <em>what they're allowed to do</em>), you need OIDC.</p>
+
+<h3>3.1 What OIDC adds</h3>
+<p>OAuth gives you an access token (a bearer credential for an API). OIDC adds:</p>
+<ol>
+  <li><strong>ID Token</strong> — a JWT that proves the user just authenticated</li>
+  <li><strong>UserInfo Endpoint</strong> — an API you call with the access token to get user attributes</li>
+  <li><strong>Standard Claims</strong> — a defined set of user attributes (name, email, picture, etc.)</li>
+  <li><strong>Discovery Document</strong> — a JSON at a well-known URL that tells clients everything about the IdP</li>
+  <li><strong>JWKS Endpoint</strong> — a JSON that lists the IdP's public keys for signature verification</li>
+  <li><strong>Dynamic Client Registration</strong> — clients can register themselves at runtime</li>
+  <li><strong>Session Management</strong> — ways to log out, check session, etc.</li>
+</ol>
+
+<h3>3.2 The ID token vs the access token</h3>
+<p>This confuses everyone the first time. You get <em>both</em> when you complete the authorization code flow.</p>
+
+<table>
+  <thead><tr><th></th><th>Access token</th><th>ID token</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Format</strong></td><td>Usually JWT (Keycloak) or opaque</td><td>Always JWT</td></tr>
+    <tr><td><strong>Audience</strong></td><td>The resource server (your API)</td><td>The client application (your frontend)</td></tr>
+    <tr><td><strong>Purpose</strong></td><td>Prove the user is authorized for an API call</td><td>Prove the user is who they say they are</td></tr>
+    <tr><td><strong>Lifetime</strong></td><td>Short (5–15 min)</td><td>Short (same as access token by default)</td></tr>
+    <tr><td><strong>Used by</strong></td><td>Backend services</td><td>Frontend, then optionally passed to backend</td></tr>
+    <tr><td><strong>Contains</strong></td><td>Permissions, scopes, roles</td><td>Identity claims (name, email, sub, etc.)</td></tr>
+    <tr><td><strong>Verified by</strong></td><td>Resource server</td><td>Client application</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Important security rule:</strong> the access token should <em>not</em> be sent to anyone who is not the resource server. The ID token should <em>not</em> be sent to anyone who is not the client that requested it. The <code>aud</code> claim enforces this — your FastAPI service checks that the access token's <code>aud</code> matches your service, and your frontend checks that the ID token's <code>aud</code> matches the frontend's client ID.</p>
+
+<h3>3.3 The discovery document</h3>
+<p>Every OIDC provider publishes a "well-known" JSON document. For Keycloak:</p>
+
+<pre><code>https://auth.your-saas.com/realms/&lt;realm&gt;/.well-known/openid-configuration</code></pre>
+
+<p>This is the equivalent of an API spec for the identity provider. The first thing any well-built OIDC client does on startup is fetch this document, cache it, and read the endpoints from it. <strong>You do not hardcode URLs in your app.</strong> You read them from the discovery document. If you move Keycloak to a different domain, the app keeps working.</p>
+
+<h3>3.4 The userinfo endpoint</h3>
+<p>The ID token contains a <em>minimal</em> set of claims. For more (e.g., the user's profile picture, address, custom attributes), the client calls:</p>
+
+<pre><code>GET /realms/&lt;realm&gt;/protocol/openid-connect/userinfo
+Authorization: Bearer &lt;access_token&gt;</code></pre>
+
+<p>Keycloak returns a JSON document with the user's claims. This is the right place to fetch data that's too large or too sensitive to put in every ID token.</p>
+
+<h3>3.5 OIDC logout</h3>
+<p>Logging out is harder than it looks. There are three flavors:</p>
+<table>
+  <thead><tr><th>Flavor</th><th>Who initiates</th><th>Mechanism</th></tr></thead>
+  <tbody>
+    <tr><td><strong>RP-Initiated Logout</strong></td><td>The client (relying party)</td><td>Client redirects user to Keycloak's <code>end_session_endpoint</code>. Keycloak clears the SSO session. Client clears its local session.</td></tr>
+    <tr><td><strong>Front-Channel Logout</strong></td><td>Keycloak</td><td>Keycloak makes a GET request to each registered client's logout URL via the browser</td></tr>
+    <tr><td><strong>Back-Channel Logout</strong></td><td>Keycloak</td><td>Keycloak makes a server-to-server POST to each registered client's back-channel logout URL</td></tr>
+  </tbody>
+</table>
+
+<p>For your use case, RP-initiated is what you want.</p>
+
+<div class="callout warn">
+  <div class="callout-title">Caveat</div>
+  <p>RP-initiated logout only kills the user's session <em>at Keycloak</em>. If the user has refresh tokens stored in your app, those are still valid until expiry. The cleanest way: on logout, also revoke the refresh token at Keycloak's revocation endpoint, then clear the access token in the app.</p>
+</div>
+
+<h3>3.6 Mental model summary</h3>
+<div class="callout success">
+  <div class="callout-title">The mental model</div>
+  <p>OIDC is OAuth plus identity. The ID token is the proof of authentication; the access token is the credential for authorization; the userinfo endpoint is for additional profile data; the discovery document is the spec; the JWKS endpoint is the public key directory. Implement OIDC and you get single sign-on, logout, profile data, and standards-compliant verification.</p>
+</div>
+
+<h2 id="m4"><span class="module-num">M4</span>Keycloak in Depth</h2>
+<p>Now we get to the actual product. Keycloak is the open-source identity and access management (IAM) server originally created by JBoss, now maintained by the community under Red Hat's stewardship.</p>
+
+<h3>4.1 What Keycloak is and isn't</h3>
+<p><strong>Keycloak is:</strong> an identity provider, an identity broker, a single sign-on server, a user federation hub, an OAuth 2.0 / OIDC / SAML 2.0 server, a fine-grained authorization server, and a credential manager (passwords, OTP, WebAuthn/passkeys, X.509).</p>
+
+<p><strong>Keycloak is not:</strong> a database (it stores user data in PostgreSQL/MariaDB/etc., not its own engine), a user-facing directory service for end-users (it's an admin/developer tool with user-facing screens as a byproduct), or a self-service password reset portal out of the box (it has one, but it's basic).</p>
+
+<h3>4.2 Architecture</h3>
+<p>As of version 26.x (current stable: 26.7, released July 2026), Keycloak runs on the Quarkus runtime (previously WildFly/JBoss). It is written in Java and requires JDK 21+ for production <a href="#ref3">[3]</a>.</p>
+
+<div class="diagram"><pre>┌─────────────────────────────────────────────────────────────┐
+│  Keycloak Server (Quarkus runtime)                          │
+│                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │ Admin REST   │  │ Account      │  │ OIDC / SAML      │  │
+│  │ API          │  │ Console      │  │ Endpoints        │  │
+│  └──────┬───────┘  └──────┬───────┘  └────────┬─────────┘  │
+│  ┌──────┴─────────────────┴────────────────────┴────────┐  │
+│  │         Authentication & Authorization Engine         │  │
+│  │  (SPI-based, pluggable authenticators, mappers)       │  │
+│  └──────┬─────────────────┬────────────────────┬────────┘  │
+│  ┌──────┴───────┐  ┌──────┴───────┐  ┌────────┴─────────┐  │
+│  │  Infinispan  │  │  User        │  │  Identity        │  │
+│  │  (Cache &    │  │  Federation  │  │  Brokering       │  │
+│  │  Sessions)   │  │  (LDAP/AD)   │  │  (OIDC/SAML)     │  │
+│  └──────────────┘  └──────────────┘  └──────────────────┘  │
+└────────┬────────────────────────────────────────────────────┘
+         │
+         ▼
+   PostgreSQL (or MariaDB, Oracle, MS SQL, etc.)</pre></div>
+
+<p>The key architectural insight: <strong>Keycloak is stateless at the application level</strong>. All persistent state lives in the database. Sessions and short-lived caches live in Infinispan, which is embedded by default but can be externalized for HA across multiple Keycloak instances.</p>
+
+<h3>4.3 Core concepts</h3>
+<p>These are the entities you work with. Get these in your head and the rest of Keycloak is just configuration.</p>
+
+<table>
+  <thead><tr><th>Concept</th><th>What it is</th><th>When you use it</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Realm</strong></td><td>A top-level tenant. A realm contains users, clients, roles, groups, identity providers — fully isolated from other realms.</td><td>One realm per environment (dev, staging, prod) or per major business unit</td></tr>
+    <tr><td><strong>Client</strong></td><td>An application that can request authentication. The client is registered with Keycloak.</td><td>One client per app: <code>fastapi-backend</code>, <code>streamlit-frontend</code>, <code>langchain-agent</code></td></tr>
+    <tr><td><strong>User</strong></td><td>An end-user account. Has a username, email, attributes, credentials.</td><td>Every person who logs in</td></tr>
+    <tr><td><strong>Group</strong></td><td>A named collection of users. Used for bulk role assignment.</td><td>"engineering", "billing", "beta-testers"</td></tr>
+    <tr><td><strong>Role</strong></td><td>A named permission. Two types: realm roles (global to the realm) and client roles (scoped to one client).</td><td>"admin", "user", "billing-manager", "api-reader"</td></tr>
+    <tr><td><strong>Composite Role</strong></td><td>A role that contains other roles. When assigned, all child roles come with it.</td><td>"super-admin" = realm admin + several client-specific roles</td></tr>
+    <tr><td><strong>Client Scope</strong></td><td>A named bundle of protocol mappers and role scope mappings that can be attached to clients.</td><td>"openid-profile" scope applied to all OIDC clients</td></tr>
+    <tr><td><strong>Protocol Mapper</strong></td><td>A piece of code that translates Keycloak data into a token claim.</td><td>Add a user's department to a token, or transform a role name</td></tr>
+    <tr><td><strong>Identity Provider</strong></td><td>A federated IdP that Keycloak can delegate authentication to.</td><td>"Log in with Google", "Log in with GitHub", "Log in with corporate SAML"</td></tr>
+    <tr><td><strong>Authentication Flow</strong></td><td>A configurable sequence of steps: username/password → OTP → WebAuthn.</td><td>Custom flow for high-security logins, passwordless, etc.</td></tr>
+    <tr><td><strong>Required Action</strong></td><td>An action a user must complete before they can do anything else.</td><td>Force password change on first login, configure TOTP, verify email</td></tr>
+    <tr><td><strong>Event</strong></td><td>A record of something that happened (login, token issuance, role assignment).</td><td>Audit trail</td></tr>
+    <tr><td><strong>Theme</strong></td><td>Customizable HTML/CSS for login, account, admin, and email pages.</td><td>White-label the login screen</td></tr>
+  </tbody>
+</table>
+
+<h3>4.4 The two roles, and why you should care</h3>
+<p>Many tutorials tell you to "create a role." They rarely tell you <em>which kind</em> of role.</p>
+
+<table>
+  <thead><tr><th></th><th>Realm role</th><th>Client role</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Namespace</strong></td><td>The whole realm</td><td>One specific client</td></tr>
+    <tr><td><strong>Appears in token at</strong></td><td><code>realm_access.roles</code></td><td><code>resource_access.&lt;client-id&gt;.roles</code></td></tr>
+    <tr><td><strong>Use for</strong></td><td>Cross-cutting permissions: "admin", "user", "billing"</td><td>App-specific permissions: "api-reader", "api-writer", "agent-executor"</td></tr>
+    <tr><td><strong>Best practice</strong></td><td>Few of these, mostly for org-wide tiers</td><td>Most of your roles should be these</td></tr>
+  </tbody>
+</table>
+
+<p>The general guideline: <strong>start with client roles</strong>. They are more granular, they don't pollute the global namespace, and they map cleanly to microservice architecture. Promote to realm roles only when a permission truly crosses app boundaries.</p>
+
+<h3>4.5 Authentication flows</h3>
+<p>A flow is a sequence of "executions" (e.g., "username + password form", "TOTP challenge", "WebAuthn authentication"). Keycloak ships with three built-in flows:</p>
+<ol>
+  <li><strong>Browser flow</strong> — username/password → optional OTP → success</li>
+  <li><strong>Registration flow</strong> — registration form → email verification</li>
+  <li><strong>Reset credentials flow</strong> — email → click link → set new password</li>
+</ol>
+
+<p>You can copy and customize any of these. For your AI SaaS, a sensible default:</p>
+<ul>
+  <li>Standard users: username/password + WebAuthn (passkey) as optional second factor</li>
+  <li>Admins: required WebAuthn</li>
+  <li>Service-to-service: client credentials (no flow needed)</li>
+</ul>
+
+<h3>4.6 Required actions</h3>
+<p>Required actions are things the user <em>must</em> do before their session is useful. Keycloak comes with several:</p>
+<ul>
+  <li><strong>Verify Email</strong> — user clicks a link sent to their email</li>
+  <li><strong>Update Password</strong> — force a password change</li>
+  <li><strong>Configure TOTP</strong> — set up Time-based OTP (Google Authenticator, Authy, etc.)</li>
+  <li><strong>Configure WebAuthn</strong> — register a passkey (YubiKey, Touch ID, Windows Hello)</li>
+  <li><strong>Update Profile</strong> — fill in missing required profile fields</li>
+  <li><strong>Delete Credential</strong> — remove a specific credential</li>
+  <li><strong>Terms and Conditions</strong> — display a T&amp;C page</li>
+</ul>
+
+<h3>4.7 Protocol mappers — the underused superpower</h3>
+<p>A protocol mapper is a piece of code that takes a piece of Keycloak data (a user attribute, a role, a group membership) and translates it into a token claim. This is how you get custom data into your JWT.</p>
+
+<p><strong>Example:</strong> you want to put the user's subscription tier in the access token so your FastAPI service can check it without a database call.</p>
+<ol>
+  <li>Create a user attribute called <code>subscription_tier</code></li>
+  <li>Go to Clients → <code>fastapi-backend</code> → Mappers → Create</li>
+  <li>Mapper type: User Attribute</li>
+  <li>User attribute: <code>subscription_tier</code></li>
+  <li>Token claim name: <code>tier</code></li>
+  <li>Claim type: String</li>
+  <li>Save</li>
+</ol>
+
+<p>Now every access token for that client will have <code>"tier": "premium"</code> (or whatever value) inside.</p>
+
+<h3>4.8 The Admin REST API</h3>
+<p>The Admin Console is a nice UI. The real power is the API <a href="#ref4">[4]</a>. The base URL is:</p>
+
+<pre><code>{server}/admin/realms</code></pre>
+
+<p>To get a token:</p>
+
+<pre><code class="lang-bash">curl -X POST "https://auth.your-saas.com/realms/master/protocol/openid-connect/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=admin-cli" \
+  -d "username=admin" \
+  -d "password=YOUR_ADMIN_PASSWORD" \
+  -d "grant_type=password"</code></pre>
+
+<p>Returns an access token. Use it as a bearer token on Admin API calls:</p>
+
+<pre><code class="lang-bash">TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# List users in a realm
+curl -H "Authorization: Bearer $TOKEN" \
+  "https://auth.your-saas.com/admin/realms/prod/users"
+
+# Create a user
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","email":"alice@example.com","enabled":true}' \
+  "https://auth.your-saas.com/admin/realms/prod/users"
+
+# Assign a role to a user
+curl -X PUT -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '[{"id":"role-uuid","name":"api-admin"}]' \
+  "https://auth.your-saas.com/admin/realms/prod/users/{user-uuid}/role-mappings/realm"</code></pre>
+
+<h3>4.9 Fine-grained authorization (UMA 2.0)</h3>
+<p>Beyond simple role-based access, Keycloak has a "Authorization Services" feature built on UMA 2.0. This lets you define resources, scopes, permissions, and policies in a JSON config, and Keycloak issues a different kind of access token (a "Requesting Party Token" or RPT) that your API can evaluate.</p>
+
+<p>For most use cases, plain RBAC is enough. UMA shines when you have:</p>
+<ul>
+  <li>Resources owned by users (Alice's documents, Bob's projects)</li>
+  <li>Sharing semantics (Alice shares Document X with Bob for read-only)</li>
+  <li>Group-based policies (everyone in the "engineering" group can read)</li>
+  <li>Time-based policies (this token is valid only between 9-5)</li>
+  <li>Attribute-based policies (only users with <code>subscription_tier=enterprise</code> can access this endpoint)</li>
+</ul>
+
+<p>For your AI SaaS, the resource ownership case is interesting — when a user has a private project in Qdrant, you might want a fine-grained policy that says "the project owner can read/write, the project members can read, everyone else cannot." That's a UMA use case.</p>
+
+<h3>4.10 Token exchange (RFC 8693)</h3>
+<p>Keycloak supports the OAuth 2.0 Token Exchange spec. This lets you exchange one token for another. The classic use case:</p>
+<ul>
+  <li>User logs in to your web app, gets an access token for <code>web-app</code></li>
+  <li>Web app wants to call an internal API on behalf of the user</li>
+  <li>Web app exchanges its access token for a new access token scoped to the internal API</li>
+</ul>
+<p>This is more secure than passing the original token around, because the new token has a narrower audience and a shorter lifetime.</p>
+
+<h3>4.11 Identity brokering (federation)</h3>
+<p>Keycloak can act as a broker. Your FastAPI app only knows about Keycloak. Users can log in to Keycloak with their Google, GitHub, Microsoft, or corporate SAML account, and Keycloak translates the external identity into a local user (or just proxies the external user).</p>
+<p>This is the "Sign in with Google" button without you having to integrate Google's OAuth directly. You integrate Keycloak once; Keycloak integrates with everything else.</p>
+
+<h3>4.12 High availability</h3>
+<p>For a small AI SaaS, a single Keycloak instance is fine. When you grow, you scale to two or more instances behind a load balancer, all pointing at the same PostgreSQL database <a href="#ref6">[6]</a>.</p>
+<ul>
+  <li><strong>Single-cluster (the default for HA):</strong> 2+ Keycloak instances, PostgreSQL with replication, embedded Infinispan, load balancer with sticky sessions</li>
+  <li><strong>Multi-cluster v1 (cross-data-center):</strong> Two Keycloak clusters in two data centers, external Infinispan cluster with cross-site replication</li>
+  <li><strong>Multi-cluster v2 (newer, 26.7 preview):</strong> No external Infinispan needed, embedded only, higher DB load</li>
+</ul>
+<p>For your use case, single-cluster with 2 instances is the right starting point.</p>
+
+<h3>4.13 Backup and recovery</h3>
+<p>Keycloak stores everything in the database. To back up, back up the database. To restore, restore the database. That's it. No separate LDAP dump, no secret store, no extra state.</p>
+<p>You should:</p>
+<ul>
+  <li>Take automated PostgreSQL dumps at least daily</li>
+  <li>Test your restore procedure quarterly</li>
+  <li>Encrypt the dumps</li>
+  <li>Store the dumps in a different region/zone than the primary</li>
+</ul>
+
+<h3>4.14 Observability</h3>
+<p>Keycloak exposes:</p>
+<ul>
+  <li><code>/health</code> — liveness/readiness</li>
+  <li><code>/metrics</code> — Prometheus-format metrics</li>
+  <li>OpenTelemetry traces (supported as of 26.1)</li>
+  <li>Structured JSON logs (configurable)</li>
+</ul>
+
+<h2 id="m5"><span class="module-num">M5</span>Infisical in Depth</h2>
+<p>Infisical is the open-source secret management platform. It is to secrets what Keycloak is to identities. Where Keycloak answers "who is this user?", Infisical answers "what's the database password?"</p>
+
+<h3>5.1 What Infisical is and isn't</h3>
+<p><strong>Infisical is:</strong> a secret manager, an internal PKI, a privileged access manager, a secret rotation engine, a dynamic secrets broker, a Kubernetes-native secret store, an SSH certificate authority, and a cryptographic key manager.</p>
+
+<p><strong>Infisical is not:</strong> HashiCorp Vault. The two products overlap heavily but are not identical. Infisical's UI is more developer-friendly, the API is more consistent, and the open-source feature set is more generous. Vault has more enterprise features and a longer track record.</p>
+
+<h3>5.2 The mental model</h3>
+
+<div class="diagram"><pre>┌────────────────────────────────────────────────────────────┐
+│  Organization (your company)                                │
+│  └── Project: "AI SaaS Backend"                             │
+│      ├── Environment: Development                           │
+│      │   ├── Folder: /database                              │
+│      │   │   ├── POSTGRES_PASSWORD = "dev-pwd-123"          │
+│      │   │   └── MONGODB_URI = "mongodb://..."              │
+│      │   ├── Folder: /third-party                            │
+│      │   │   ├── OPENAI_API_KEY = "sk-..."                  │
+│      │   │   └── STRIPE_SECRET_KEY = "sk_test_..."          │
+│      │   └── Folder: /feature-flags                         │
+│      │       └── ENABLE_BETA = "true"                       │
+│      ├── Environment: Staging                               │
+│      │   └── (same folder structure, different values)      │
+│      └── Environment: Production                            │
+│          └── (same folder structure, different values)      │
+└────────────────────────────────────────────────────────────┘</pre></div>
+
+<ul>
+  <li><strong>Organization</strong> = the company</li>
+  <li><strong>Project</strong> = one application or product</li>
+  <li><strong>Environment</strong> = a deployment target (dev, staging, prod)</li>
+  <li><strong>Folder</strong> = a grouping within an environment</li>
+  <li><strong>Secret</strong> = a key-value pair. The value can be a <em>reference</em> to another secret.</li>
+</ul>
+
+<h3>5.3 Secret references — the killer feature</h3>
+<p>A secret's value can be a reference to another secret:</p>
+
+<pre><code>JWT_SIGNING_KEY = ${INTERNAL_JWT_KEY}
+DATABASE_URL = postgresql://user:${POSTGRES_PASSWORD}@db:5432/myapp</code></pre>
+
+<p>When the application fetches <code>DATABASE_URL</code>, Infisical resolves the reference at read time. This means:</p>
+<ul>
+  <li>Rotate <code>POSTGRES_PASSWORD</code> once, and every secret that references it gets the new value automatically</li>
+  <li>You can have environment-specific overrides</li>
+  <li>References are visible in audit logs</li>
+</ul>
+
+<h3>5.4 Self-hosting Infisical</h3>
+<p>Infisical self-hosts with Docker Compose <a href="#ref8">[8]</a>. The minimum stack is: Infisical backend, PostgreSQL, Redis.</p>
+
+<table>
+  <thead><tr><th>Variable</th><th>What it is</th><th>How to generate</th></tr></thead>
+  <tbody>
+    <tr><td><code>ENCRYPTION_KEY</code></td><td>Master key for encrypting secrets at rest</td><td><code>openssl rand -hex 16</code></td></tr>
+    <tr><td><code>AUTH_SECRET</code></td><td>Session cookie signing key</td><td><code>openssl rand -base64 32</code></td></tr>
+    <tr><td><code>SITE_URL</code></td><td>Public URL of Infisical</td><td><code>https://secrets.your-saas.com</code></td></tr>
+    <tr><td><code>DB_CONNECTION_URI</code></td><td>PostgreSQL connection string</td><td><code>postgresql://user:pass@db:5432/infisical</code></td></tr>
+    <tr><td><code>REDIS_URL</code></td><td>Redis connection string</td><td><code>redis://redis:6379</code></td></tr>
+  </tbody>
+</table>
+
+<div class="callout danger">
+  <div class="callout-title">⚠️ Critical: back up the encryption key</div>
+  <p>The encryption key is the most critical. <strong>Lose it, lose all your secrets.</strong> Back it up in a separate physical location (an encrypted USB drive in a safe, a paper backup in a bank vault, whatever fits your threat model). Without it, the encrypted database is unreadable.</p>
+</div>
+
+<h3>5.5 Machine identities</h3>
+<p>A human logs into Infisical with username + password (and ideally MFA). But your FastAPI service is not a human. It needs an identity too. That's a <strong>machine identity</strong>.</p>
+
+<p>The default auth method is <strong>Universal Auth</strong> (client ID + client secret). The more advanced methods:</p>
+<ul>
+  <li><strong>Kubernetes Auth</strong> — your pod uses its service account token</li>
+  <li><strong>AWS Auth</strong> — your EC2 instance or Lambda uses its IAM role</li>
+  <li><strong>GCP Auth</strong> — your GCE/GKE workload uses its service account</li>
+  <li><strong>Azure Auth</strong> — same idea for Azure VMs and AKS</li>
+</ul>
+
+<h3>5.6 Dynamic secrets</h3>
+<p>A dynamic secret is one that is generated on-demand when fetched, used for a short time, and then destroyed.</p>
+
+<ol>
+  <li>Your app asks Infisical for a "Postgres dynamic secret"</li>
+  <li>Infisical creates a new user in PostgreSQL with a random password</li>
+  <li>The credentials are returned to your app</li>
+  <li>After the lease expires (default 1 hour), Infisical revokes the user from PostgreSQL</li>
+</ol>
+
+<p>The blast radius of a leak is now bounded to the lease duration, not forever. Infisical supports dynamic secrets for: PostgreSQL, MySQL, MongoDB, AWS IAM, GCP IAM, Azure, Kubernetes, Redis, Elasticsearch.</p>
+
+<h3>5.7 Internal PKI</h3>
+<p>This is the other big Infisical feature. A PKI issues and manages X.509 certificates. Why would you want this?</p>
+<ul>
+  <li>Internal mTLS between your services</li>
+  <li>TLS for internal services that aren't behind a public reverse proxy</li>
+  <li>SSH certificates for short-lived SSH access to your servers</li>
+  <li>Code signing for your releases</li>
+</ul>
+
+<p>Infisical implements a CA hierarchy <a href="#ref9">[9]</a>:</p>
+<ul>
+  <li><strong>Root CA</strong> — the trust anchor, top of the chain. Compromise is fatal.</li>
+  <li><strong>Intermediate CA</strong> — issues end-entity certificates. Can be revoked without invalidating the whole chain.</li>
+  <li><strong>End-entity certificates</strong> — what your services actually use.</li>
+</ul>
+
+<p>Infisical supports issuance via REST API, ACME, EST, and SCEP.</p>
+
+<h3>5.8 SSH certificates</h3>
+<p>Your users have a CA-trusted SSH cert valid for 8 hours. They log in. After 8 hours, the cert is useless. You don't need to revoke anything; the cert expired. Ex-employees lose access automatically.</p>
+<p>Infisical can be your SSH CA. Users authenticate to Infisical (with their OIDC identity, presumably from Keycloak), request an SSH cert, get it for 8 hours, use it. When you fire them, you just remove them from Keycloak. No more grepping <code>~/.ssh/authorized_keys</code> across your fleet.</p>
+
+<h3>5.9 Secret rotation</h3>
+<p>Infisical's rotation engine:</p>
+<ol>
+  <li>Generates a new secret value</li>
+  <li>Stores it as a "pending" version</li>
+  <li>Sends notifications to subscribed services (via webhooks, or you can poll)</li>
+  <li>After the grace period, promotes it to "active" and invalidates the old value</li>
+  <li>Audits the whole process</li>
+</ol>
+
+<p>For database passwords, the typical pattern is "dual rotation" — the new password is added to the DB alongside the old one, the application is updated to use the new one, the old one is removed. The grace period is when both work. If something breaks, you can roll back to the old one.</p>
+
+<h3>5.10 What "free" means here</h3>
+<table>
+  <thead><tr><th>Infisical feature</th><th>Free / OSS</th><th>Cloud paid tier</th></tr></thead>
+  <tbody>
+    <tr><td>Unlimited secrets</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Unlimited environments</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Unlimited users</td><td>Yes (with team limits)</td><td>Yes</td></tr>
+    <tr><td>Machine identities</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Secret rotation</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Dynamic secrets</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Internal PKI</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>SSH certificates</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Audit logs</td><td>Yes</td><td>Longer retention</td></tr>
+    <tr><td>HSM integration</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>SAML SSO (to log in to Infisical itself)</td><td>Limited</td><td>Yes</td></tr>
+  </tbody>
+</table>
+
+<h2 id="m6"><span class="module-num">M6</span>Reverse Proxy, TLS, and Cloudflare Tunnel</h2>
+<p>Your Keycloak and Infisical are running on private IPs. How do users reach them safely? And how do you avoid opening inbound ports on your server?</p>
+
+<h3>6.1 The reverse proxy role</h3>
+<p>A reverse proxy sits in front of your services and:</p>
+<ul>
+  <li>Terminates TLS (so the app doesn't have to)</li>
+  <li>Routes requests to the right backend by hostname or path</li>
+  <li>Adds security headers</li>
+  <li>Handles gzip, rate limiting, request size limits</li>
+  <li>Optionally caches</li>
+</ul>
+
+<p>Common choices:</p>
+<ul>
+  <li><strong>Traefik</strong> — Docker-native, dynamic config via labels, automatic Let's Encrypt. The default for Docker Compose.</li>
+  <li><strong>Caddy</strong> — Automatic HTTPS with zero config. Smaller community than Traefik for Docker.</li>
+  <li><strong>Nginx</strong> — The workhorse, the most documentation, the most setup steps.</li>
+  <li><strong>HAProxy</strong> — Used in many of Keycloak's own HA docs. Best for raw load balancing performance.</li>
+</ul>
+
+<p>For your stack, Traefik is the right choice.</p>
+
+<h3>6.2 Cloudflare Tunnel — the secret weapon</h3>
+<p>Cloudflare Tunnel is the most underrated security feature in the self-hosting world <a href="#ref7">[7]</a>.</p>
+
+<div class="diagram"><pre>┌──────────┐                  ┌─────────────┐
+│  User    │                  │  Cloudflare │
+│ Browser  │                  │  Edge       │
+└────┬─────┘                  └──────┬──────┘
+     │  HTTPS request                │
+     ├───────────────────────────────►│
+     │                                │ Outbound QUIC/TCP
+     │                                │ from your server
+     │                                │ to Cloudflare
+     │                                │ (port 7844)
+     │                                │   ┌──────────────────┐
+     │                                ├──►│  cloudflared     │
+     │                                │   │  (in your Docker)│
+     │                                │   └────────┬─────────┘
+     │                                │            ▼
+     │                                │   ┌────────────────┐
+     │                                │   │ Traefik        │
+     │                                │   │ Keycloak       │
+     │                                │   │ Infisical      │
+     │                                │   │ FastAPI        │
+     │                                │   └────────────────┘</pre></div>
+
+<p>The critical insight: <strong>your server makes an outbound connection to Cloudflare</strong>. There are no inbound ports. No firewall rules. No "wait, do I need to forward port 443 on my router?" Your home IP is never exposed. You cannot be port-scanned because you have no open ports.</p>
+
+<p>The DNS record for <code>auth.your-saas.com</code> points to Cloudflare's network, not to your IP. Anyone who does <code>dig auth.your-saas.com</code> sees a Cloudflare IP, not your server. If your home IP changes, the tunnel keeps working.</p>
+
+<h3>6.3 Cloudflare Access — defense in depth</h3>
+<p>Cloudflare Access is a zero-trust access layer. You put it in front of any application. The user hits your domain, Cloudflare intercepts, demands authentication (via OIDC — e.g., Keycloak), checks the policy (is this email allowed? is this IP allowed? does this user have the right group?), and only then proxies the request to your server.</p>
+
+<p>This is <strong>additional</strong> to Keycloak. Why both?</p>
+<ul>
+  <li>Keycloak is the source of truth for identity and authentication</li>
+  <li>Cloudflare Access is the network-level gate that blocks traffic before it even reaches your server</li>
+  <li>Even if an attacker steals a user's session cookie, they can't reach your server without first going through Cloudflare's edge (which is a different attack surface)</li>
+  <li>Cloudflare Access can enforce IP-based, geo-based, and device-based policies that Keycloak doesn't natively handle</li>
+</ul>
+
+<h3>6.4 The complete network architecture</h3>
+
+<div class="diagram"><pre>Internet
+   │
+   ▼
+Cloudflare Edge (TLS termination, DDoS protection, WAF, Access)
+   │
+   │ (outbound connection from cloudflared)
+   │
+   ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Your Docker Host (Ubuntu 26)                                │
+│  ┌─────────────────┐                                         │
+│  │  cloudflared    │ ◄── outbound only, port 7844            │
+│  └────────┬────────┘                                         │
+│  ┌────────▼────────┐                                         │
+│  │  Traefik        │ ◄── internal port 443                   │
+│  └────────┬────────┘                                         │
+│  ┌────────┴────────┬──────────────┬──────────────┐            │
+│  ▼                 ▼              ▼              ▼            │
+│ Keycloak        Infisical      FastAPI       Streamlit       │
+│  :8080           :8080          :8000         :8501           │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐         │
+│  │Postgres │  │Postgres │  │MongoDB  │  │Qdrant   │         │
+│  │(KC DB)  │  │(Infi)   │  │         │  │         │         │
+│  └─────────┘  └─────────┘  └─────────┘  └─────────┘         │
+│  ┌─────────┐  ┌─────────┐                                    │
+│  │ Redis   │  │  Redis  │                                    │
+│  │(KC)     │  │(Infi)   │                                    │
+│  └─────────┘  └─────────┘                                    │
+└─────────────────────────────────────────────────────────────┘</pre></div>
+
+<p>No ports are open to the internet. All traffic flows through Cloudflare's edge, through the tunnel, to your services.</p>
+
+<h2 id="m7"><span class="module-num">M7</span>FastAPI Integration (Code, With Explanations)</h2>
+<p>Now the fun part. We wire Keycloak to your FastAPI service so it validates JWTs and enforces roles.</p>
+
+<h3>7.1 The choice of JWT library</h3>
+<p>As of mid-2026, there are two viable Python JWT libraries: <strong>PyJWT</strong> and <strong>python-jose</strong> <a href="#ref1">[1]</a>.</p>
+
+<table>
+  <thead><tr><th></th><th>PyJWT</th><th>python-jose</th></tr></thead>
+  <tbody>
+    <tr><td>Maintained</td><td>Yes (active in 2026)</td><td>Yes (resumed 2025 after a 3.7-year gap)</td></tr>
+    <tr><td>Algorithm support</td><td>HS*, RS*, ES*, EdDSA, PS*</td><td>HS*, RS*, ES*, PS*</td></tr>
+    <tr><td>JWE support</td><td>No</td><td>Yes</td></tr>
+    <tr><td>Used by</td><td>Django, Flask-JWT-Extended, FastAPI (now)</td><td>Legacy code</td></tr>
+    <tr><td>Pin to</td><td>2.10+ to avoid CVE-2026-48526</td><td>3.5.0+</td></tr>
+  </tbody>
+</table>
+
+<p>For this course we use <strong>PyJWT</strong> because FastAPI's own documentation moved to it in 2024 <a href="#ref5">[5]</a>, it is the most-downloaded JWT library on PyPI, and we do not need JWE for OIDC.</p>
+
+<p><code>requirements.txt</code>:</p>
+<pre><code>fastapi&gt;=0.115.0
+uvicorn[standard]&gt;=0.34.0
+PyJWT[crypto]&gt;=2.10.0
+httpx&gt;=0.28.0
+pydantic&gt;=2.10.0
+pydantic-settings&gt;=2.7.0
+python-dotenv&gt;=1.0.0</code></pre>
+
+<h3>7.2 Configuration</h3>
+<p>Create <code>config.py</code>:</p>
+<pre><code class="lang-python">from functools import lru_cache
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """
+    Application settings loaded from environment variables.
+    
+    Every value has a default, but in production we always pass these 
+    explicitly (via Infisical, Docker, or systemd).
+    """
+    
+    # Keycloak connection
+    keycloak_url: str = "https://auth.your-saas.com"
+    keycloak_realm: str = "prod"
+    keycloak_client_id: str = "fastapi-backend"
+    
+    # Optional: client secret for confidential clients doing client_credentials
+    # (NOT used for user JWT validation)
+    keycloak_client_secret: str = ""
+    
+    # Computed URLs
+    @property
+    def issuer(self) -> str:
+        return f"{self.keycloak_url}/realms/{self.keycloak_realm}"
+    
+    @property
+    def jwks_uri(self) -> str:
+        return f"{self.issuer}/protocol/openid-connect/certs"
+    
+    @property
+    def token_endpoint(self) -> str:
+        return f"{self.issuer}/protocol/openid-connect/token"
+    
+    @property
+    def authorization_endpoint(self) -> str:
+        return f"{self.issuer}/protocol/openid-connect/auth"
+    
+    @property
+    def userinfo_endpoint(self) -> str:
+        return f"{self.issuer}/protocol/openid-connect/userinfo"
+    
+    @property
+    def discovery_uri(self) -> str:
+        return f"{self.issuer}/.well-known/openid-configuration"
+    
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()</code></pre>
+
+<p>What this does:</p>
+<ul>
+  <li><code>BaseSettings</code> reads from environment variables and <code>.env</code> file</li>
+  <li><code>keycloak_url</code> becomes the env var <code>KEYCLOAK_URL</code></li>
+  <li>Properties compute the OIDC URLs so we don't hardcode them</li>
+  <li><code>@lru_cache</code> ensures we only instantiate <code>Settings</code> once (config is read once, used many times)</li>
+</ul>
+
+<h3>7.3 The JWKS key cache</h3>
+<p>Use the built-in <code>PyJWKClient</code> — it handles the caching, thread safety, and refresh logic for you:</p>
+
+<pre><code class="lang-python">from jwt import PyJWKClient
+from config import get_settings
+
+
+# Module-level singleton. PyJWKClient handles caching internally.
+_settings = get_settings()
+jwks_client = PyJWKClient(
+    _settings.jwks_uri,
+    cache_keys=True,    # cache the public keys
+    lifespan=300,       # refresh every 5 minutes
+)
+
+
+def get_signing_key(token: str):
+    """
+    Look up the verification key for this token.
+    
+    PyJWKClient handles the cache and the HTTP fetch transparently.
+    """
+    return jwks_client.get_signing_key_from_jwt(token)</code></pre>
+
+<h3>7.4 The token validation function</h3>
+<p>This is the heart of the auth system. Every protected endpoint will call it.</p>
+
+<pre><code class="lang-python">import jwt
+from typing import Optional
+from pydantic import BaseModel
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from config import get_settings, Settings
+
+
+# HTTPBearer tells FastAPI to look for "Authorization: Bearer &lt;token&gt;"
+# auto_error=False means we handle missing tokens ourselves
+security = HTTPBearer(auto_error=False)
+
+
+class TokenPayload(BaseModel):
+    """The claims we care about from a verified token."""
+    sub: str  # user ID
+    email: Optional[str] = None
+    preferred_username: Optional[str] = None
+    realm_roles: list[str] = []
+    client_roles: list[str] = []
+    scope: str = ""
+    raw: dict  # the full decoded payload, for advanced use
+
+
+class AuthError(HTTPException):
+    """Raised when authentication fails."""
+    def __init__(self, detail: str = "Invalid authentication credentials"):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=detail,
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+def get_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    settings: Settings = Depends(get_settings),
+) -&gt; TokenPayload:
+    """
+    FastAPI dependency. Use on any endpoint that requires a valid user token.
+    
+    Example:
+        @app.get("/me")
+        def get_me(user: TokenPayload = Depends(get_current_user)):
+            return {"id": user.sub, "email": user.email}
+    """
+    if credentials is None:
+        raise AuthError("Missing Authorization header")
+    
+    token = credentials.credentials
+    
+    try:
+        # 1. Get the signing key from Keycloak's JWKS
+        signing_key = get_signing_key(token)
+        
+        # 2. Decode and verify the token
+        #    CRITICAL: algorithms is an allowlist, not derived from the token
+        #    CRITICAL: audience is checked against the expected value
+        #    CRITICAL: issuer is checked for exact match
+        payload = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["RS256"],  # Allowlist, not derivation
+            audience=settings.keycloak_client_id,  # Token must be for our client
+            issuer=settings.issuer,  # Token must come from our Keycloak realm
+            options={
+                "verify_signature": True,
+                "verify_exp": True,
+                "verify_iat": True,
+                "verify_aud": True,
+                "verify_iss": True,
+                "require": ["exp", "iat", "iss", "sub", "aud"],
+            },
+            # Allow 30 seconds of clock skew between us and Keycloak
+            leeway=30,
+        )
+    except jwt.ExpiredSignatureError:
+        raise AuthError("Token has expired")
+    except jwt.InvalidAudienceError:
+        raise AuthError("Token audience does not match")
+    except jwt.InvalidIssuerError:
+        raise AuthError("Token issuer is not trusted")
+    except jwt.InvalidTokenError as e:
+        raise AuthError(f"Invalid token: {str(e)}")
+    
+    # 3. Extract Keycloak-specific claims
+    realm_access = payload.get("realm_access", {})
+    resource_access = payload.get("resource_access", {})
+    client_access = resource_access.get(settings.keycloak_client_id, {})
+    
+    return TokenPayload(
+        sub=payload["sub"],
+        email=payload.get("email"),
+        preferred_username=payload.get("preferred_username"),
+        realm_roles=realm_access.get("roles", []),
+        client_roles=client_access.get("roles", []),
+        scope=payload.get("scope", ""),
+        raw=payload,
+    )</code></pre>
+
+<div class="callout danger">
+  <div class="callout-title">⚠️ Every line is intentional — the dangerous ones</div>
+  <p><code>algorithms=["RS256"]</code> — Algorithm allowlist. <strong>Never omit.</strong> If you do, the library reads the algorithm from the token header, which is attacker-controlled.</p>
+  <p><code>audience=settings.keycloak_client_id</code> — Without this, a token meant for <code>streamlit-frontend</code> could call <code>fastapi-backend</code>.</p>
+  <p><code>issuer=settings.issuer</code> — Exact match. No substring matching.</p>
+  <p><code>require=["exp", "iat", "iss", "sub", "aud"]</code> — Missing any of these → invalid.</p>
+  <p><code>leeway=30</code> — 30s clock skew max. Don't go higher than 60.</p>
+</div>
+
+<h3>7.5 Role-based access control</h3>
+<p>The user is authenticated. Now what do they get to do?</p>
+
+<pre><code class="lang-python">from typing import Callable
+from fastapi import Depends
+
+
+def require_realm_role(role: str) -&gt; Callable:
+    """
+    Dependency factory that checks if the user has a specific realm role.
+    
+    Example:
+        @app.delete("/users/{user_id}")
+        def delete_user(
+            user_id: str,
+            user: TokenPayload = Depends(require_realm_role("admin")),
+        ):
+            ...
+    """
+    def check_role(user: TokenPayload = Depends(get_current_user)) -&gt; TokenPayload:
+        if role not in user.realm_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Required role: {role}",
+            )
+        return user
+    
+    return check_role
+
+
+def require_client_role(role: str) -&gt; Callable:
+    """
+    Same as require_realm_role but for client-specific roles.
+    """
+    def check_role(user: TokenPayload = Depends(get_current_user)) -&gt; TokenPayload:
+        if role not in user.client_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Required client role: {role}",
+            )
+        return user
+    
+    return check_role
+
+
+def require_any_realm_role(*roles: str) -&gt; Callable:
+    """
+    Check that the user has at least one of the given roles.
+    """
+    def check_role(user: TokenPayload = Depends(get_current_user)) -&gt; TokenPayload:
+        if not any(r in user.realm_roles for r in roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Required one of roles: {', '.join(roles)}",
+            )
+        return user
+    
+    return check_role</code></pre>
+
+<p>Use them in your routes:</p>
+
+<pre><code class="lang-python">from fastapi import FastAPI, Depends
+
+app = FastAPI()
+
+# Public endpoint, no auth
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+# Any authenticated user
+@app.get("/me")
+def get_me(user: TokenPayload = Depends(get_current_user)):
+    return {
+        "id": user.sub,
+        "email": user.email,
+        "username": user.preferred_username,
+        "roles": user.realm_roles,
+    }
+
+# Requires realm role "admin"
+@app.get("/admin/users")
+def list_users(user: TokenPayload = Depends(require_realm_role("admin"))):
+    # ... query the admin API or your DB
+    pass
+
+# Requires client role "api-writer" on the "fastapi-backend" client
+@app.post("/documents")
+def create_document(
+    doc: DocumentCreate,
+    user: TokenPayload = Depends(require_client_role("api-writer")),
+):
+    # ... save to MongoDB
+    pass
+
+# Requires either "admin" or "moderator"
+@app.delete("/comments/{comment_id}")
+def delete_comment(
+    comment_id: str,
+    user: TokenPayload = Depends(require_any_realm_role("admin", "moderator")),
+):
+    # ...
+    pass</code></pre>
+
+<h3>7.6 Service-to-service (client credentials)</h3>
+<p>Your LangChain agent or a cron job needs to call FastAPI. It's not a human. Use the client credentials flow.</p>
+
+<pre><code class="lang-python">import httpx
+import time
+from threading import Lock
+from config import get_settings
+
+
+class ServiceTokenManager:
+    """
+    Caches a service-to-service access token.
+    Refreshes it before expiry.
+    """
+    
+    def __init__(self):
+        self._token: str | None = None
+        self._expires_at: float = 0
+        self._lock = Lock()
+    
+    def get_token(self) -&gt; str:
+        with self._lock:
+            # Refresh if within 60 seconds of expiry
+            if self._token and time.time() &lt; self._expires_at - 60:
+                return self._token
+            
+            settings = get_settings()
+            response = httpx.post(
+                settings.token_endpoint,
+                data={
+                    "grant_type": "client_credentials",
+                    "client_id": settings.keycloak_client_id,
+                    "client_secret": settings.keycloak_client_secret,
+                },
+                timeout=5.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+            
+            self._token = data["access_token"]
+            self._expires_at = time.time() + data["expires_in"]
+            return self._token
+
+
+service_auth = ServiceTokenManager()
+
+
+def call_internal_api(path: str, **kwargs) -&gt; dict:
+    """
+    Helper for service-to-service calls.
+    """
+    token = service_auth.get_token()
+    response = httpx.get(
+        f"http://fastapi-backend:8000{path}",
+        headers={"Authorization": f"Bearer {token}"},
+        **kwargs,
+    )
+    response.raise_for_status()
+    return response.json()</code></pre>
+
+<p>In Keycloak, you must enable "Service accounts roles" on the <code>fastapi-backend</code> client. The service account is a built-in user named <code>service-account-fastapi-backend</code>.</p>
+
+<h3>7.7 Refresh token handling in the frontend</h3>
+<p>The frontend (Streamlit, React) needs to handle token refresh. The pattern:</p>
+
+<pre><code class="lang-python">import streamlit as st
+import httpx
+import time
+import secrets
+import hashlib
+import base64
+import urllib.parse
+from config import get_settings
+
+
+def login_with_keycloak():
+    """
+    OIDC Authorization Code flow with PKCE.
+    
+    Note: Streamlit is a server-rendered app, not an SPA.
+    The PKCE flow is implemented as redirect-based.
+    """
+    settings = get_settings()
+    
+    # Generate PKCE verifier and challenge
+    verifier = secrets.token_urlsafe(64)
+    challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(verifier.encode()).digest()
+    ).rstrip(b"=").decode()
+    
+    state = secrets.token_urlsafe(16)
+    
+    # Store in session for the callback
+    st.session_state["pkce_verifier"] = verifier
+    st.session_state["oauth_state"] = state
+    
+    auth_url = (
+        f"{settings.authorization_endpoint}"
+        f"?client_id=streamlit-frontend"
+        f"&amp;response_type=code"
+        f"&amp;scope=openid profile email"
+        f"&amp;redirect_uri={urllib.parse.quote('https://app.your-saas.com/callback')}"
+        f"&amp;state={state}"
+        f"&amp;code_challenge={challenge}"
+        f"&amp;code_challenge_method=S256"
+    )
+    st.markdown(f"[Login with Keycloak]({auth_url})")
+
+
+def handle_callback(code: str, state: str):
+    settings = get_settings()
+    
+    # Verify state
+    if state != st.session_state.get("oauth_state"):
+        st.error("State mismatch — possible CSRF")
+        return
+    
+    verifier = st.session_state.pop("pkce_verifier")
+    
+    response = httpx.post(
+        settings.token_endpoint,
+        data={
+            "grant_type": "authorization_code",
+            "client_id": "streamlit-frontend",
+            "code": code,
+            "redirect_uri": "https://app.your-saas.com/callback",
+            "code_verifier": verifier,
+        },
+    )
+    response.raise_for_status()
+    tokens = response.json()
+    
+    st.session_state["access_token"] = tokens["access_token"]
+    st.session_state["refresh_token"] = tokens["refresh_token"]
+    st.session_state["token_expires_at"] = time.time() + tokens["expires_in"]
+
+
+def get_valid_token() -&gt; str | None:
+    """Return a non-expired access token, refreshing if needed."""
+    if time.time() &gt;= st.session_state.get("token_expires_at", 0) - 60:
+        # Refresh
+        settings = get_settings()
+        response = httpx.post(
+            settings.token_endpoint,
+            data={
+                "grant_type": "refresh_token",
+                "client_id": "streamlit-frontend",
+                "refresh_token": st.session_state["refresh_token"],
+            },
+        )
+        response.raise_for_status()
+        tokens = response.json()
+        st.session_state["access_token"] = tokens["access_token"]
+        st.session_state["refresh_token"] = tokens.get("refresh_token", st.session_state["refresh_token"])
+        st.session_state["token_expires_at"] = time.time() + tokens["expires_in"]
+    
+    return st.session_state.get("access_token")</code></pre>
+
+<p>For React SPAs, use <strong>authlib-js</strong> or <strong>oidc-client-ts</strong> instead of rolling your own. The PKCE mechanics are subtle and easy to get wrong.</p>
+
+<h2 id="m8"><span class="module-num">M8</span>End-to-End Implementation: Bootstrap Your Full Stack</h2>
+<p>This is the implementation guide. By the end of this module, you will have a working production stack.</p>
+
+<h3>8.1 Prerequisites</h3>
+<table>
+  <thead><tr><th>Component</th><th>Recommended</th><th>Minimum</th></tr></thead>
+  <tbody>
+    <tr><td>Server</td><td>Ubuntu 26.04 LTS, 4 vCPU, 8 GB RAM</td><td>Ubuntu 24.04, 2 vCPU, 4 GB RAM</td></tr>
+    <tr><td>Storage</td><td>100 GB SSD (encrypted)</td><td>40 GB SSD</td></tr>
+    <tr><td>DNS</td><td>Cloudflare-managed domain</td><td>Any domain with Cloudflare nameservers</td></tr>
+    <tr><td>Local tools</td><td>Docker 24+, Compose v2, git, jq</td><td>Docker 20+</td></tr>
+  </tbody>
+</table>
+
+<h3>8.2 Directory layout</h3>
+<pre><code>saas-infra/
+├── .env                        # Secrets loaded by Docker Compose (NEVER commit)
+├── .env.example                # Template, committed to git
+├── .gitignore
+├── docker-compose.yml          # All services
+├── traefik/                    # Traefik config
+├── keycloak/
+│   ├── realm-export.json       # Realm config, version controlled
+│   └── themes/                 # Custom login theme (optional)
+├── infisical/
+│   └── bootstrap.sh            # Initial admin user creation
+├── backup/
+│   ├── backup.sh               # Daily DB dumps
+│   └── restore.sh
+└── README.md</code></pre>
+
+<h3>8.3 The <code>.env</code> file</h3>
+<p><code>.env.example</code> (commit this):</p>
+<pre><code class="lang-bash"># Domain
+DOMAIN=your-saas.com
+
+# Keycloak
+KEYCLOAK_ADMIN=admin
+KEYCLOAK_ADMIN_PASSWORD=CHANGE_ME_TO_A_32_CHAR_RANDOM_STRING
+KEYCLOAK_DB_PASSWORD=CHANGE_ME_TO_ANOTHER_32_CHAR_STRING
+KEYCLOAK_HOSTNAME=auth.${DOMAIN}
+
+# Keycloak Postgres
+KEYCLOAK_DB_NAME=keycloak
+KEYCLOAK_DB_USER=keycloak
+
+# Infisical
+INFISICAL_ENCRYPTION_KEY=CHANGE_ME_OPENSSL_RAND_HEX_16
+INFISICAL_AUTH_SECRET=CHANGE_ME_OPENSL_RAND_BASE64_32
+INFISICAL_SITE_URL=https://secrets.${DOMAIN}
+INFISICAL_DB_PASSWORD=CHANGE_ME_ANOTHER_RANDOM_STRING
+INFISICAL_DB_NAME=infisical
+INFISICAL_DB_USER=infisical
+
+# Cloudflare Tunnel
+CLOUDFLARE_TUNNEL_TOKEN=eyJhIjoi...your-token...
+
+WATCHTOWER_LABEL_ENABLE=true</code></pre>
+
+<p><code>.env</code> (gitignored, populated by you):</p>
+<pre><code class="lang-bash">cp .env.example .env
+nano .env
+# Replace every CHANGE_ME with a generated value
+openssl rand -hex 16    # for ENCRYPTION_KEY
+openssl rand -base64 32 # for AUTH_SECRET and admin passwords</code></pre>
+
+<h3>8.4 The <code>docker-compose.yml</code></h3>
+<pre><code class="lang-yaml"># docker-compose.yml
+# All services for the AI SaaS infrastructure
+
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
+  tunnel:
+    driver: bridge
+
+volumes:
+  keycloak_db:
+  keycloak_data:
+  infisical_db:
+  infisical_data:
+  infisical_redis:
+  traefik_letsencrypt:
+  traefik_logs:
+
+services:
+  # ============================================
+  # Cloudflare Tunnel — outbound only
+  # ============================================
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - tunnel
+    depends_on:
+      - traefik
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # ============================================
+  # Traefik — reverse proxy, no public exposure
+  # ============================================
+  traefik:
+    image: traefik:v3.2
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls=true"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.cloudflare.acme.email=ops@${DOMAIN}"
+      - "--certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json"
+      - "--accesslog=true"
+      - "--accesslog.filepath=/var/log/traefik/access.log"
+      - "--log.level=WARN"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+      - traefik_logs:/var/log/traefik
+    networks:
+      - tunnel
+      - frontend
+    ports:
+      - "443:443"
+    environment:
+      - "CF_API_EMAIL=ops@${DOMAIN}"
+      - "CF_API_KEY_FILE=/run/secrets/cf_api_key"
+    secrets:
+      - cf_api_key
+    labels:
+      - "traefik.enable=true"
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # ============================================
+  # Keycloak — Identity provider
+  # ============================================
+  keycloak-db:
+    image: postgres:16-alpine
+    container_name: keycloak-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${KEYCLOAK_DB_NAME}
+      POSTGRES_USER: ${KEYCLOAK_DB_USER}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+    volumes:
+      - keycloak_db:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KEYCLOAK_DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: keycloak
+    restart: unless-stopped
+    command: start --optimized
+    environment:
+      # Admin bootstrap (one-time)
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      # Database
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KEYCLOAK_DB_NAME}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      # Hostname
+      KC_HOSTNAME: https://${KEYCLOAK_HOSTNAME}
+      KC_HOSTNAME_STRICT: "true"
+      KC_HOSTNAME_STRICT_HTTPS: "true"
+      # Behind reverse proxy
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
+      # Health and metrics
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      # Logging
+      KC_LOG: console,file
+      KC_LOG_FILE: /opt/keycloak/data/log/keycloak.log
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=frontend"
+      - "traefik.http.routers.keycloak.rule=Host(`${KEYCLOAK_HOSTNAME}`)"
+      - "traefik.http.routers.keycloak.entrypoints=websecure"
+      - "traefik.http.routers.keycloak.tls.certresolver=cloudflare"
+      - "traefik.http.routers.keycloak.tls=true"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.keycloak-admin-ipwhitelist.ipwhitelist.sourcerange=127.0.0.1/32,10.0.0.0/8"
+      - "traefik.http.routers.keycloak-admin.rule=Host(`${KEYCLOAK_HOSTNAME}`) &amp;&amp; (PathPrefix(`/admin`) || PathPrefix(`/realms/master`))"
+      - "traefik.http.routers.keycloak-admin.entrypoints=websecure"
+      - "traefik.http.routers.keycloak-admin.tls.certresolver=cloudflare"
+      - "traefik.http.routers.keycloak-admin.middlewares=keycloak-admin-ipwhitelist"
+      - "traefik.http.routers.keycloak-health.rule=Host(`${KEYCLOAK_HOSTNAME}`) &amp;&amp; Path(`/health`)"
+      - "traefik.http.routers.keycloak-health.entrypoints=websecure"
+      - "traefik.http.routers.keycloak-health.tls.certresolver=cloudflare"
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # ============================================
+  # Infisical — Secrets management
+  # ============================================
+  infisical-db:
+    image: postgres:16-alpine
+    container_name: infisical-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${INFISICAL_DB_NAME}
+      POSTGRES_USER: ${INFISICAL_DB_USER}
+      POSTGRES_PASSWORD: ${INFISICAL_DB_PASSWORD}
+    volumes:
+      - infisical_db:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${INFISICAL_DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  infisical-redis:
+    image: redis:7-alpine
+    container_name: infisical-redis
+    restart: unless-stopped
+    volumes:
+      - infisical_redis:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  infisical:
+    image: infisical/infisical:latest
+    container_name: infisical
+    restart: unless-stopped
+    environment:
+      SITE_URL: ${INFISICAL_SITE_URL}
+      ENCRYPTION_KEY: ${INFISICAL_ENCRYPTION_KEY}
+      AUTH_SECRET: ${INFISICAL_AUTH_SECRET}
+      DB_CONNECTION_URI: postgresql://${INFISICAL_DB_USER}:${INFISICAL_DB_PASSWORD}@infisical-db:5432/${INFISICAL_DB_NAME}
+      REDIS_URL: redis://infisical-redis:6379
+      NODE_ENV: production
+    volumes:
+      - infisical_data:/usr/src/app/data
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      infisical-db:
+        condition: service_healthy
+      infisical-redis:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=frontend"
+      - "traefik.http.routers.infisical.rule=Host(`secrets.${DOMAIN}`)"
+      - "traefik.http.routers.infisical.entrypoints=websecure"
+      - "traefik.http.routers.infisical.tls.certresolver=cloudflare"
+      - "traefik.http.routers.infisical.tls=true"
+      - "traefik.http.services.infisical.loadbalancer.server.port=8080"
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # ============================================
+  # Watchtower — auto-update Docker images
+  # ============================================
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    command:
+      - "--label-enable"
+      - "--schedule"
+      - "0 0 4 * * *"
+      - "--cleanup"
+      - "--include-stopped"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - backend
+    environment:
+      - WATCHTOWER_LABEL_ENABLE=${WATCHTOWER_LABEL_ENABLE}
+
+secrets:
+  cf_api_key:
+    file: ./secrets/cf_api_key.txt</code></pre>
+
+<h3>8.5 Step-by-step deployment</h3>
+
+<h4>Step 1: Provision the server</h4>
+<pre><code class="lang-bash">apt update &amp;&amp; apt upgrade -y
+apt install -y ufw fail2ban unattended-upgrades
+
+# Enable automatic security updates
+dpkg-reconfigure -plow unattended-upgrades
+
+# Firewall: SSH in, everything else out
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow ssh
+ufw enable
+
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+usermod -aG docker $USER</code></pre>
+
+<h4>Step 2: Clone and configure</h4>
+<pre><code class="lang-bash">git clone https://github.com/yourorg/saas-infra.git
+cd saas-infra
+
+cp .env.example .env
+nano .env  # fill in values
+
+# Generate values
+openssl rand -hex 16    # paste into INFISICAL_ENCRYPTION_KEY
+openssl rand -base64 32 # paste into INFISICAL_AUTH_SECRET
+openssl rand -base64 32 # paste into KEYCLOAK_ADMIN_PASSWORD
+openssl rand -base64 32 # paste into KEYCLOAK_DB_PASSWORD
+openssl rand -base64 32 # paste into INFISICAL_DB_PASSWORD
+
+# Create Cloudflare API key file (for DNS-01 challenge)
+mkdir -p secrets
+echo "your-cloudflare-api-key" &gt; secrets/cf_api_key.txt
+chmod 600 secrets/cf_api_key.txt</code></pre>
+
+<h4>Step 3: Set up the Cloudflare Tunnel</h4>
+<p>In the Cloudflare dashboard:</p>
+<ol>
+  <li>Go to Zero Trust → Networks → Tunnels → Create a tunnel</li>
+  <li>Choose "Cloudflared" connector</li>
+  <li>Name it <code>saas-tunnel</code></li>
+  <li>Copy the tunnel token</li>
+  <li>Paste into <code>CLOUDFLARE_TUNNEL_TOKEN</code> in <code>.env</code></li>
+</ol>
+
+<h4>Step 4: Start the stack</h4>
+<pre><code class="lang-bash">docker compose up -d
+
+# Watch the logs
+docker compose logs -f keycloak</code></pre>
+<p>Wait for Keycloak to print "Keycloak ... started in XXs" — that takes 30-60 seconds the first time.</p>
+
+<h4>Step 5: Set up Cloudflare public hostnames</h4>
+<table>
+  <thead><tr><th>Subdomain</th><th>Domain</th><th>Type</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td><code>auth</code></td><td><code>your-saas.com</code></td><td>HTTP</td><td><code>traefik:443</code></td></tr>
+    <tr><td><code>secrets</code></td><td><code>your-saas.com</code></td><td>HTTP</td><td><code>traefik:443</code></td></tr>
+    <tr><td><code>app</code></td><td><code>your-saas.com</code></td><td>HTTP</td><td><code>traefik:443</code></td></tr>
+    <tr><td><code>api</code></td><td><code>your-saas.com</code></td><td>HTTP</td><td><code>traefik:443</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Step 6: Add Cloudflare Access (optional but recommended)</h4>
+<p>In Cloudflare Zero Trust → Access → Applications:</p>
+<ol>
+  <li>Create application → Self-hosted</li>
+  <li>Application domain: <code>auth.your-saas.com</code></li>
+  <li>Name: "Keycloak Admin"</li>
+  <li>Policy: Allow → Emails → <code>your-email@yourcompany.com</code></li>
+  <li>Save</li>
+</ol>
+
+<h4>Step 7: Verify Keycloak</h4>
+<p>Visit <code>https://auth.your-saas.com/admin/master/console/</code>. You should see the Keycloak admin login. Log in with the admin user from <code>.env</code>.</p>
+
+<h4>Step 8: Create your production realm</h4>
+<ol>
+  <li>Hover over "Master" realm in the top-left → Create Realm</li>
+  <li>Realm name: <code>prod</code></li>
+  <li>Enabled: ON</li>
+  <li>Create</li>
+</ol>
+
+<h4>Step 9: Create your first client (FastAPI backend)</h4>
+<ol>
+  <li>Clients → Create client</li>
+  <li>Client ID: <code>fastapi-backend</code></li>
+  <li>Client type: OpenID Connect</li>
+  <li>Next</li>
+  <li><strong>Client authentication: ON</strong> (this makes it confidential)</li>
+  <li><strong>Authorization: ON</strong></li>
+  <li><strong>Service accounts roles: ON</strong></li>
+  <li>Next</li>
+  <li>Root URL: <code>https://api.your-saas.com</code></li>
+  <li>Valid redirect URIs: <code>https://api.your-saas.com/*</code></li>
+  <li>Web origins: <code>https://api.your-saas.com</code></li>
+  <li>Save</li>
+  <li>Go to the Credentials tab, copy the client secret → put in Infisical</li>
+</ol>
+
+<h4>Step 10: Create roles</h4>
+<p>Realm roles: <code>user</code>, <code>admin</code>, <code>beta-tester</code>.<br>Client roles for <code>fastapi-backend</code>: <code>api-reader</code>, <code>api-writer</code>, <code>api-admin</code>.</p>
+
+<h4>Step 11: Create your first user</h4>
+<ol>
+  <li>Users → Add user</li>
+  <li>Username, Email, save</li>
+  <li>Credentials tab → Set password</li>
+  <li>Role mapping tab → Assign role → <code>admin</code></li>
+</ol>
+
+<h4>Step 12: Configure Infisical</h4>
+<p>Visit <code>https://secrets.your-saas.com</code>. Create the first admin user. Then create org, project, environments, folders, and your first secret.</p>
+
+<h4>Step 13: Update your <code>.env</code> to pull secrets from Infisical at runtime</h4>
+<p>The chicken-and-egg problem: your services need secrets, but secrets are in Infisical, and authenticating to Infisical needs... secrets. The bootstrap pattern: put the machine identity's client secret in <code>.env</code> for the first run, then rotate it later.</p>
+
+<p>Add to your FastAPI container's start command:</p>
+<pre><code class="lang-dockerfile">FROM python:3.12-slim
+
+RUN apt-get update &amp;&amp; apt-get install -y curl &amp;&amp; rm -rf /var/lib/apt/lists/*
+RUN curl -1sLf 'https://artifacts-cli.infisical.com/setup.deb.sh' | bash \
+    &amp;&amp; apt-get update &amp;&amp; apt-get install -y infisical
+
+# ... your app ...
+
+CMD ["infisical", "run", "--projectId", "${INFISICAL_PROJECT_ID}", "--env", "prod", "--", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]</code></pre>
+
+<h4>Step 14: Set up backups</h4>
+<pre><code class="lang-bash">#!/bin/bash
+# backup.sh
+set -euo pipefail
+
+BACKUP_DIR=/backups
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+S3_BUCKET="s3://your-backup-bucket"
+
+# Keycloak database
+docker exec keycloak-db pg_dump -U ${KEYCLOAK_DB_USER} ${KEYCLOAK_DB_NAME} \
+  | gzip &gt; ${BACKUP_DIR}/keycloak_${TIMESTAMP}.sql.gz
+
+# Infisical database
+docker exec infisical-db pg_dump -U ${INFISICAL_DB_USER} ${INFISICAL_DB_NAME} \
+  | gzip &gt; ${BACKUP_DIR}/infisical_${TIMESTAMP}.sql.gz
+
+# Upload to S3
+aws s3 cp ${BACKUP_DIR}/keycloak_${TIMESTAMP}.sql.gz ${S3_BUCKET}/keycloak/
+aws s3 cp ${BACKUP_DIR}/infisical_${TIMESTAMP}.sql.gz ${S3_BUCKET}/infisical/
+
+# Clean up local backups older than 7 days
+find ${BACKUP_DIR} -name "*.sql.gz" -mtime +7 -delete</code></pre>
+<pre><code class="lang-bash">chmod +x backup/backup.sh
+echo "0 2 * * * /opt/saas-infra/backup/backup.sh" | crontab -</code></pre>
+
+<h4>Step 15: Set up Watchtower</h4>
+<p>Watchtower is already in the compose file. It runs daily at 4am and updates any container with the <code>com.centurylinklabs.watchtower.enable=true</code> label.</p>
+
+<h4>Step 16: Verify the full flow</h4>
+<pre><code class="lang-bash"># Test that everything is up
+docker compose ps
+
+# Test that Keycloak is responding
+curl -k https://auth.your-saas.com/realms/prod/.well-known/openid-configuration | jq .
+
+# Test that Infisical is responding
+curl -k https://secrets.your-saas.com/api/status
+
+# Test that a token can be obtained
+curl -X POST https://auth.your-saas.com/realms/prod/protocol/openid-connect/token \
+  -d "client_id=fastapi-backend" \
+  -d "client_secret=YOUR_SECRET" \
+  -d "grant_type=client_credentials" | jq .
+
+# Test that a protected API endpoint works
+TOKEN="..."
+curl -H "Authorization: Bearer $TOKEN" https://api.your-saas.com/me | jq .</code></pre>
+
+<h2 id="m9"><span class="module-num">M9</span>Production Security Hardening Checklist</h2>
+<p>This is the list of things you should not skip.</p>
+
+<h3>9.1 Keycloak hardening</h3>
+<ul class="checklist">
+  <li><strong>Disable the <code>master</code> realm admin in production.</strong> Create your own realm and admin user, then disable the master realm's admin console.</li>
+  <li><strong>Enable brute force detection.</strong> Default: 30 failed logins = 15-minute lockout.</li>
+  <li><strong>Enable login logging and event listeners.</strong></li>
+  <li><strong>Set <code>KC_HOSTNAME_STRICT=true</code>.</strong> Don't allow Keycloak to accept tokens with the wrong <code>iss</code> claim.</li>
+  <li><strong>Set <code>KC_HOSTNAME_STRICT_HTTPS=true</code>.</strong></li>
+  <li><strong>Disable the <code>account</code> console</strong> at the realm level if you don't need it.</li>
+  <li><strong>Use the latest Keycloak patch version.</strong> 26.x is the supported line; pin to a specific patch.</li>
+  <li><strong>Generate the master realm's initial admin via <code>KC_BOOTSTRAP_ADMIN_*</code> env vars.</strong></li>
+  <li><strong>Set short access token lifetime (5–15 min) and longer refresh token lifetime with rotation enabled.</strong></li>
+  <li><strong>Disable the <code>Direct grant</code> flow</strong> unless you really need it.</li>
+  <li><strong>Set up WebAuthn/passkeys for admin users.</strong></li>
+  <li><strong>Set up TOTP as a backup second factor for admin users.</strong></li>
+  <li><strong>Configure CORS</strong> to only your actual origins, no wildcards.</li>
+  <li><strong>Review the <code>Verify email</code> and <code>Update password</code> required actions.</strong></li>
+  <li><strong>Back up the database daily</strong> to an encrypted, offsite location.</li>
+  <li><strong>Test your restore procedure</strong> quarterly.</li>
+</ul>
+
+<h3>9.2 Infisical hardening</h3>
+<ul class="checklist">
+  <li><strong>Back up the encryption key in a separate physical location.</strong></li>
+  <li><strong>Use machine identities with <code>read</code> access scoped</strong> to specific environments and folders.</li>
+  <li><strong>Enable audit logging</strong> and ship it to your central log store.</li>
+  <li><strong>Rotate the master <code>AUTH_SECRET</code> periodically.</strong></li>
+  <li><strong>Restrict the admin console</strong> to your team only via Cloudflare Access.</li>
+  <li><strong>Set up SAML or OIDC login to Infisical itself</strong> with Keycloak as the IdP.</li>
+  <li><strong>Enable MFA on all Infisical human users.</strong></li>
+  <li><strong>Use secret references</strong> (<code>${OTHER_SECRET}</code>).</li>
+  <li><strong>Set up dynamic secrets for databases</strong> with a lease of 1 hour.</li>
+  <li><strong>Tag every secret</strong> with its owner and purpose.</li>
+  <li><strong>Set up secret scanning in your repos.</strong></li>
+</ul>
+
+<h3>9.3 FastAPI / application hardening</h3>
+<ul class="checklist">
+  <li><strong>Always pass an <code>algorithms=[...]</code> allowlist to <code>jwt.decode()</code>.</strong></li>
+  <li><strong>Always verify <code>iss</code>, <code>aud</code>, <code>exp</code>, <code>nbf</code>.</strong> No exceptions.</li>
+  <li><strong>Allow no more than 60 seconds of clock skew</strong> (<code>leeway=60</code>).</li>
+  <li><strong>Don't store JWTs in <code>localStorage</code></strong> in the browser. Use HTTP-only, Secure, SameSite=Strict cookies.</li>
+  <li><strong>Set <code>aud</code> on every token explicitly</strong> — never accept tokens without an audience.</li>
+  <li><strong>Rate limit auth endpoints</strong> to defeat brute force.</li>
+  <li><strong>Use HTTPS everywhere.</strong> No <code>http://</code> in production URLs, ever.</li>
+  <li><strong>Set CORS</strong> to only your actual frontend origins. No <code>*</code>.</li>
+  <li><strong>Set security headers:</strong> HSTS, X-Content-Type-Options, X-Frame-Options, CSP, Referrer-Policy.</li>
+  <li><strong>Don't log tokens or PII.</strong></li>
+  <li><strong>Don't return detailed error messages to clients</strong> on 500 errors.</li>
+  <li><strong>Use dependency pinning</strong> in <code>requirements.txt</code> with hashes.</li>
+  <li><strong>Run a dependency scanner</strong> in CI (Snyk, Dependabot, Trivy, Grype).</li>
+  <li><strong>Don't accept the <code>Authorization: Bearer</code> query string.</strong> Only the header.</li>
+  <li><strong>Refresh tokens only on the server side.</strong></li>
+</ul>
+
+<h3>9.4 Network / infrastructure hardening</h3>
+<ul class="checklist">
+  <li><strong>No public ports on the server.</strong> Use Cloudflare Tunnel.</li>
+  <li><strong>No SSH password login.</strong> SSH keys only.</li>
+  <li><strong>Disable root login over SSH.</strong></li>
+  <li><strong>Run <code>fail2ban</code></strong> with sane defaults.</li>
+  <li><strong>Enable unattended security updates</strong> for the OS.</li>
+  <li><strong>Restrict the Keycloak admin console</strong> to a specific IP range (or a VPN) via Traefik middleware.</li>
+  <li><strong>Restrict the Infisical admin console</strong> the same way.</li>
+  <li><strong>Use a separate database</strong> for Keycloak and Infisical.</li>
+  <li><strong>Back up both databases daily</strong> to an encrypted, offsite location.</li>
+  <li><strong>Test your restore procedure</strong> quarterly.</li>
+  <li><strong>Enable Cloudflare Access</strong> for at least your admin consoles.</li>
+  <li><strong>Enable Cloudflare WAF and rate limiting rules</strong> for your public apps.</li>
+  <li><strong>Set up monitoring:</strong> Prometheus, Loki/Elastic, Jaeger/Tempo.</li>
+  <li><strong>Set up alerts:</strong> Keycloak login failure rate, Infisical fetch failure rate, certificate expiry, disk usage, high CPU.</li>
+</ul>
+
+<h3>9.5 Common failure modes to plan for</h3>
+<table>
+  <thead><tr><th>Failure</th><th>Impact</th><th>Mitigation</th></tr></thead>
+  <tbody>
+    <tr><td>Keycloak DB is down</td><td>No one can log in</td><td>HA cluster, database replication, alert on DB connectivity</td></tr>
+    <tr><td>Keycloak service is down</td><td>Same as above</td><td>Multiple instances behind LB, health checks</td></tr>
+    <tr><td>Infisical is down</td><td>Apps can't fetch secrets; if they're already loaded in memory, they keep running</td><td>Multiple instances, cache secrets in memory with a TTL, fallback env vars</td></tr>
+    <tr><td>PostgreSQL data corruption</td><td>Loss of users, secrets, or both</td><td>Daily encrypted backups, quarterly restore tests, point-in-time recovery</td></tr>
+    <tr><td>Cloudflare Tunnel goes down</td><td>All external traffic stops</td><td>Multiple cloudflared instances, monitor tunnel status</td></tr>
+    <tr><td>TLS certificate expiry</td><td>Service is unreachable</td><td>Let's Encrypt via Cloudflare DNS-01 auto-renews; alert 14 days before expiry</td></tr>
+    <tr><td>Secret rotation breaks an app</td><td>App can't connect to DB</td><td>Dual-rotation grace period, canary deployment, rollback plan</td></tr>
+    <tr><td>Keycloak key rotation</td><td>Old tokens become unverifiable</td><td>Token lifetime ≤ 5 min means worst case is 5 min of failed validations</td></tr>
+  </tbody>
+</table>
+
+<h2 id="m10"><span class="module-num">M10</span>What to Learn Next, and What to Ignore</h2>
+<p>You've absorbed a lot. Here's the map of what to study in what order, and what to skip.</p>
+
+<h3>10.1 The next 30 days</h3>
+<ul class="checklist">
+  <li>Set up the full Docker Compose stack from Module 8</li>
+  <li>Create your realm, clients, roles, and first user</li>
+  <li>Wire up your FastAPI service to validate Keycloak tokens</li>
+  <li>Add Cloudflare Tunnel and Access</li>
+  <li>Deploy Infisical and migrate your <code>.env</code> secrets to it</li>
+  <li>Enable WebAuthn (passkeys) for your admin user</li>
+  <li>Set up daily backups</li>
+  <li>Set up at least one observability alert</li>
+</ul>
+
+<h3>10.2 The next 90 days</h3>
+<ul class="checklist">
+  <li>Add a second Keycloak instance behind the load balancer (HA)</li>
+  <li>Implement token exchange if you have a microservice architecture</li>
+  <li>Set up dynamic database credentials in Infisical</li>
+  <li>Wire up OpenTelemetry across all services</li>
+  <li>Implement fine-grained authorization (UMA) if you need resource-level access control</li>
+  <li>Set up CI/CD with GitHub Actions to deploy new versions of your services</li>
+  <li>Implement secret rotation with dual-phase grace period</li>
+  <li>Set up a security incident response plan</li>
+</ul>
+
+<h3>10.3 What to ignore (for now)</h3>
+<ul>
+  <li><strong>SAML 2.0.</strong> Legacy enterprise stuff. OIDC is better in every way.</li>
+  <li><strong>Custom Keycloak themes.</strong> Ship the default.</li>
+  <li><strong>Fine-grained authorization (UMA).</strong> Skip until you actually need it.</li>
+  <li><strong>Custom Keycloak SPIs.</strong> Skip until you can't do what you need with built-ins.</li>
+  <li><strong>Active Directory / LDAP federation.</strong> Only if you need enterprise SSO.</li>
+  <li><strong>HashiCorp Vault.</strong> Infisical is enough for your scale. Switch only if you have a specific Vault feature you need.</li>
+  <li><strong>Service mesh (Istio, Linkerd).</strong> Skip until you have &gt; 10 services or need mTLS at the mesh level.</li>
+  <li><strong>Token introspection on every request.</strong> Slower than local validation. Use introspection only for sensitive operations.</li>
+</ul>
+
+<h3>10.4 The mental shift</h3>
+<p>The most important thing this course is trying to teach is not the syntax of <code>jwt.decode()</code> or the exact <code>docker-compose.yml</code> syntax. It's the shift in how you think about security:</p>
+
+<ul>
+  <li><strong>Centralize everything you can centralize.</strong> Identity in Keycloak, secrets in Infisical, logs in Loki, metrics in Prometheus, certificates in Infisical PKI.</li>
+  <li><strong>Use the standards.</strong> Don't invent your own auth flow. Don't invent your own session format. Use OIDC, use JWT, use SAML if you must.</li>
+  <li><strong>Verify locally.</strong> Don't call back to the authorization server on every request. Cache the JWKS, validate the signature, check the claims.</li>
+  <li><strong>Defend in depth.</strong> Keycloak AND Cloudflare Access. JWT signature AND token introspection for sensitive ops. HTTPS AND HSTS AND CSP.</li>
+  <li><strong>Automate the boring.</strong> Backups, certificate renewal, secret rotation, image updates, vulnerability scanning.</li>
+  <li><strong>Encrypt everything that matters.</strong> Data at rest, data in transit, data in use.</li>
+  <li><strong>Audit everything.</strong> Who logged in, who accessed what, who rotated which secret, who deployed which version.</li>
+  <li><strong>Fail safely.</strong> When something goes wrong, default to denying access. Fail closed, not open.</li>
+</ul>
+
+<p>You now have the same identity and secrets infrastructure that billion-dollar companies run. The same code, the same protocols, the same patterns. The only thing you don't have is the support contract — and you have the community, the documentation, and the source code instead.</p>
+
+<p>That's enough to build a serious AI SaaS on a serious foundation.</p>
+
+<section class="references" id="refs">
+<h2>References</h2>
+<ol>
+  <li id="ref1">devuru.com — "python-jose or PyJWT — and what the swap breaks" (verified 2026-08-16). <a href="https://devuru.com/fastapi/jwt-library/" target="_blank" rel="noopener">https://devuru.com/fastapi/jwt-library/</a></li>
+  <li id="ref2">oauth.net — OAuth 2.1 specification draft. <a href="https://oauth.net/2.1/" target="_blank" rel="noopener">https://oauth.net/2.1/</a></li>
+  <li id="ref3">keycloak.org — Release Notes (Keycloak 26.7.0). <a href="https://www.keycloak.org/docs/latest/release_notes/index.html" target="_blank" rel="noopener">https://www.keycloak.org/docs/latest/release_notes/index.html</a></li>
+  <li id="ref4">keycloak.org — Admin REST API reference. <a href="https://www.keycloak.org/docs-api/latest/rest-api/index.html" target="_blank" rel="noopener">https://www.keycloak.org/docs-api/latest/rest-api/index.html</a></li>
+  <li id="ref5">github.com/fastapi/fastapi Discussion #9587 — FastAPI's JWT library decision (PyJWT). <a href="https://github.com/fastapi/fastapi/discussions/9587" target="_blank" rel="noopener">https://github.com/fastapi/fastapi/discussions/9587</a></li>
+  <li id="ref6">keycloak.org — High availability guide. <a href="https://www.keycloak.org/high-availability/introduction" target="_blank" rel="noopener">https://www.keycloak.org/high-availability/introduction</a></li>
+  <li id="ref7">cloudflare.com — Cloudflare Tunnel + Cloudflare Access docs. <a href="https://developers.cloudflare.com/cloudflare-one/" target="_blank" rel="noopener">https://developers.cloudflare.com/cloudflare-one/</a></li>
+  <li id="ref8">infisical.com — Self-hosting Infisical. <a href="https://infisical.com/docs/self-hosting/overview" target="_blank" rel="noopener">https://infisical.com/docs/self-hosting/overview</a></li>
+  <li id="ref9">infisical.com — Internal PKI announcement. <a href="https://infisical.com/blog/introducing-pki" target="_blank" rel="noopener">https://infisical.com/blog/introducing-pki</a></li>
+  <li id="ref10">openid.net — OpenID Connect Core 1.0 specification. <a href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank" rel="noopener">https://openid.net/specs/openid-connect-core-1_0.html</a></li>
+  <li id="ref11">ietf.org — RFC 7519: JSON Web Token (JWT). <a href="https://www.ietf.org/rfc/rfc7519.html" target="_blank" rel="noopener">https://www.ietf.org/rfc/rfc7519.html</a></li>
+  <li id="ref12">openid.net — OpenID Connect Discovery 1.0 specification. <a href="https://openid.net/specs/openid-connect-discovery-1_0.html" target="_blank" rel="noopener">https://openid.net/specs/openid-connect-discovery-1_0.html</a></li>
+  <li id="ref13">aembit.io — "OAuth 2.0 vs 2.1: What Changed and How to Migrate". <a href="https://aembit.io/blog/oauth-2-1-guide-migration-security/" target="_blank" rel="noopener">https://aembit.io/blog/oauth-2-1-guide-migration-security/</a></li>
+  <li id="ref14">skycloak.io — "FastAPI Authentication with Keycloak". <a href="https://skycloak.io/blog/keycloak-fastapi-python-api-authentication/" target="_blank" rel="noopener">https://skycloak.io/blog/keycloak-fastapi-python-api-authentication/</a></li>
+  <li id="ref15">github.com/Infisical/infisical — Open-source secret management platform. <a href="https://github.com/Infisical/infisical" target="_blank" rel="noopener">https://github.com/Infisical/infisical</a></li>
+  <li id="ref16">keycloak.org — Server Administration Guide. <a href="https://www.keycloak.org/docs/latest/server_admin/index.html" target="_blank" rel="noopener">https://www.keycloak.org/docs/latest/server_admin/index.html</a></li>
+  <li id="ref17">ietf.org — RFC 7636: Proof Key for Code Exchange (PKCE). <a href="https://www.ietf.org/rfc/rfc7636.html" target="_blank" rel="noopener">https://www.ietf.org/rfc/rfc7636.html</a></li>
+</ol>
+</section>
+
+  </main>
+</div>
+
+<script>
+  // Progress bar
+  const progressBar = document.getElementById('progress');
+  function updateProgress() {
+    const h = document.documentElement;
+    const b = document.body;
+    const st = 'scrollTop';
+    const sh = 'scrollHeight';
+    const percent = (h[st] || b[st]) / ((h[sh] || b[sh]) - h.clientHeight) * 100;
+    progressBar.style.width = Math.min(100, Math.max(0, percent)) + '%';
+  }
+  window.addEventListener('scroll', updateProgress);
+  updateProgress();
+
+  // Theme toggle
+  const themeBtn = document.getElementById('theme-toggle');
+  const body = document.body;
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') {
+    body.classList.add('light');
+    themeBtn.textContent = '☀️';
+  }
+  themeBtn.addEventListener('click', () => {
+    body.classList.toggle('light');
+    const isLight = body.classList.contains('light');
+    themeBtn.textContent = isLight ? '☀️' : '🌙';
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  });
+
+  // Copy buttons on code blocks
+  document.querySelectorAll('pre').forEach(pre => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', () => {
+      const code = pre.querySelector('code');
+      const text = code ? code.innerText : pre.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied ✓';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+
+  // Highlight active TOC item on scroll
+  const tocLinks = document.querySelectorAll('.toc a');
+  const sections = Array.from(tocLinks).map(a => {
+    const id = a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  }).filter(Boolean);
+
+  function updateActiveToc() {
+    const scrollPos = window.scrollY + 120;
+    let activeIdx = 0;
+    for (let i = 0; i < sections.length; i++) {
+      if (sections[i].offsetTop <= scrollPos) {
+        activeIdx = i;
+      }
+    }
+    tocLinks.forEach((a, i) => {
+      if (i === activeIdx) {
+        a.style.color = 'var(--accent)';
+        a.style.background = 'var(--bg-elev2)';
+        a.style.borderLeftColor = 'var(--accent)';
+      } else {
+        a.style.color = '';
+        a.style.background = '';
+        a.style.borderLeftColor = 'transparent';
+      }
+    });
+  }
+  window.addEventListener('scroll', updateActiveToc);
+  updateActiveToc();
+</script>
+
+</body>
+</html>
