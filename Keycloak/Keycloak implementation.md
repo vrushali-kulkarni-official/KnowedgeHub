@@ -266,7 +266,19 @@ Users
 Use something like:
 
 ```text
-LabPassword123!
+LabPassword123
+
+
+
+
+
+
+
+
+
+
+
+!
 ```
 
 For this laboratory only.
@@ -550,8 +562,6 @@ ON
 Save.
 
 Now we want this scope available to our Postman client later.
-
-
 
 ---
 
@@ -1105,8 +1115,6 @@ async def get_current_user(
     )
 ```
 
-
-
 This is an important piece of code.
 
 FastAPI receives:
@@ -1601,7 +1609,7 @@ fastapi-service
 
 OpenID Connect.
 
-Set:
+ Set:
 
 ```text
 Client authentication:
