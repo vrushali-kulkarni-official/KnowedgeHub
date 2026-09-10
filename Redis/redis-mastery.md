@@ -29,12 +29,12 @@ A beginner-to-advanced guide covering every Redis pattern your AI SaaS needs. Bu
 
 **RE**mote **DI**ctionary **S**erver. An in-memory data structure server.
 
-| Store | Mental model | Speed |
-|---|---|---|
-| File on disk | Filing cabinet | Slow |
-| PostgreSQL | SQL spreadsheet | Medium |
-| MongoDB | JSON folders | Medium |
-| **Redis** | **RAM scratchpad** | **Microseconds** |
+| Store        | Mental model       | Speed            |
+| ------------ | ------------------ | ---------------- |
+| File on disk | Filing cabinet     | Slow             |
+| PostgreSQL   | SQL spreadsheet    | Medium           |
+| MongoDB      | JSON folders       | Medium           |
+| **Redis**    | **RAM scratchpad** | **Microseconds** |
 
 Redis keeps data **in RAM** (RAM is ~100,000x faster than SSD). It does persist to disk for durability, but the primary store is memory.
 
@@ -97,7 +97,7 @@ networks:
 - `volumes: redis_data` — data survives container recreation
 - `healthcheck` — Docker marks it healthy only when Redis responds to PING
 
-Add to `.env`:
+`Add to `.env`:
 
 ```bash
 REDIS_PASSWORD=<output of: openssl rand -base64 32>
@@ -322,16 +322,16 @@ count = r.pfcount("unique:visitors:today")  # ~10,000,000 (±0.81%)
 
 ## 2.9 Quick decision table
 
-| Use case | Type |
-|---|---|
-| Cache a JSON blob | String |
-| User profile with 5+ fields | Hash |
-| Recent N search history | List |
-| Unique tags, dedup | Set |
-| Leaderboard, rate limit, time-series | Sorted Set |
-| Durable event log, distributed queue | Stream |
-| Daily active users, feature flags | Bitmap |
-| Unique counter with tiny memory | HyperLogLog |
+| Use case                             | Type        |
+| ------------------------------------ | ----------- |
+| Cache a JSON blob                    | String      |
+| User profile with 5+ fields          | Hash        |
+| Recent N search history              | List        |
+| Unique tags, dedup                   | Set         |
+| Leaderboard, rate limit, time-series | Sorted Set  |
+| Durable event log, distributed queue | Stream      |
+| Daily active users, feature flags    | Bitmap      |
+| Unique counter with tiny memory      | HyperLogLog |
 
 ---
 
@@ -341,12 +341,12 @@ Caching is **the** most common Redis use case. Done wrong, it's a source of stal
 
 ## 3.1 The 4 cache patterns
 
-| Pattern | When to use | Complexity |
-|---|---|---|
-| **Cache-Aside** (lazy) | Most apps. Read-heavy. | Simple |
-| Read-Through | App doesn't manage cache directly | Medium |
-| Write-Through | Need strong consistency | Medium |
-| Write-Behind | Tolerate eventual consistency | Complex |
+| Pattern                | When to use                       | Complexity |
+| ---------------------- | --------------------------------- | ---------- |
+| **Cache-Aside** (lazy) | Most apps. Read-heavy.            | Simple     |
+| Read-Through           | App doesn't manage cache directly | Medium     |
+| Write-Through          | Need strong consistency           | Medium     |
+| Write-Behind           | Tolerate eventual consistency     | Complex    |
 
 **For your AI SaaS, use Cache-Aside 90% of the time.** I'll focus on that.
 
@@ -355,17 +355,17 @@ Caching is **the** most common Redis use case. Done wrong, it's a source of stal
 ```python
 async def get_user_profile(user_id: int) -> dict:
     cache_key = f"cache:user:{user_id}:profile"
-    
+
     # 1. Try cache first
     cached = await redis.get(cache_key)
     if cached:
         return json.loads(cached)
-    
+
     # 2. Cache miss → query DB
     user = await db.fetch_user(user_id)
     if not user:
         return None
-    
+
     # 3. Store in cache for next time (TTL = 1 hour)
     await redis.set(cache_key, json.dumps(user), ex=3600)
     return user
@@ -414,14 +414,14 @@ One service updates → broadcasts "key X changed" → all other services invali
 async def get_user_profile(user_id: int) -> dict:
     cache_key = f"cache:user:{user_id}:profile"
     lock_key = f"lock:user:{user_id}:profile"
-    
+
     cached = await redis.get(cache_key)
     if cached:
         return json.loads(cached)
-    
+
     # Try to acquire rebuild lock
     got_lock = await redis.set(lock_key, "1", nx=True, ex=10)
-    
+
     if got_lock:
         try:
             # We won the race → rebuild cache
@@ -489,11 +489,11 @@ def question_hash(question: str, model: str, temperature: float) -> str:
 
 async def chat(question: str, user_id: int) -> str:
     cache_key = f"cache:llm:{question_hash(question, 'gemini-2.5-flash', 0.7)}"
-    
+
     cached = await redis.get(cache_key)
     if cached:
         return cached  # Free!
-    
+
     answer = await call_gemini(question)
     await redis.set(cache_key, answer, ex=86400)  # 24h
     return answer
@@ -574,7 +574,7 @@ async def login(user_id: int) -> dict:
         JWT_SECRET,
         algorithm="HS256"
     )
-    
+
     # Long-lived refresh token, stored in Redis
     refresh_token = secrets.token_urlsafe(64)
     await redis.set(
@@ -636,11 +636,11 @@ Your AI SaaS will have async work: PDF ingestion, re-embeddings, email sending, 
 
 ## 5.1 Three flavors
 
-| Flavor | Durability | Use case |
-|---|---|---|
-| **List + BLPOP** | None (in-memory) | Throwaway tasks, fire-and-forget |
-| **Pub/Sub** | None (in-memory) | Real-time notifications, WebSockets |
-| **Streams** | **AOF persistence** | **Durable jobs, audit logs, anything that can't be lost** |
+| Flavor           | Durability          | Use case                                                  |
+| ---------------- | ------------------- | --------------------------------------------------------- |
+| **List + BLPOP** | None (in-memory)    | Throwaway tasks, fire-and-forget                          |
+| **Pub/Sub**      | None (in-memory)    | Real-time notifications, WebSockets                       |
+| **Streams**      | **AOF persistence** | **Durable jobs, audit logs, anything that can't be lost** |
 
 **For your SaaS, use Streams 90% of the time.** Pub/Sub for WebSockets, Lists for trivial cases.
 
@@ -708,7 +708,7 @@ async def ensure_consumer_group(stream: str, group: str):
 async def worker(worker_id: str, streams: list[str], group: str = "workers"):
     for stream in streams:
         await ensure_consumer_group(stream, group)
-    
+
     while True:
         try:
             messages = await redis.xreadgroup(
@@ -742,6 +742,7 @@ async def process_job(data: dict):
 ```
 
 **Why this is bulletproof:**
+
 - Multiple workers can share the load (consumer group)
 - Crashed worker → its messages re-deliver after pending timeout
 - Each job is processed at-least-once
@@ -773,12 +774,12 @@ def ingest_pdf(self, doc_id: int):
 
 **When to choose Celery vs raw Streams:**
 
-| Need | Use |
-|---|---|
-| Fire-and-forget single jobs | Raw Streams |
-| Complex retry policies, scheduled tasks | **Celery** |
-| DAGs / workflows / chaining | **Celery + LangGraph** |
-| Lightweight simple jobs | **RQ** (simpler than Celery) |
+| Need                                    | Use                          |
+| --------------------------------------- | ---------------------------- |
+| Fire-and-forget single jobs             | Raw Streams                  |
+| Complex retry policies, scheduled tasks | **Celery**                   |
+| DAGs / workflows / chaining             | **Celery + LangGraph**       |
+| Lightweight simple jobs                 | **RQ** (simpler than Celery) |
 
 **Recommendation for your stack:** Start with raw Streams. Move to Celery when you need scheduled tasks (e.g. nightly re-embed).
 
@@ -810,12 +811,12 @@ Critical for protecting your Gemini free tier and preventing abuse.
 
 ## 6.1 The 4 algorithms
 
-| Algorithm | Precision | Memory | Best for |
-|---|---|---|---|
-| Fixed window | Coarse | O(1) | Simple per-minute limits |
-| Sliding window log | Perfect | O(N) | Strict limits, low traffic |
-| Sliding window counter | Good | O(1) | Production standard |
-| Token bucket | Good | O(1) | Allow bursts, smooth refill |
+| Algorithm              | Precision | Memory | Best for                    |
+| ---------------------- | --------- | ------ | --------------------------- |
+| Fixed window           | Coarse    | O(1)   | Simple per-minute limits    |
+| Sliding window log     | Perfect   | O(N)   | Strict limits, low traffic  |
+| Sliding window counter | Good      | O(1)   | Production standard         |
+| Token bucket           | Good      | O(1)   | Allow bursts, smooth refill |
 
 **Production pick: Sliding window counter (default) or Token bucket (for bursty APIs).**
 
@@ -849,27 +850,27 @@ async def rate_limit_sliding(
     now = time.time()
     current_bucket = int(now) // window
     previous_bucket = current_bucket - 1
-    
+
     # How far we are into the current window (0.0 → 1.0)
     elapsed = (now % window) / window
-    
+
     current_key = f"rl:{user_id}:{current_bucket}"
     previous_key = f"rl:{user_id}:{previous_bucket}"
-    
+
     pipe = redis.pipeline()
     pipe.get(current_key)
     pipe.get(previous_key)
     current, previous = await pipe.execute()
-    
+
     current = int(current or 0)
     previous = int(previous or 0)
-    
+
     # Weighted: previous bucket contributes (1 - elapsed) of its count
     weighted = current + previous * (1 - elapsed)
-    
+
     if weighted >= limit:
         return False
-    
+
     # Increment
     pipe = redis.pipeline()
     pipe.incr(current_key)
@@ -888,18 +889,18 @@ async def rate_limit_token_bucket(
 ) -> bool:
     key = f"tb:{user_id}"
     now = time.time()
-    
+
     pipe = redis.pipeline()
     pipe.hgetall(key)
     data = await pipe.execute()
     data = data[0] if data else {}
-    
+
     tokens = float(data.get("tokens", capacity))
     last_refill = float(data.get("last_refill", now))
-    
+
     # Refill bucket based on time elapsed
     tokens = min(capacity, tokens + (now - last_refill) * refill_rate)
-    
+
     if tokens < 1:
         # Not enough tokens
         pipe = redis.pipeline()
@@ -907,7 +908,7 @@ async def rate_limit_token_bucket(
         pipe.expire(key, 3600)
         await pipe.execute()
         return False
-    
+
     # Consume a token
     tokens -= 1
     pipe = redis.pipeline()
@@ -1029,6 +1030,7 @@ if lock.acquire():
 ```
 
 **When to use Redlock vs single-node:**
+
 - Single-node: 95% of cases. Job deduplication, cron jobs.
 - Redlock: financial transactions, billing, "absolutely must run once" scenarios.
 
@@ -1048,10 +1050,10 @@ Handles token generation, atomic release, auto-renewal, blocking. Production-rea
 
 ## 8.1 Persistence: RDB vs AOF
 
-| Type | What | Pros | Cons |
-|---|---|---|---|
-| **RDB** | Point-in-time snapshots | Compact, fast restart | Can lose minutes of data |
-| **AOF** | Log of every write | Lose at most 1s (with everysec) | Larger files, slower restart |
+| Type    | What                    | Pros                            | Cons                         |
+| ------- | ----------------------- | ------------------------------- | ---------------------------- |
+| **RDB** | Point-in-time snapshots | Compact, fast restart           | Can lose minutes of data     |
+| **AOF** | Log of every write      | Lose at most 1s (with everysec) | Larger files, slower restart |
 
 **For your SaaS: enable BOTH.** RDB for backups, AOF for durability.
 
@@ -1237,14 +1239,14 @@ class RedisJSON:
     """Wrapper that handles JSON serialization for you."""
     def __init__(self, redis: aioredis.Redis):
         self.r = redis
-    
+
     async def get_json(self, key: str) -> Any | None:
         data = await self.r.get(key)
         return json.loads(data) if data else None
-    
+
     async def set_json(self, key: str, value: Any, ex: int | None = None):
         await self.r.set(key, json.dumps(value, default=str), ex=ex)
-    
+
     async def get_or_set_json(self, key: str, loader, ex: int = 3600) -> Any:
         cached = await self.get_json(key)
         if cached is not None:
@@ -1299,12 +1301,12 @@ async def get_doc(doc_id: int):
 
 ## 9.7 Connection pool tuning
 
-| Concurrent users | `max_connections` |
-|---|---|
-| <100 | 20 |
-| 100-1000 | 50 |
-| 1000-10000 | 100 |
-| >10000 | 200+ (or use Cluster) |
+| Concurrent users | `max_connections`     |
+| ---------------- | --------------------- |
+| <100             | 20                    |
+| 100-1000         | 50                    |
+| 1000-10000       | 100                   |
+| >10000           | 200+ (or use Cluster) |
 
 **Rule of thumb:** `max_connections ≈ (expected concurrent requests) × 1.2`
 
@@ -1316,15 +1318,15 @@ async def get_doc(doc_id: int):
 
 ## 10.1 The 7 layers of Redis security
 
-| Layer | What | Why |
-|---|---|---|
-| 1. Network isolation | Never expose to internet | Prevent scanning, exploits |
-| 2. AUTH (`requirepass`) | Password | Block anonymous access |
-| 3. ACLs | Per-user permissions | Limit blast radius |
-| 4. TLS | Encrypted transport | Prevent sniffing, MITM |
-| 5. Encryption at rest | Encrypted disk/volume | Protect backups |
-| 6. Disable admin commands | Rename `FLUSHALL`, `CONFIG` | Prevent sabotage |
-| 7. Audit logging | Log who did what | Forensics |
+| Layer                     | What                        | Why                        |
+| ------------------------- | --------------------------- | -------------------------- |
+| 1. Network isolation      | Never expose to internet    | Prevent scanning, exploits |
+| 2. AUTH (`requirepass`)   | Password                    | Block anonymous access     |
+| 3. ACLs                   | Per-user permissions        | Limit blast radius         |
+| 4. TLS                    | Encrypted transport         | Prevent sniffing, MITM     |
+| 5. Encryption at rest     | Encrypted disk/volume       | Protect backups            |
+| 6. Disable admin commands | Rename `FLUSHALL`, `CONFIG` | Prevent sabotage           |
+| 7. Audit logging          | Log who did what            | Forensics                  |
 
 ## 10.2 Network isolation
 
@@ -1690,10 +1692,10 @@ logger = logging.getLogger(__name__)
 
 class RedisClient:
     """Production Redis wrapper with JSON helpers."""
-    
+
     def __init__(self):
         self._client: Optional[aioredis.Redis] = None
-    
+
     async def connect(self):
         self._client = aioredis.from_url(
             settings.REDIS_URL,
@@ -1708,26 +1710,26 @@ class RedisClient:
         # Verify connection
         await self._client.ping()
         logger.info("Redis connected")
-    
+
     async def disconnect(self):
         if self._client:
             await self._client.aclose()
             logger.info("Redis disconnected")
-    
+
     @property
     def client(self) -> aioredis.Redis:
         if not self._client:
             raise RuntimeError("Redis not connected. Call connect() first.")
         return self._client
-    
+
     # === JSON helpers ===
     async def get_json(self, key: str):
         data = await self.client.get(key)
         return json.loads(data) if data else None
-    
+
     async def set_json(self, key: str, value, ex: Optional[int] = None):
         await self.client.set(key, json.dumps(value, default=str), ex=ex)
-    
+
     async def get_or_set_json(self, key: str, loader, ex: int = 3600):
         cached = await self.get_json(key)
         if cached is not None:
@@ -1771,19 +1773,20 @@ async def chat(
     cached = await redis_client.get_json(cache_key)
     if cached:
         return {"response": cached, "cached": True}
-    
+
     # Call LLM
     response = await call_gemini(message)
-    
+
     # Cache for 1 hour
     await redis_client.set_json(cache_key, response, ex=3600)
-    
+
     return {"response": response, "cached": False}
 ```
 
 ## 12.4 Production checklist
 
 **Setup**
+
 - [ ] Redis in docker-compose with healthcheck
 - [ ] Internal network only (no exposed ports)
 - [ ] Strong password in `.env` (32+ random chars)
@@ -1793,6 +1796,7 @@ async def chat(
 - [ ] `.env` in `.gitignore`
 
 **Security**
+
 - [ ] ACLs for app user (limited keyspace)
 - [ ] TLS for multi-host deployments
 - [ ] Volume encryption at rest
@@ -1800,6 +1804,7 @@ async def chat(
 - [ ] Secrets in GitHub Secrets, not code
 
 **Performance**
+
 - [ ] Connection pooling configured
 - [ ] Cache-aside pattern implemented
 - [ ] LLM response caching
@@ -1807,6 +1812,7 @@ async def chat(
 - [ ] `KEYS *` never used (use `SCAN`)
 
 **Reliability**
+
 - [ ] Rate limiting on all public endpoints
 - [ ] Healthcheck endpoint exposed
 - [ ] Sentinel/backup plan documented
@@ -1814,6 +1820,7 @@ async def chat(
 - [ ] Tested restore procedure
 
 **Observability**
+
 - [ ] Redis Insight for dev
 - [ ] redis_exporter for Prometheus
 - [ ] SLOWLOG enabled
@@ -1821,6 +1828,7 @@ async def chat(
 - [ ] Alerts for: low hit rate, high memory, rejected connections
 
 **Operations**
+
 - [ ] Documented runbook (how to flush cache, how to add a replica, etc.)
 - [ ] Incident response plan (what if Redis is full? what if it's down?)
 - [ ] Quarterly security review
@@ -1841,6 +1849,7 @@ async def chat(
 8. **Real-time pub/sub** — WebSockets for chat UI
 
 **Pick the right tool for each:**
+
 - Cache: `redis-py` directly
 - Rate limit: `slowapi` (FastAPI)
 - Job queue: raw Streams or Celery
@@ -1849,6 +1858,7 @@ async def chat(
 - Observability: `redis_exporter` + Prometheus + Grafana
 
 **When NOT to use Redis:**
+
 - Primary data storage (use Postgres/Mongo)
 - Files > 1MB (use S3/Mongo GridFS)
 - Long-term data without TTL
@@ -1858,20 +1868,21 @@ async def chat(
 
 **Library recommendations (all free, open source, industry standard):**
 
-| Library | What | Why |
-|---|---|---|
-| `redis[hiredis]` | Python client | Official, fastest, async support |
-| `slowapi` | Rate limiting | FastAPI standard, uses Redis backend |
-| `fastapi-cache2` | Endpoint caching | Drop-in `@cache` decorator |
-| `python-redis-lock` | Distributed locks | Handles edge cases for you |
-| `celery[redis]` | Job queue | Industry standard for async tasks |
-| `rq` | Lightweight job queue | Simpler than Celery |
-| `redis_exporter` | Prometheus metrics | Standard, well-maintained |
-| `redis/redisinsight` | GUI | Official, free |
+| Library              | What                  | Why                                  |
+| -------------------- | --------------------- | ------------------------------------ |
+| `redis[hiredis]`     | Python client         | Official, fastest, async support     |
+| `slowapi`            | Rate limiting         | FastAPI standard, uses Redis backend |
+| `fastapi-cache2`     | Endpoint caching      | Drop-in `@cache` decorator           |
+| `python-redis-lock`  | Distributed locks     | Handles edge cases for you           |
+| `celery[redis]`      | Job queue             | Industry standard for async tasks    |
+| `rq`                 | Lightweight job queue | Simpler than Celery                  |
+| `redis_exporter`     | Prometheus metrics    | Standard, well-maintained            |
+| `redis/redisinsight` | GUI                   | Official, free                       |
 
 ---
 
 **You now know enough to:**
+
 1. Set up Redis in your AI SaaS
 2. Cache LLM responses (save real money on Gemini free tier)
 3. Build session/auth flows
