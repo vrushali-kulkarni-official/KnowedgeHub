@@ -1,0 +1,42 @@
+Python function
+       │
+       ├── signature → input schema
+       │
+       ├── type hints → argument types
+       │
+       ├── docstring → semantic description
+       │
+       └── implementation → actual work
+       
+---
+
+args_schema
+
+@tool(args_schema=SearchInput)
+def search_documents(query: str, limit: int = 10) -> str:
+    """Search the document collection."""
+
+
+---
+
+StructuredTool
+
+tool = StructuredTool.from_function(
+    func=my_sync_function,
+    coroutine=my_async_function,
+    name="search_documents",
+    description="Search the internal knowledge base.",
+    args_schema=SearchInput,
+    response_format="content",
+)
+
+---
+
+raise ToolException
+
+ if customer is None:
+        raise ToolException(
+            f"Customer {customer_id} was not found."
+        )
+
+

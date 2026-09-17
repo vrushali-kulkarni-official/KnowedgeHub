@@ -1,0 +1,132 @@
+
+Enum + Pydantic
+
+---
+
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "You are a customer support assistant."),
+        
+        MessagesPlaceholder("history"),
+        
+        ("human", "{message}"),
+    ]
+)
+
+---
+
+optional=True
+MessagesPlaceholder( "history", optional=True,)
+prompt.invoke()
+
+---
+
+State
+ │
+ ├── messages
+ ├── retrieved_documents
+ ├── user_preferences
+ └── structured_result
+
+---
+
+n_messages
+
+recent messages
++
+conversation summary
++
+retrieved relevant memories
+
+
+---
+
+
+Partials
+
+prompt = ChatPromptTemplate.from_messages(
+    [   ("system", """You are {assistant_name}. You specialize in {domain}."""),
+        ("human", "{message}" ),
+    ] )
+    
+specialized_prompt = prompt.partial(
+    assistant_name="Panda",
+    domain="customer support", )
+    
+---
+
+FewShotChatMessagePromptTemplate
+
+
+---
+
+json_schema with_structured_output
+
+structured_model = model.with_structured_output(
+    TicketClassification,
+    method="json_schema",
+)
+
+---
+
+strict=True
+
+
+---
+
+include_raw=True
+
+structured_model = model.with_structured_output(
+    TicketClassification,
+    include_raw=True,
+)
+
+Conceptually returns :
+
+{
+    "raw": AIMessage(...),
+    "parsed": TicketClassification(...),
+    "parsing_error": None,
+}
+
+---
+
+repair model
+
+llm respose --> pydantic rejects --> repair model --> output whats wrong --> llm for new respose
+
+Do not retry everything
+repair: schema/content validation problems
+
+---
+
+langfuse: prompt versioning and evaluation
+
+---
+
+promptfoo: prompt test cases
+
+---
+
+Structural correctness
+Semantic correctness
+Business correctness
+
+---
+
+ChatPromptTemplate
+        +
+MessagesPlaceholder
+        +
+Pydantic
+        +
+Enum constraints
+        +
+Field descriptions
+        +
+Gemini
+        +
+native structured output
+        +
+Runnable composition
+

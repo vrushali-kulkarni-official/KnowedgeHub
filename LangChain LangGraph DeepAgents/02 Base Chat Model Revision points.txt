@@ -1,0 +1,39 @@
+Revision:
+
+typed Dict - compile time
+Pydantic Base Model - run time
+
+
+model.bind() 
+model.bind_Tools()
+model.with_structured_output()
+model.with_retry()
+model.with_fallbacks()
+
+
+429 - too many requests
+502 - bad gateway
+503 - service unavailable
+504 - request timeout
+
+
+
+timeout
+circuit breaker
+
+init_chat_model 
+
+respose.content()
+
+response.usage_metadata(
+	"input_tokens" :
+	"output_tokens" :
+	"total_tokens" :
+	)
+
+GenericFakeChatModel()
+
+
+
+
+
