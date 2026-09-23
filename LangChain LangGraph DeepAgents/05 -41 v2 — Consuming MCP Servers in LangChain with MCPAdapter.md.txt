@@ -1,0 +1,73 @@
+MCPAdapter
+
+discovers MCP tools 
+& converts into LangChain-native tools
+
+async with MCPAdapter("https://example.com/mcp") as adapter:
+        tools = await adapter.list_tools()
+
+        agent = create_agent(
+            model=model,
+            tools=tools,
+        )
+
+MCP over http:
+  MCPAdapter(server_path)
+
+Local MCP (same server):
+  MCPAdapter(str(server_path))
+
+
+---
+
+Tool-list caching
+
+cache=True
+
+cache_mode="use"     --> use cache
+cache_mode="refresh" --> ask server for fresh cache
+cache_mode="bypass"  --> do not use cache
+
+tools = await adapter.list_tools(
+    cache_mode="use"
+)
+
+✅ cache catalog:
+the server exposes:
+    search_customer
+    update_customer
+    delete_customer
+ 
+ 
+---
+jwt token
+
+client = Client(
+    "https://example.com/mcp",
+    auth=BearerAuth("TOKEN"),
+)
+
+
+---
+
+
+OAuth 2.1
+
+oauth = OAuth(
+    scopes=["user"],
+)
+client = Client(
+    "https://example.com/mcp",
+    auth=oauth,
+)
+
+Keycloak
+    ↓
+OAuth/OIDC
+    ↓
+FastMCP MCP server
+    ↓
+LangChain agent
+
+
+

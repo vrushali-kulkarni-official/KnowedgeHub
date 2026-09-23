@@ -1,0 +1,105 @@
+The agent loop terminates when the tool call is empty
+
+---
+
+tool_call_id="call_001"
+
+data the llm generates when Tool is called:
+[
+    {
+        "name": "get_weather",
+        "args": {"city": "Mumbai"},
+        "id": "call_001",
+        "type": "tool_call",
+    }
+]
+
+data the tool returns:
+
+ToolMessage(
+    content="Mumbai is 29°C and cloudy.",
+    tool_call_id="call_001",
+)
+
+call_001 ↔ result 1 
+call_002 ↔ result 2 
+call_003 ↔ result 3
+
+
+---
+
+count_tokens_approximately()
+
+Before model call:
+    approximate estimate
+         ↓
+    should we proceed?
+
+
+After model call:
+    actual usage_metadata
+         ↓
+    update cumulative budget
+    
+    
+---
+
+
+
+asyncio.Semaphore(max_parallel_tools)
+
+
+  max_iterations = 8
+  max_parallel_tools = 5
+  semaphore = asyncio.Semaphore(max_parallel_tools)
+
+    async with semaphore:
+      return await tool.ainvoke(tool_call)
+
+  tool_messages = await asyncio.gather(
+            *[
+                execute_tool(tool_call)
+                for tool_call in ai_msg.tool_calls
+            ]
+
+---
+
+STOP if:
+    no tool calls
+OR
+    maximum iterations reached
+OR
+    token budget exhausted
+OR
+    repeated tool call detected
+OR
+    cancellation requested
+OR
+    execution deadline reached
+OR
+    policy violation detected
+OR
+    unrecoverable tool failure
+    
+    
+---
+
+Duplicate-call detection
+
+same tool + same arguments
+
+---
+
+Handle Tool Errors:
+
+Option A — terminate the agent
+raise
+
+Option B — turn the failure into a `ToolMessage`
+ToolMessage(
+    content="The weather service is temporarily unavailable.",
+    tool_call_id=tool_call["id"],
+    status="error",
+)
+
+

@@ -11,7 +11,7 @@ model.with_retry()
 model.with_fallbacks()
 
 
-429 - too many requests
+429 - t		oo many requests
 502 - bad gateway
 503 - service unavailable
 504 - request timeout

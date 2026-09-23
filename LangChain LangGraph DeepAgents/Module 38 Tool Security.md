@@ -3187,7 +3187,6 @@ await check_rate_limit(
     user_id=runtime.context.user_id,
     tool_name="private_search",
 )
-
 ```
 
 The identity is:
@@ -5441,4 +5440,3 @@ The most important current references used for this lesson are the LangChain v1 
 [32]: https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html?utm_source=chatgpt.com "LLM Prompt Injection Prevention - OWASP Cheat Sheet Series"
 [33]: https://community.owasp.org/attacks/PromptInjection?utm_source=chatgpt.com "Prompt Injection | OWASP Foundation"
 [34]: https://docs.langchain.com/oss/python/releases/langchain-v1?utm_source=chatgpt.com "What's new in LangChain v1 - Docs by LangChain"
-

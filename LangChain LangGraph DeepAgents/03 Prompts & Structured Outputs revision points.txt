@@ -2,7 +2,9 @@
 Enum + Pydantic
 
 ---
-
+MessagesPlaceholder("history"),
+        
+        
 prompt = ChatPromptTemplate.from_messages(
     [
         ("system", "You are a customer support assistant."),
@@ -56,7 +58,7 @@ specialized_prompt = prompt.partial(
 ---
 
 FewShotChatMessagePromptTemplate
-
+(to give examples)
 
 ---
 
@@ -129,4 +131,12 @@ Gemini
 native structured output
         +
 Runnable composition
+
+
+
+
+
+
+
+
 

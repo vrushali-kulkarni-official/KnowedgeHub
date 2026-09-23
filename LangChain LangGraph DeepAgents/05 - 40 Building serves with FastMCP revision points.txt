@@ -1,0 +1,442 @@
+
+3 main MCP primitives
+
+Tool: "Do something"                            
+Resource: "Give me some data"                       
+Prompt: "Give me a reusable interaction template" 
+
+
+---
+
+MCP tools:
+
+@mcp.tool
+def search_employee_directory(
+    query: str,
+    department: str | None = None,
+    max_results: int = 10,
+) -> list[dict]:
+    """Search the company employee directory.
+    ...
+
+--
+Tool annotations:
+
+readOnlyHint
+destructiveHint
+idempotentHint
+openWorldHint
+
+@mcp.tool(
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+    }
+)
+def get_employee(employee_id: str) -> dict:
+
+
+
+---
+
+MCP Resources:
+
+Tools answer:
+> "Do something."
+
+Resources answer:
+> "Give me some information."
+
+
+@mcp.resource("company://policies/leave")
+def leave_policy() -> str:
+    return """
+    Employees receive 20 days of annual leave.
+    """
+
+
+---
+
+MCP Prompts
+
+Prompts are reusable prompt templates exposed by a server.
+
+@mcp.prompt
+def summarize_document(topic: str) -> str:
+    """Create a prompt for summarizing a document."""
+    return f"Summarize the document about {topic}."
+    
+---
+
+MCP transport
+
+A transport defines **how it physically travels**.
+
+MCP protocol
+    +
+transport
+
+
+2 major transports:
+STDIO
+Streamable HTTP
+
+
+
+---
+
+if MCP server is operating over STDIO
+dont can corrupt the protocol stream by sending print("hello")
+Instead use logger 
+import logging
+logger = logging.getLogger(__name__)
+
+logger.info("Database connected")
+
+or FastMCP's logging
+
+
+---
+
+context facilities
+
+
+ctx: Context = CurrentContext()
+
+
+@mcp.tool
+async def process_documents(
+    documents: list[str],
+    ctx: Context = CurrentContext(),
+) -> str:
+
+await ctx.report_progress(...)
+
+you will get the progress report like:
+0%
+20%
+40%
+60%
+80%
+100%
+
+
+
+What can `Context` do?
+logging
+progress reporting
+resource access
+prompt access
+request state
+request metadata
+server access
+session visibility
+etc
+
+
+
+---
+
+@lifespan
+
+run setup code once when your MCP server starts and cleanup code once when it stops.
+
+
+@lifespan
+async def db_conn(server):
+
+# ---------- SETUP (runs once when server starts) ----------
+    # Create shared resources here
+    db = await connect_to_database()
+    
+    try:
+        # Yield a dictionary → this becomes the "lifespan context"
+        yield {
+            "db": db
+            }
+        
+    finally:
+# ---------- TEARDOWN (runs when server stops) ----------
+        print("Shutting down...")
+        await db.close()
+        
+
+
+mcp = FastMCP("MyServer", lifespan=db_conn)
+
+@mcp.tool
+def list_users(ctx: Context) -> list[str]:
+    # Access the shared data you yielded earlier
+    data = ctx.lifespan_context["db"]   # "db" is the key you used
+    return data.query("SELECT name FROM users")
+    
+
+
+
+Working with older @asynccontextmanager
+
+
+@asynccontextmanager
+async def legacy_lifespan(server):
+    # old style code...
+    yield {"legacy": True}
+
+@lifespan
+async def new_lifespan(server):
+    yield {"new": True}
+
+combined = ContextManagerLifespan(legacy_lifespan) | new_lifespan
+mcp = FastMCP("MyServer", lifespan=combined)
+
+
+---
+
+FastMCP with FastAPI
+
+
+Generate an MCP server FROM an existing FastAPI app
+
+mcp = FastMCP.from_fastapi(app=app)
+mcp.run(transport="http", host="0.0.0.0", port=8000)
+
+
+
+Mount an MCP server INTO a FastAPI app
+mcp = FastMCP("My Analytics Tools")
+mcp_app = mcp.http_app(path="/mcp")
+app = FastAPI(title="My App", lifespan=mcp_app.lifespan)
+app.mount("/tools", mcp_app)
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+
+
+recommended production pattern:
+
+# Assume `app` is your existing FastAPI application
+mcp = FastMCP.from_fastapi(app=app, name="E-commerce MCP")
+mcp_app = mcp.http_app(path="/mcp")
+
+combined = FastAPI(
+    title="API + MCP",
+    routes=[*mcp_app.routes, *app.routes],
+    lifespan=mcp_app.lifespan,
+)
+
+
+Now
+Normal REST → http://localhost:8000/products
+LLM-friendly MCP → http://localhost:8000/mcp
+
+
+---
+
+
+LangChain - MCPAdapter
+
+
+async with MCPAdapter(
+    "https://example.com/mcp"
+) as adapter:
+
+
+
+Note: Total can be optional if total is unknown. 
+
+
+---
+
+=========== MCP Context in Detail ============  
+
+Resource access through Context
+
+
+FastMCP exposes both resource listing and resource reading through `Context`.
+
+data = await ctx.read_resource(
+    "resource://company/policy"
+)
+
+@mcp.tool
+async def check_request(request: str, ctx: Context = CurrentContext(),) -> str:
+
+    resource_result = await ctx.read_resource(
+        "resource://company/policy/{policy_no}"
+    )
+    policy = resource_result.contents[0].content
+
+
+---
+
+List_resources()
+
+list all the resources
+
+resources = await ctx.list_resources()
+
+
+---
+
+Prompt access through Context
+
+await ctx.list_prompts()
+await ctx.get_prompt(...)
+
+---
+
+Request state
+
+
+await ctx.set_state(...)
+await ctx.get_state(...)
+await ctx.delete_state(...)
+
+
+Middleware
+    │
+    │ set_state("user_id", "alice")
+    ▼
+Request Context
+    │
+    ▼
+Tool
+    │
+    │ get_state("user_id")
+    ▼
+"alice"
+
+
+---
+
+
+Request metadata
+
+
+ctx.request_context.meta
+
+{
+  "method": "tools/call",
+  "params": {
+    "name": "search",
+    "arguments": {
+      "query": "postgres"
+    },
+    "_meta": {
+      "some.client.metadata": "value"
+    }
+  }
+}
+
+
+Metadata can be useful for:
+
+locale = "en-IN"
+timezone = "Asia/Kolkata"
+UI preference
+feature flags
+trace correlation
+client capability hints
+non-security routing hints
+request behavior hints
+*120
+
+---
+
+
+Request ID
+
+ctx.request_id
+identifies the current MCP request
+Eg:
+request_id = 8c6...
+
+
+Then logs can contain:
+
+INFO request=8c6... Starting tool
+INFO request=8c6... Querying postgres
+INFO request=8c6... Finished
+
+
+---
+
+
+Client ID
+
+ctx.client_id
+
+useful for:
+
+observability
+debugging
+analytics
+client-specific behavior
+
+
+---
+
+Transport information
+
+ctx.transport
+
+Possible values:
+
+stdio
+sse
+streamable-http
+
+
+Eg:
+transport = ctx.transport
+
+if transport == "stdio":
+    ...
+elif transport == "streamable-http":
+
+
+stdio
+    local process
+    simple
+    no HTTP headers
+
+streamable HTTP
+    remote
+    network
+    authentication
+    HTTP headers
+    load balancing
+
+
+
+you can then adjust:
+
+timeouts
+response formatting
+debugging
+network assumptions
+
+
+
+
+
+==============PENDING==============
+
+Middleware, MiddlewareContext in FastMCP
+
+
+Context` for:
+logging
+progress reporting
+resource access
+prompt access
+request state
+request metadata
+server access
+session visibility
+
+
+@mcp.resource
+
+@mcp.prompt
+
+
