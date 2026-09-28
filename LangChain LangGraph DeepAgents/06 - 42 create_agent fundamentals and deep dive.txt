@@ -1,0 +1,730 @@
+Create Agent
+
+model = ChatGoogleGenerativeAI(model="gemini-3.7-flash",)
+
+agent = create_agent(model=model, tools=[], 
+			system_prompt="You are a helpful assistant.",)
+
+result = agent.invoke(
+    { "messages": [ { "role": "user",
+                "content": "Explain what RAG is in simple terms.", 
+    } ] } )
+
+
+---
+
+Agent is state-based
+
+messages are built in
+and Agent maintains state
+
+state = {
+    "messages": [...]
+}
+
+---
+
+
+Middleware
+
+middleware lets you intercept pieces of execution
+
+USER
+ ↓
+MIDDLEWARE
+ ↓
+MODEL
+ ↓
+MIDDLEWARE
+ ↓
+TOOL
+ ↓
+MIDDLEWARE
+ ↓
+MODEL
+
+
+middleware can be used for:
+authentication
+authorization
+tool security
+model routing
+retries
+rate limits
+logging
+etc
+
+
+---
+
+Response Format
+
+class AnswerFormat(BaseModel):
+    summary: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    needs_human_review: bool
+    
+agent = create_agent(
+    model=model,
+    tools=[multiply],
+    response_format=AnswerFormat,
+)
+
+response_format strategies:
+
+Strategy A — Provider-native structured output 
+as per llm(provider) format
+ProviderStrategy(Answer)
+
+
+Strategy B — Tool-based structured output
+as per tool format
+ToolStrategy(AnswerFormat)
+
+
+---
+
+if Validation fails
+then retry with feedback
+
+Eg:
+
+class Answer(BaseModel):
+    confidence: float = Field(ge=0, le=1)
+    
+ model generates:
+{ "confidence": 17 }   
+    
+ToolStrategy(
+    Answer,
+    handle_errors="Return confidence between 0 and 1.",
+)
+
+
+---
+
+inspect Agent graph
+
+graph = agent.get_graph()
+print(graph.draw_mermaid())
+
+xray=True --> for including sub graphs in main graph for inspection
+
+print(
+    agent.get_graph(xray=True).draw_mermaid()
+)
+
+
+---
+
+Agent as a Runnable
+
+agent.invoke(...)
+agent.ainvoke(...)
+agent.stream(...)
+agent.astream(...)
+agent.batch(...)
+agent.abatch(...)
+
+result = agent.invoke(
+    {
+        "messages": [ {
+                "role": "user",
+                "content": "What is RAG?",
+            } ]
+    })
+
+
+
+
+if steaming then use version="v2"
+
+
+for chunk in agent.stream({
+        "messages": [ {
+                "role": "user",
+                "content": "Explain RAG.",
+            } ] },
+    stream_mode="messages",
+    version="v2",
+):
+    if chunk["type"] == "messages":
+        message, metadata = chunk["data"]
+        if message.content:
+            print(message.content, end="", flush=True)
+         
+         
+stream modes:
+
+values
+updates
+messages
+custom
+checkpoints
+tasks
+debug
+
+
+---
+
+messages streaming
+"H"
+"He"
+"Hel"
+"Hell"
+"Hello"
+
+
+  
+---
+
+create_agent() is a compiled graph
+
+
+graph = agent.get_graph()
+
+print(graph.draw_mermaid())
+
+
+xray=True
+
+xray=True is used to expose internal parameters
+
+
+agent.get_graph(xray=True)
+
+print( agent.get_graph(xray=True).draw_mermaid() )
+
+--------------
+
+Run:
+1 execution is a **run**
+
+
+Thread:
+
+thread ties all runs together
+
+Thread: abc123
+
+Run 1:
+    "Find my Q3 sales report"
+
+Run 2:
+    "Now compare it with Q2"
+
+Run 3:
+    "What caused the difference?"
+
+----
+====
+
+
+Config vs State vs Context
+
+
+ToolRuntime field #3 — `config`
+
+Config
+
+Config is the Run's Configurations
+
+config = {
+    "recursion_limit": 30,
+    "max_concurrency": 5
+    "tags": ["production", "sales-agent"],
+    "metadata": {
+        "tenant": "acme"
+    },
+}
+result = graph.invoke(
+    input_data,
+    config=config,
+)
+
+
+Config also carry tracing-related information
+
+config = {
+    "tags": ["customer-support"],
+    "metadata": {
+        "tenant_id": "tenant-123",
+        "environment": "production"
+    },
+    "run_name": "support-agent"
+}
+
+
+
+ToolRuntime field #2 — `state'
+
+State
+State is What is happening?
+
+Configs holds the agent execution related details whereas state holds the actual data of the current conversation  
+
+state = {
+    "messages": [...],
+    "current_task": "search",
+    "documents": [...],
+}
+
+
+Context
+
+**Context = information/dependencies provided to this particular run.
+that is Who is executing this?
+
+user_id
+tenant_id
+authenticated principal
+database connection
+request-scoped service
+feature flags
+current locale
+
+
+
+STATE
+"What is happening?"
+messages
+search_results
+current_plan
+tool_results
+draft_answer
+approval_required
+
+
+CONTEXT
+"Who is executing this?"
+user_id
+tenant_id
+database_conn
+permissions
+service clients
+request dependencies
+
+
+---
+
+
+Runtime
+
+`Runtime` is a convenience object that bundles run-scoped context and other runtime utilities.
+It is injected into **graph nodes and middleware**
+
+Runtime object provides access to:
+context
+store
+stream_writer
+previous
+execution_info
+
+
+from langgraph.runtime import Runtime
+
+def my_node(state, runtime: Runtime[Context]):
+    user_id = runtime.context.user_id
+
+This is essentially **dependency injection for graph execution**.
+
+
+
+
+---
+
+ToolRuntime
+
+from langchain.tools import ToolRuntime
+
+@tool
+def my_tool(
+    value: str,
+    runtime: ToolRuntime,
+) -> str:
+    ...
+    
+    
+runtime.state
+runtime.context
+runtime.config
+runtime.store
+runtime.tool_call_id
+runtime.stream_writer
+
+
+Runtime and ToolRuntime are automatically injected at runtime and the llm does not see it
+
+---
+
+State vs Runtime
+
+LLM-controlled arguments
+        ↓
+    city
+    query
+    order_id
+
+Application-controlled runtime
+        ↓
+    user_id
+    tenant_id
+    authenticated client
+    database
+    store
+    run information
+
+
+
+---
+
+ToolRuntime field #1 - Context
+
+Context is information that belongs to the **current run** and is normally supplied by the application rather than generated by the model.
+
+Examples:
+
+user_id
+tenant_id
+authenticated_user
+database client
+API client
+feature flags
+
+
+from dataclasses import dataclass
+
+@dataclass
+class Context:
+    user_id: str
+
+
+@tool
+def get_profile(runtime: ToolRuntime) -> str:
+    """Get the current user's profile."""
+    user_id = runtime.context.user_id
+    return f"Loading profile for {user_id}"
+
+context=Context(user_id="user_123")
+
+
+Then runtime.context.user_id 
+returns: user_123
+
+
+---
+
+Runtime context with `create_agent`
+
+@dataclass
+class Context:
+    user_id: str
+    
+agent = create_agent(
+    model=model,
+    tools=[get_profile],
+    context_schema=Context,
+)
+
+agent.invoke({
+        "messages": [ {
+                "role": "user",
+                "content": "Show my profile",
+            } ]
+    },
+    context=Context(user_id="user_123"), )
+
+
+---
+
+ToolRuntime field #4 — `store`
+
+Store
+
+@tool
+def get_preferences(
+    runtime: ToolRuntime,
+) -> str:
+    """Get the current user's preferences."""
+
+    user_id = runtime.context.user_id
+
+    result = runtime.store.get(
+        ("users", user_id),
+        "preferences", )
+    
+    
+---
+
+store vs Context
+
+Context
+    = runtime dependency
+
+Store
+    = persistent data repository
+
+
+---
+
+Tool_call_id
+
+give every tool call an ID
+
+runtime.tool_call_id
+
+
+This becomes valuable for:
+logging
+tracing
+auditing
+ToolMessage correlation
+debugging
+middleware
+human approval workflows
+
+
+---
+
+ToolRuntime field #6 — `stream_writer`
+
+stream_writer
+
+runtime.emit_output_delta(...)
+
+Rather than waiting until the tool completely finishes, the current runtime API exposes `stream_writer` as part of Runtime, and ToolRuntime receives a tool-specific stream writer.
+
+
+Why streaming matters for agents?
+
+1. Search 50 documents
+2. Query database
+3. Call ServiceNow
+4. Call Salesforce
+5. Combine results
+
+Without streaming:
+
+User
+  │
+  │ wait...
+  │ wait...
+  │ wait...
+  ▼
+final answer
+
+
+With progress/output streaming:
+
+User
+  │
+  ├── Searching...
+  ├── Found 20 documents
+  ├── Checking ServiceNow
+  ├── Checking Salesforce
+  └── Completed
+
+----
+
+Other ToolRuntime fields:
+
+runtime.tools
+runtime.execution_info
+Runtime field — `previous'
+runtime.server_info
+Runtime field — `heartbeat
+
+
+
+---
+
+
+Here is the table I want you to remember.
+
+| Feature | `Runtime` | `ToolRuntime` |
+| --- | --- | --- |
+| Purpose | Graph execution | Tool execution |
+| Injected into | Nodes, middleware | Tools |
+| `context` | Yes | Yes |
+| `store` | Yes | Yes |
+| `stream_writer` | Yes | Yes |
+| `state` | Not part of Runtime object | Yes |
+| `config` | Not part of Runtime object | Yes |
+| `tool_call_id` | No  | Yes |
+| `tools` | No  | Yes |
+| `execution_info` | Yes | Yes |
+| `server_info` | Yes | Yes |
+| Tool-specific | No  | Yes |
+
+
+---
+
+
+dependency injection
+
+Tool executor
+     │
+     ├── builds ToolRuntime
+     │
+     └── injects ToolRuntime
+              │
+              ▼
+           your tool
+
+
+---
+
+update graph state
+
+Command(
+    update=...
+)
+
+
+@tool
+def set_priority(
+    priority: str,
+    runtime: ToolRuntime,
+):
+    return Command(
+        update={
+            "priority": priority
+        }
+    )
+    
+    
+---
+
+Runtime is not "memory"
+Runtime is more like a **gateway to execution resources**.
+
+
+It may give you access to:
+state
+context
+store
+config
+streaming
+execution metadata
+
+Runtime = access mechanism / execution bundle
+
+Store = persistence mechanism
+
+Checkpointer = checkpoint persistence mechanism
+ 
+---
+
+Checkpointer
+checkpointer persists the state of a graph 
+across execution steps and runs, keyed by thread
+
+
+Run 1 → save
+Run 2 → load previous state
+
+
+agent
+  ↓
+approval required
+  ↓
+pause
+  ↓
+checkpoint
+  ↓
+human approves
+  ↓
+resume
+
+
+
+InMemorySaver
+
+checkpointer = InMemorySaver()
+
+graph = builder.compile(
+    checkpointer=checkpointer
+)
+
+
+PostgresSaver
+
+with PostgresSaver.from_conn_string(DB_URI) as checkpointer:
+    checkpointer.setup()
+
+    graph = builder.compile(
+        checkpointer=checkpointer
+    )
+
+
+---
+
+ShallowPostgresSaver
+retain only the most recent checkpoint and therefore do not provide full time-travel history
+
+---
+
+Store
+
+application-defined persistent data that can live across threads
+
+long-term, cross-thread memory, such as user preferences, facts, and shared knowledge
+
+store.put(
+    ("users", "alice"),
+    "preferences",
+    {
+        "tone": "concise",
+        "language": "python",
+    }
+)
+
+
+item = store.get(
+    ("users", "alice"),
+    "preferences",
+)
+
+
+---
+
+
+InMemoryStore
+
+store = InMemoryStore(
+    index={
+        "dims": ...,
+        "embed": ...,
+        "fields": ["text"],
+    }
+)
+
+store.put(
+    ("memories",),
+    "memory-1",
+    {"text": "I prefer Python over JavaScript"}
+)
+
+
+---
+
+PostgresStore
+
+
+with PostgresStore.from_conn_string(DB_URI) as store:
+    store.setup()
+
+    store.put(
+        ("users", "alice"),
+        "preferences",
+        {
+            "theme": "dark",
+            "language": "python",
+        },
+    )
+
+    item = store.get(
+        ("users", "alice"),
+        "preferences",
+    )
+

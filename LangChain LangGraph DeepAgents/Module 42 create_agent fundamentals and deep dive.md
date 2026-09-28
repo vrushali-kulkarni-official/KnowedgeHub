@@ -1674,6 +1674,8 @@ time travel
 
 Stores:
 
+
+
 ```text
 application-level persistent data
 ```
@@ -2893,7 +2895,7 @@ You technically could:
 ```python
 while True:
     response = model.invoke(...)
-    
+
     if response.tool_calls:
         ...
     else:
@@ -4063,4 +4065,3 @@ Gemini integration: [ChatGoogleGenerativeAI documentation](https://docs.langchai
 [17]: https://docs.langchain.com/oss/python/migrate/langgraph-v1 "LangGraph v1 migration guide - Docs by LangChain"
 [18]: https://reference.langchain.com/python/langgraph/langgraph?utm_source=chatgpt.com "langgraph | LangChain Reference"
 [19]: https://github.com/langchain-ai/docs/blob/main/src/oss/langchain/overview.mdx?utm_source=chatgpt.com "docs/src/oss/langchain/overview.mdx at main · langchain-ai/docs · GitHub"
-
