@@ -1,0 +1,32 @@
+i have a computer science background and know a bit of python, lang chain ecosystem, fast api, etc and my ultimate goal is to build an enterprise AI harness application using python, lang chain ecosystem, fast api, etc
+
+and the current python recommends using uv, uv lock, pyproject.toml, .python-version, .coverage, py.typed, etc most of which gets automatically created when we do "uv init" 
+
+it also recommends installing, updating, configuring everything using commands like uv lock, uv sync, uv run, etc
+
+these commands help in managing versions, dependencies, etc which is very important when we develop and release multiple versions of software improving features, removing bugs and vulnerabilities etc  
+
+But i am a complete beginner at there  and what to learn everything in detail but in an easy to understand way from scratch
+
+So now i want to learn everything to these files and tools represent the modern, high-performance standard for packaging, environment management,  static typing, version control, dependancy management, etc in Python that is achieved by tools and commands including but not limited to uv, uv lock, pyproject.toml, .python-version, .coverage, py.typed, uv lock, uv sync, uv run, etc
+
+So please create a course for me, which when i complete will teach me everything related to the above topics 
+
+but i dont want you to teach me everything here but i want you to give me a detailed course module by module such that by the end i should have a complete understanding on how to implement it in production and also everything else that i will need to know while implementing in production.
+
+Please note that each module should contain sub modules covering all the topics in that module as well as sub sub module if needed
+
+the idea is that i will give each module individually to AI and ask it to teach me
+
+Please note that if we give a lot of sub modules in 1 module then the AI will not get into detail for any module and will just give me an overview / summery without getting into details or explaining everything clearly
+
+so to avoid this, i want you to give me extreme details of everything that is to be covered in a module
+but each module should be short enough so that the AI does not loose context while teaching me that module.
+that is you can break every module into small small mutiple modules for more details and deeper knowledge and understanding 
+
+in short i want lots of small small highly detailed modules instead of making a few large modules
+
+Also please build the course explaining everything step by step from a beginner level to a complete advance level. 
+
+Also remember to cross check everything to ensure that everything is as per modern implementation, modern latest style and as per best practices
+and make sure  that nothing is deprecated or old
