@@ -1995,7 +1995,7 @@ main agent
 A token could originate from:
 
 ```text
-(.)
+()
 ```
 
 or:
@@ -2094,7 +2094,7 @@ timestamp B = 12:00:00.123
 
 Wall-clock time isn't necessarily sufficient to determine strict ordering.
 
-The internal protocol has a monotonic sequence:
+`The` internal protocol has a monotonic sequence:                         
 
 ```text
 seq=41
@@ -2750,7 +2750,7 @@ For example, internal metadata may contain information that is only appropriate 
 
 ```text
 internal logs
-tracing
+tracing0x\
 security
 debugging
 ```
