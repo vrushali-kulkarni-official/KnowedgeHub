@@ -1,0 +1,24 @@
+services:
+  openbao:
+    image: openbao/openbao:2.7.1
+    # user: "100"                     # run as openbao user
+    container_name: openbao-lab
+    restart: unless-stopped
+    command: server -config=/openbao/config/config.hcl
+    ports:
+      - "127.0.0.1:8200:8200"
+    environment:
+      BAO_ADDR: "http://127.0.0.1:8200"
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./config:/openbao/config
+      - ./openbao-data:/openbao/data
+      - ./logs:/openbao/logs
+    healthcheck:
+      test: ["CMD", "bao", "status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+

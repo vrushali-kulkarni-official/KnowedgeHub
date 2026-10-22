@@ -17,20 +17,20 @@
 
 If you read nothing else, read this.
 
-| Concept | One-line meaning | Why it exists |
-|---|---|---|
-| **Secret** | Any credential your app needs to work | API keys, DB passwords, TLS certs |
-| **OpenBao** | A server that stores secrets encrypted, and only hands them to authenticated callers | Central place to revoke, rotate, audit |
-| **Storage** | The encrypted disk where secrets live (`pebbledb` here) | Durability |
-| **Barrier / root key** | The master encryption key | Everything is encrypted with it |
-| **Seal** | The server is locked — it literally cannot decrypt anything | Offline attack protection |
-| **Unseal key** | A share of the root key (Shamir) | N shares, K needed |
-| **Root token** | Unrestricted admin credential | Bootstrap + break-glass |
-| **Token** | A scoped, expiring credential | What apps actually use |
-| **Policy** | The ACL that decides what a token may do | Least privilege |
-| **Mount** | A namespace where an engine stores things | e.g. `ai/platform/` holds KV v2 |
-| **Lease** | A time-bound record of a credential | Auto-expiry |
-| **Audit device** | Writes every request to a tamper-evident log | Forensics & compliance |
+| Concept                | One-line meaning                                                                     | Why it exists                          |
+| ---------------------- | ------------------------------------------------------------------------------------ | -------------------------------------- |
+| **Secret**             | Any credential your app needs to work                                                | API keys, DB passwords, TLS certs      |
+| **OpenBao**            | A server that stores secrets encrypted, and only hands them to authenticated callers | Central place to revoke, rotate, audit |
+| **Storage**            | The encrypted disk where secrets live (`pebbledb` here)                              | Durability                             |
+| **Barrier / root key** | The master encryption key                                                            | Everything is encrypted with it        |
+| **Seal**               | The server is locked — it literally cannot decrypt anything                          | Offline attack protection              |
+| **Unseal key**         | A share of the root key (Shamir)                                                     | N shares, K needed                     |
+| **Root token**         | Unrestricted admin credential                                                        | Bootstrap + break-glass                |
+| **Token**              | A scoped, expiring credential                                                        | What apps actually use                 |
+| **Policy**             | The ACL that decides what a token may do                                             | Least privilege                        |
+| **Mount**              | A namespace where an engine stores things                                            | e.g. `ai/platform/` holds KV v2        |
+| **Lease**              | A time-bound record of a credential                                                  | Auto-expiry                            |
+| **Audit device**       | Writes every request to a tamper-evident log                                         | Forensics & compliance                 |
 
 **The one thing to internalize:** OpenBao is *not* a password manager with a
 nice UI bolted on. It is a **cryptographic secret distribution system**. The
@@ -89,14 +89,14 @@ openbao:
 
 The image's default command is `server -dev`. Read that carefully:
 
-| | `-dev` (default) | `server -config=...` (production-shaped) |
-|---|---|---|
-| Storage | In-memory, wiped on exit | `pebbledb`, durable |
-| Sealed on start? | No — always unsealed | **Yes** — needs unseal keys |
-| Root token | Fixed, predictable (`root`) | Generated once, random, one-time |
-| Audit | Off | On (declarative stanza) |
-| Real init flow? | **No** | Yes |
-| Production safe? | **Absolutely not** | Yes, with hardening |
+|                  | `-dev` (default)            | `server -config=...` (production-shaped) |
+| ---------------- | --------------------------- | ---------------------------------------- |
+| Storage          | In-memory, wiped on exit    | `pebbledb`, durable                      |
+| Sealed on start? | No — always unsealed        | **Yes** — needs unseal keys              |
+| Root token       | Fixed, predictable (`root`) | Generated once, random, one-time         |
+| Audit            | Off                         | On (declarative stanza)                  |
+| Real init flow?  | **No**                      | Yes                                      |
+| Production safe? | **Absolutely not**          | Yes, with hardening                      |
 
 `-dev` is a teaching shortcut. It skips the exact thing that makes OpenBao
 worth deploying: **the seal**. If you learn on `-dev`, you never build the
@@ -508,15 +508,15 @@ Open <http://127.0.0.1:8200/ui> and log in with the root token.
 
 What you'll see, and how it maps to the CLI:
 
-| GUI | CLI equivalent |
-|---|---|
-| **Secrets →** engines and mounts | `bao secrets list` |
-| **Auth Methods →** | `bao auth list` |
-| **Policies →** | `bao policy list` |
+| GUI                                        | CLI equivalent                                    |
+| ------------------------------------------ | ------------------------------------------------- |
+| **Secrets →** engines and mounts           | `bao secrets list`                                |
+| **Auth Methods →**                         | `bao auth list`                                   |
+| **Policies →**                             | `bao policy list`                                 |
 | **Access →** tokens, policies, user groups | `bao token list`, `bao list auth/token/accessors` |
-| **Tools →** random / hash / keymgmt | `bao write sys/tools/random/32` |
-| **Wrapping →** | `bao write sys/wrapping/wrap` |
-| **Status →** seal state, cluster | `bao status` |
+| **Tools →** random / hash / keymgmt        | `bao write sys/tools/random/32`                   |
+| **Wrapping →**                             | `bao write sys/wrapping/wrap`                     |
+| **Status →** seal state, cluster           | `bao status`                                      |
 
 The GUI is a genuine production tool, not a toy. But there's a reason the CLI
 is primary in this course: **the GUI cannot do everything.** Declarative audit
@@ -553,9 +553,11 @@ and TTL tuning.
 3. Enable the audit device check: `bao audit list` should show `local-file/`.
    Then look at `lab/logs/audit.log` — you should see your own API calls,
    with every secret value HMAC'd:
+
    ```json
    "api_key": "hmac-sha256:99573bf8d5f6f359999ebb2e953a1b1994fdc3dc6..."
    ```
+
    Notice the secret is *not* in plaintext. That's `log_raw = false` doing
    its job. (Module 09 covers audit hardening.)
 4. Try `bao operator generate-root -init -otp="short"` and read the error.
