@@ -1,0 +1,44 @@
+name: openbao-lab04
+
+# ─────────────────────────────────────────────────────────────────
+# Lab 04 — Secrets-free CI: GitHub Actions OIDC → OpenBao
+#
+#   openbao    — the secrets manager (Raft, declarative audit device)
+#   jwks       — a stand-in IdP that mints GitHub-shaped OIDC tokens,
+#                so you can rehearse the CI flow entirely offline
+#
+#   The "CI runner" is simulate-ci.sh on the host (or inside the jwks
+#   container) — it runs the EXACT steps the GitHub Action runs.
+# ─────────────────────────────────────────────────────────────────
+
+services:
+  openbao:
+    image: openbao/openbao:2.7.1
+    container_name: lab04-openbao
+    command: server -config=/openbao/config/openbao.hcl
+    ports:
+      - "127.0.0.1:8200:8200"
+    volumes:
+      - ./config:/openbao/config:ro
+      - ./data:/openbao/data
+      - ./logs:/openbao/logs
+    healthcheck:
+      test: ["CMD-SHELL", "bao status >/dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 8s
+    networks: [cilab]
+
+  jwks:
+    build:
+      context: .
+      dockerfile: Dockerfile.jwks
+    container_name: lab04-jwks
+    ports:
+      - "127.0.0.1:8099:8099"
+    networks: [cilab]
+
+networks:
+  cilab:
+    driver: bridge

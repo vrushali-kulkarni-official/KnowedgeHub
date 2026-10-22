@@ -1,0 +1,11 @@
+# Secrets and lab artefacts — NEVER commit these
+.root-token
+unseal-keys.txt
+init.json
+init-output.txt
+app-config.json
+.tmp/
+
+# Runtime state
+data/
+logs/

@@ -1,0 +1,16 @@
+# Meridian AI harness dependencies
+#
+# Pinned exactly. In a production AI harness, a floating dependency range
+# is a supply-chain risk: `fastapi>=0.100` means your build today and your
+# build next quarter are different code.
+#
+# NOTE: the OpenBao client (openbao_client.py) deliberately depends on
+# NOTHING from this file - it is stdlib-only. The secret-fetching path
+# sits inside the trust boundary, so it carries no third-party supply-chain
+# risk. httpx is not needed at all for that path.
+#
+# httpx IS pulled in transitively by FastAPI's TestClient for unit tests.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+httpx==0.28.1

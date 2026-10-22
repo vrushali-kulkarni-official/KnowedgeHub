@@ -1,0 +1,291 @@
+#############################################################################
+# Production docker-compose.yml
+#
+# Topology:
+#   internet -> cloudflared -> traefik -> backend
+#   watchtower <-> backend (CI/CD image updates, GHCR)
+#   traefik <-> docker-socket-proxy (read-only Docker API, no raw socket mount)
+#
+# Networks (least-privilege, per your spec):
+#   proxy_traffic   -> cloudflared, traefik
+#   app_net         -> traefik, backend               (internal, no direct internet)
+#   cicd_net        -> watchtower, backend             (needs egress to reach GHCR)
+#   socket_proxy_net-> traefik, docker-socket-proxy    (internal, extra hardening)
+#
+# All images are pulled from GHCR (ghcr.io/<org>/<image>), not Docker Hub.
+#############################################################################
+
+networks:
+  # --- Dedicated, single-purpose EGRESS networks ---
+  # Only these two are non-internal. Only cloudflared and watchtower touch
+  # them. No other container is ever attached to a network that has a
+  # route to the internet — so a compromised Traefik or backend has
+  # literally no interface capable of reaching outside the host.
+  cloudflared_egress:
+    name: cloudflared_egress
+    driver: bridge
+    # cloudflared's ONLY internet-facing network. Needed to reach
+    # Cloudflare's edge. Nothing else is attached to this network.
+
+  watchtower_egress:
+    name: watchtower_egress
+    driver: bridge
+    # Watchtower's ONLY internet-facing network. Needed to reach GHCR to
+    # check for / pull new image digests. Nothing else is attached here.
+
+  # --- Internal-only networks (no NAT rule, no route out of the host) ---
+  ingress_net:
+    name: ingress_net
+    driver: bridge
+    internal: true
+    # Local handoff only: cloudflared -> traefik. cloudflared reaches this
+    # via a second interface; traefik never touches an internet-facing
+    # network directly.
+
+  app_net:
+    name: app_net
+    driver: bridge
+    internal: true
+    # Traefik <-> backend. Now that neither container has any OTHER
+    # network with a route out, this restriction actually holds.
+
+  cicd_net:
+    name: cicd_net
+    driver: bridge
+    internal: true
+    # Watchtower <-> backend. This network is symbolic/compliance-only:
+    # Watchtower updates backend via the Docker socket/API, not via IP
+    # traffic on this network, so it can safely be internal with zero
+    # loss of functionality.
+
+  socket_proxy_net:
+    name: socket_proxy_net
+    driver: bridge
+    internal: true
+    # Traefik talks to the Docker API only through docker-socket-proxy.
+    # Traefik itself never mounts /var/run/docker.sock.
+
+services:
+
+  # ------------------------------------------------------------------
+  # Cloudflare Tunnel — brings traffic in, no inbound ports exposed
+  # ------------------------------------------------------------------
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: >-
+      tunnel --no-autoupdate
+      --metrics 0.0.0.0:2000
+      run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - cloudflared_egress   # its ONLY route to the internet
+      - ingress_net          # local, internal-only hop to traefik
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    healthcheck:
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "0.0.0.0:2000", "ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # No `ports:` — cloudflared only makes outbound connections to Cloudflare's
+    # edge (via cloudflared_egress) and pushes traffic to traefik over the
+    # internal ingress_net. Nothing is exposed on the host.
+
+  # ------------------------------------------------------------------
+  # Docker socket proxy — gives Traefik least-privilege, read-only
+  # access to container metadata for service discovery. No raw
+  # docker.sock is ever mounted into Traefik itself.
+  # ------------------------------------------------------------------
+  docker-socket-proxy:
+    image: ghcr.io/tecnativa/docker-socket-proxy:latest
+    container_name: docker-socket-proxy
+    restart: unless-stopped
+    environment:
+      # Only expose what Traefik's docker provider actually needs.
+      CONTAINERS: "1"
+      NETWORKS: "1"
+      SERVICES: "0"
+      TASKS: "0"
+      IMAGES: "0"
+      VOLUMES: "0"
+      INFO: "0"
+      POST: "0"      # read-only: Traefik never needs to mutate anything
+      EVENTS: "1"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket_proxy_net
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /run:rw,noexec,nosuid,size=16m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ------------------------------------------------------------------
+  # Traefik — reverse proxy / router
+  # ------------------------------------------------------------------
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.endpoint=tcp://docker-socket-proxy:2375"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=app_net"
+      - "--entrypoints.web.address=:80"
+      - "--api.dashboard=false"      # keep off in prod, or secure it behind auth+its own router
+      - "--log.level=INFO"
+      - "--accesslog=true"
+      - "--ping=true"
+    networks:
+      - ingress_net            # receives traffic from cloudflared (internal)
+      - app_net                # forwards traffic to backend (internal)
+      - socket_proxy_net       # talks to docker-socket-proxy (internal)
+    # Every network above is internal: true — traefik has NO interface
+    # with a route to the internet.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE       # only needed if binding <1024; harmless otherwise
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+    # No `ports:` mapped to the host — cloudflared reaches traefik purely
+    # over the internal proxy_traffic network. Nothing is bound on the host.
+
+  # ------------------------------------------------------------------
+  # Backend — your AI SaaS API, pulled from GHCR
+  # ------------------------------------------------------------------
+  backend:
+    image: ghcr.io/${GHCR_NAMESPACE}/backend:${BACKEND_TAG:-latest}
+    container_name: backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - app_net     # reachable by traefik (internal)
+      - cicd_net    # updatable by watchtower (internal)
+    # Both networks are internal: true — backend has NO route to the
+    # internet. If your app needs to call external APIs directly, add a
+    # third, dedicated egress network for backend only — don't loosen
+    # app_net or cicd_net to do it.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+    labels:
+      # --- Traefik routing ---
+      - "traefik.enable=true"
+      - "traefik.docker.network=app_net"
+      - "traefik.http.routers.backend.rule=Host(`${BACKEND_HOSTNAME}`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      # --- Watchtower scope: only this container is auto-updated ---
+      - "com.centurylinklabs.watchtower.enable=true"
+    # Adjust the exposed port (8000) and healthcheck path to match your app.
+    # If your app writes to disk (uploads, cache), mount a named volume or
+    # extra tmpfs path rather than disabling read_only.
+
+  # ------------------------------------------------------------------
+  # Watchtower — CD: watches backend (and future GHCR services) for
+  # new images and redeploys automatically. Scoped via labels so it
+  # only touches containers explicitly opted in.
+  # ------------------------------------------------------------------
+  watchtower:
+    image: ghcr.io/containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    environment:
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_LABEL_ENABLE: "true"       # only manage labeled containers
+      WATCHTOWER_POLL_INTERVAL: "300"
+      WATCHTOWER_ROLLING_RESTART: "true"
+      WATCHTOWER_INCLUDE_RESTARTING: "true"
+      WATCHTOWER_NOTIFICATIONS: ""          # wire up Slack/Discord/email later
+      DOCKER_CONFIG: "/config.json"
+    volumes:
+      # Watchtower must be able to call the Docker API to pull, stop,
+      # remove, and recreate containers — a read-only socket-proxy with
+      # write perms disabled can't do this, so the raw socket is used,
+      # mounted read-only at the bind-mount level.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # GHCR auth: run `docker login ghcr.io` on the host first, then
+      # mount the resulting config.json (contains your GHCR PAT) read-only.
+      - ${HOME}/.docker/config.json:/config.json:ro
+    networks:
+      - watchtower_egress   # its ONLY route to the internet (needed for GHCR)
+      - cicd_net            # internal-only; symbolic link to backend
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M

@@ -1,0 +1,87 @@
+{
+  "realm": "meridian-ai",
+  "displayName": "Meridian AI",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "failureFactor": 10,
+  "resetOtpRequiredAction": true,
+  "roles": {
+    "realm": [
+      { "name": "platform-admin", "description": "Can administer platform configuration" },
+      { "name": "platform-operator", "description": "Can read platform secrets and trigger rotations" },
+      { "name": "ai-service", "description": "Service account role for the AI harness" },
+      { "name": "data-service", "description": "Service account role for the data pipeline" }
+    ]
+  },
+  "defaultRoles": ["offline_access", "uma_authorization"],
+  "defaultGroups": ["/platform-team"],
+  "groups": [
+    {
+      "name": "platform-team",
+      "path": "/platform-team",
+      "attributes": { "vault_namespace": ["ai/platform"] },
+      "realmRoles": ["platform-operator"]
+    },
+    {
+      "name": "security-team",
+      "path": "/security-team",
+      "attributes": { "vault_namespace": ["ai/platform"] },
+      "realmRoles": ["platform-admin"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "ai-harness",
+      "name": "Meridian AI Harness",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "secret": "meridian-ai-harness-client-secret-rotate-me",
+      "redirectUris": ["http://localhost:8000/*", "http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:8000", "http://localhost:3000"],
+      "protocol": "openid-connect",
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "defaultClientScopes": ["openid", "profile", "email", "roles", "web-origins"]
+    }
+  ],
+  "users": [
+    {
+      "username": "aisha.rahman",
+      "email": "aisha.rahman@meridian-ai.example",
+      "firstName": "Aisha",
+      "lastName": "Rahman",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "Lab-Only-Passw0rd!", "temporary": false }
+      ],
+      "groups": ["/platform-team"],
+      "realmRoles": ["platform-operator"]
+    },
+    {
+      "username": "dev.kapoor",
+      "email": "dev.kapoor@meridian-ai.example",
+      "firstName": "Dev",
+      "lastName": "Kapoor",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "Lab-Only-Passw0rd!", "temporary": false }
+      ],
+      "groups": ["/platform-team"],
+      "realmRoles": ["platform-operator"]
+    }
+  ]
+}

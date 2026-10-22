@@ -1,0 +1,10 @@
+FROM python:3.11-slim
+
+WORKDIR /srv
+
+RUN pip install --no-cache-dir cryptography==43.0.1
+
+COPY config/jwks-server.py /srv/jwks-server.py
+
+EXPOSE 8099
+CMD ["python3", "-u", "/srv/jwks-server.py", "--port", "8099"]

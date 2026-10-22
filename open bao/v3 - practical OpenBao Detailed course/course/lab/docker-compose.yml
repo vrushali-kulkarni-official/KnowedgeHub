@@ -1,0 +1,182 @@
+# =============================================================================
+# Meridian AI - OpenBao Course Lab
+# =============================================================================
+# Production-shaped local stack. Every service runs as a container.
+#
+#   ./scripts/prepare-lab.sh        # one-time host setup (dir ownership)
+#   docker compose up -d openbao
+#   ./scripts/init-lab.sh
+#
+# Note on ports: OpenBao's UI/API is published on 127.0.0.1:8200 ONLY.
+# Binding to 0.0.0.0 would expose an unsealed secrets store to your LAN.
+# =============================================================================
+
+name: meridian-openbao-lab
+
+services:
+  # ---------------------------------------------------------------------------
+  # OpenBao - the secret store itself
+  # ---------------------------------------------------------------------------
+  openbao:
+    image: openbao/openbao:2.7.1
+    container_name: meridian-openbao
+    # `server` (not `-dev`) = real init/unseal cycle, real storage, real audit.
+    # `-dev` gives you an in-memory store that is unsealed forever. Production
+    # never uses it; neither should this lab once Module 01 is done.
+    command: server -config=/openbao/config
+    ports:
+      - "127.0.0.1:8200:8200"
+    environment:
+      # Consumed by the entrypoint script, which builds `server -config=...`
+      # and injects these into the listener/api_addr.
+      BAO_REDIRECT_ADDR: "http://127.0.0.1:8200"
+      BAO_CLUSTER_ADDR: "https://127.0.0.1:8201"
+
+      # The upstream entrypoint chowns /openbao/{config,logs,file} when it can,
+      # and ABORTS if that chown fails. We run as uid 100 directly (below), so
+      # we skip its chown entirely and pre-own the host directories instead -
+      # see scripts/prepare-lab.sh.
+      SKIP_CHOWN: "true"
+    volumes:
+      # Config directory. The entrypoint passes -config=/openbao/config and the
+      # server loads every *.hcl / *.json file it finds there. Read-only: the
+      # server must never be able to rewrite its own configuration.
+      - ./config:/openbao/config:ro
+
+      # Persistent storage.
+      #
+      # The path is "/openbao/file" for a non-obvious but important reason:
+      # the upstream image creates and chowns ONLY three directories under
+      # /openbao - logs, file and config. Docker initialises a NEW named
+      # volume from the image's directory at the mount point, INHERITING ITS
+      # OWNERSHIP. So mounting at /openbao/file gives us a volume already
+      # owned by the openbao user (uid 100), which our non-root process can
+      # actually write to. Mounting at /openbao/data would create a
+      # root-owned volume and the server would fail to start.
+      #
+      # "file" is the historical name for the old `file` storage backend,
+      # which was REMOVED in OpenBao 2.7. The engine we actually use is
+      # `pebbledb` - see config/openbao.hcl.
+      - openbao-data:/openbao/file
+
+      # Audit logs. The declarative `audit` stanza writes here.
+      - ./logs:/openbao/logs
+    # The image ships a non-root `openbao` user (uid 100, gid 1000).
+    # Running as root would be a needless privilege escalation.
+    user: "100:1000"
+    cap_drop:
+      - ALL
+    cap_add:
+      - IPC_LOCK      # needed for mlock (prevents swapping secrets to disk)
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      # /v1/sys/health returns 200 only when initialized + unsealed + active.
+      # Busybox wget is present in the alpine-based image.
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8200/v1/sys/health | grep -q '\"initialized\":true' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - meridian-net
+
+  # ---------------------------------------------------------------------------
+  # Postgres - app database, and the target for the `database` secret engine
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:17-alpine
+    container_name: meridian-postgres
+    environment:
+      POSTGRES_DB: meridian_ai
+      POSTGRES_USER: meridian_app
+      # In a real org this comes from a secret manager, not a compose file.
+      # For the lab it is fine; Module 05 shows the correct pattern.
+      POSTGRES_PASSWORD: "lab-only-not-a-real-secret"
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meridian_app -d meridian_ai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - meridian-net
+
+  # ---------------------------------------------------------------------------
+  # Redis - cache / rate limiter / task broker
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: meridian-redis
+    command: ["redis-server", "--requirepass", "lab-only-redis-pass", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "lab-only-redis-pass", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - meridian-net
+
+  # ---------------------------------------------------------------------------
+  # Keycloak - OIDC identity provider for the human-login path
+  # ---------------------------------------------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4
+    container_name: meridian-keycloak
+    command: ["start-dev", "--http-port=8080", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    healthcheck:
+      # The Keycloak image is RHEL UBI based, so bash is present and
+      # /dev/tcp works without needing curl.
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 && echo -e 'GET /health/ready HTTP/1.1\\nHost: localhost\\nConnection: close\\n\\n' >&3 && grep -q '\"status\": \"UP\"' <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - meridian-net
+
+  # ---------------------------------------------------------------------------
+  # Example app - proves the secret reaches a real running container
+  # ---------------------------------------------------------------------------
+  ai-harness:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: meridian-ai-harness
+    environment:
+      # NOTE: these are NOT set here on purpose. The app fetches the Gemini
+      # key from OpenBao at startup using AppRole. See modules/07.
+      BAO_ADDR: "http://openbao:8200"
+      BAO_ROLE_ID: "${BAO_ROLE_ID:-}"
+      BAO_SECRET_ID: "${BAO_SECRET_ID:-}"
+      APP_LOG_LEVEL: "INFO"
+    depends_on:
+      openbao:
+        condition: service_healthy
+    networks:
+      - meridian-net
+
+networks:
+  meridian-net:
+    driver: bridge
+
+volumes:
+  openbao-data:
+  postgres-data:
+  redis-data:

@@ -1,0 +1,104 @@
+name: openbao-lab02
+
+# ─────────────────────────────────────────────────────────────────
+# Lab 02 — 5-node Raft HA cluster (Level 6 of the course)
+#
+#   openbao-1 .. openbao-5   — Raft cluster, TLS everywhere
+#                              (cluster port 8201 must be firewalled to
+#                               node-to-node; see config/openbao.hcl)
+#
+#   ⚠️  Single-host simulation. In production these are 5 separate
+#       machines/VMs/spot instances with independent disks. Running
+#       them on one host means one host failure takes the whole cluster
+#       down — fine for learning the mechanics, not for HA.
+#
+#   Bootstrap with:  ./bootstrap-cluster.sh
+# ─────────────────────────────────────────────────────────────────
+
+x-openbao-base: &openbao-base
+  image: openbao/openbao:2.7.1
+  command: server -config=/openbao/config/openbao.hcl
+  volumes:
+    - ./certs:/openbao/certs:ro
+    - ./logs:/openbao/logs
+  cap_add: [IPC_LOCK]
+  ulimits:
+    memlock: { soft: -1, hard: -1 }
+  security_opt:
+    - no-new-privileges:true
+  healthcheck:
+    test: ["CMD-SHELL", "BAO_CACERT=/openbao/certs/ca.crt bao status >/dev/null 2>&1"]
+    interval: 10s
+    timeout: 5s
+    retries: 12
+    start_period: 15s
+  restart: unless-stopped
+  networks: [raftnet]
+
+services:
+  openbao-1:
+    <<: *openbao-base
+    container_name: openbao-1
+    volumes:
+      - ./certs:/openbao/certs:ro
+      - ./logs:/openbao/logs
+      - data1:/openbao/data
+    environment:
+      BAO_RAFT_NODE_ID: openbao-1
+      BAO_ADDR: https://openbao-1:8200
+    depends_on: [openbao-2, openbao-3, openbao-4, openbao-5]
+
+  openbao-2:
+    <<: *openbao-base
+    container_name: openbao-2
+    volumes:
+      - ./certs:/openbao/certs:ro
+      - ./logs:/openbao/logs
+      - data2:/openbao/data
+    environment:
+      BAO_RAFT_NODE_ID: openbao-2
+      BAO_ADDR: https://openbao-2:8200
+
+  openbao-3:
+    <<: *openbao-base
+    container_name: openbao-3
+    volumes:
+      - ./certs:/openbao/certs:ro
+      - ./logs:/openbao/logs
+      - data3:/openbao/data
+    environment:
+      BAO_RAFT_NODE_ID: openbao-3
+      BAO_ADDR: https://openbao-3:8200
+
+  openbao-4:
+    <<: *openbao-base
+    container_name: openbao-4
+    volumes:
+      - ./certs:/openbao/certs:ro
+      - ./logs:/openbao/logs
+      - data4:/openbao/data
+    environment:
+      BAO_RAFT_NODE_ID: openbao-4
+      BAO_ADDR: https://openbao-4:8200
+
+  openbao-5:
+    <<: *openbao-base
+    container_name: openbao-5
+    volumes:
+      - ./certs:/openbao/certs:ro
+      - ./logs:/openbao/logs
+      - data5:/openbao/data
+    environment:
+      BAO_RAFT_NODE_ID: openbao-5
+      BAO_ADDR: https://openbao-5:8200
+
+networks:
+  raftnet:
+    driver: bridge
+
+volumes:
+  data1:
+  data2:
+  data3:
+  data4:
+  data5:

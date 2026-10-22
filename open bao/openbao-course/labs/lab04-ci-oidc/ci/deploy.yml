@@ -1,0 +1,107 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# ─────────────────────────────────────────────────────────────────
+#  The ONLY permission that matters for secrets-free CI.
+#
+#  `id-token: write` lets the runner MINT a short-lived OIDC token
+#  proving "I am this workflow, in this repo, on this ref".
+#  It does NOT give access to GitHub's secret store.
+#
+#  `contents: read` is just the checkout.
+# ─────────────────────────────────────────────────────────────────
+permissions:
+  contents: read
+  id-token: write
+
+# A GitHub Environment gives you BOTH:
+#   * a human approval gate (configure reviewers in repo settings)
+#   * an "environment" claim in the OIDC token
+environment:
+  name: production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── 1. Get the OIDC token ───────────────────────────────────
+      - name: Get OIDC token
+        id: oidc
+        env:
+          BAO_AUDIENCE: openbao        # MUST match OpenBao's bound_audiences
+        run: |
+          set -euo pipefail
+          OIDC_TOKEN=$(curl -sS \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_URL" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$BAO_AUDIENCE" | jq -r .value)
+
+          if [ -z "$OIDC_TOKEN" ] || [ "$OIDC_TOKEN" = "null" ]; then
+            echo "::error::could not obtain an OIDC token — is id-token: write set?"
+            exit 1
+          fi
+
+          echo "::add-mask::$OIDC_TOKEN"
+          echo "oidc_token=$OIDC_TOKEN" >> "$GITHUB_OUTPUT"
+
+      # ── 2. Exchange it for an OpenBao token ─────────────────────
+      - name: Login to OpenBao
+        id: bao
+        env:
+          BAO_ADDR: https://openbao.corp.internal:8200
+          BAO_CACERT: ${{ secrets.BAO_CACERT }}
+          BAO_ROLE: github
+          OIDC_TOKEN: ${{ steps.oidc.outputs.oidc_token }}
+        run: |
+          set -euo pipefail
+          LOGIN=$(curl -sS --cacert "$BAO_CACERT" \
+            -H "X-Vault-Request: true" \
+            -H "Content-Type: application/json" \
+            -d "{\"role\":\"$BAO_ROLE\",\"jwt\":\"$OIDC_TOKEN\"}" \
+            "$BAO_ADDR/v1/auth/github-actions/login")
+
+          if echo "$LOGIN" | jq -e '.errors' >/dev/null 2>&1; then
+            echo "::error::OpenBao login failed: $(echo "$LOGIN" | jq -r '.errors | join(", ")')"
+            exit 1
+          fi
+
+          BAO_TOKEN=$(echo "$LOGIN" | jq -r .auth.client_token)
+          echo "::add-mask::$BAO_TOKEN"
+          echo "token=$BAO_TOKEN" >> "$GITHUB_OUTPUT"
+
+      # ── 3. Fetch the secret (to a FILE, never to stdout) ───────
+      - name: Fetch secrets from OpenBao
+        env:
+          BAO_ADDR: https://openbao.corp.internal:8200
+          BAO_CACERT: ${{ secrets.BAO_CACERT }}
+          BAO_TOKEN: ${{ steps.bao.outputs.token }}
+        run: |
+          set -euo pipefail
+          curl -sS --cacert "$BAO_CACERT" \
+            -H "X-Vault-Token: $BAO_TOKEN" \
+            "$BAO_ADDR/v1/secret/data/myapp" > app-config.json
+
+          # Print the KEYS, not the values
+          echo "::group::config keys"
+          jq -r '.data.data | keys[]' app-config.json
+          echo "::endgroup::"
+
+      # ── 4. Use the secret ───────────────────────────────────────
+      - name: Deploy
+        env:
+          BAO_ADDR: https://openbao.corp.internal:8200
+          BAO_CACERT: ${{ secrets.BAO_CACERT }}
+          BAO_TOKEN: ${{ steps.bao.outputs.token }}
+        run: |
+          set -euo pipefail
+          # Read a single value into the environment of THIS step only
+          export DEPLOY_TOKEN=$(jq -r '.data.data.deploy_token' app-config.json)
+          echo "::add-mask::$DEPLOY_TOKEN"
+          ./deploy.sh

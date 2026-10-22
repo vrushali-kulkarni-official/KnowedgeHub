@@ -1,0 +1,15 @@
+# NEVER commit real secrets. This directory holds lab keys and tokens.
+lab/secrets/
+lab/logs/*.log
+lab/logs/*.log.*
+lab/data/
+lab/data*/
+lab/config/local*.json
+lab/keycloak/*.json.bak
+*.env
+.env
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store

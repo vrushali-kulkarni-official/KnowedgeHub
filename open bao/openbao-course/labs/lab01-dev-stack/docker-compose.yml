@@ -1,0 +1,81 @@
+name: openbao-lab01
+
+# ─────────────────────────────────────────────────────────────────
+# Lab 01 — Learning lab: one OpenBao node + Postgres + Redis
+#
+# This mirrors Level 2 of the course. It is a LEARNING lab:
+#   - single node, Shamir seal
+#   - TLS from a local CA
+#   - audit device enabled from the start
+#
+# NOT production. See labs/lab03 for the production reference.
+# ─────────────────────────────────────────────────────────────────
+
+services:
+  openbao:
+    image: openbao/openbao:2.7.1
+    container_name: openbao-lab01
+    command: server -config=/openbao/config/openbao.hcl
+    ports:
+      - "127.0.0.1:8200:8200"
+    volumes:
+      - ./config:/openbao/config:ro
+      - ./certs:/openbao/certs:ro
+      - ./data:/openbao/data
+      - ./logs:/openbao/logs
+    environment:
+      BAO_ADDR: https://127.0.0.1:8200
+      BAO_CACERT: /openbao/certs/ca.crt
+    cap_add:
+      - IPC_LOCK
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "BAO_CACERT=/openbao/certs/ca.crt bao status >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+    networks: [lab]
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: lab01-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lab-postgres-pw}
+      POSTGRES_DB: appdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [lab]
+
+  redis:
+    image: redis:7-alpine
+    container_name: lab01-redis
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-lab-redis-pw}", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-lab-redis-pw}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [lab]
+
+networks:
+  lab:
+    driver: bridge
+
+volumes:
+  pgdata:
+  redisdata:
