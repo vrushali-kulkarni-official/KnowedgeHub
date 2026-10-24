@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Act 11 — The Framework Bridge — Frontend Journey</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+
+</head>
+<body>
+<span class="tag">Act 11 of 12</span>
+
+<h1>The Framework Bridge</h1>
+
+<p class="lede">Everything you learned, mapped onto React, Next.js and shadcn — so tomorrow is recognition, not learning.</p>
+
+
+<div class="note">
+<p><strong>This act is the payoff.</strong> You didn't learn "how to use React" — you
+learned what React is made of. Now the framework isn't a new language; it's a set of
+conventions on top of what you already own.</p>
+</div>
+
+<h3>The one-paragraph summary</h3>
+<p>React takes the <strong>state → render</strong> loop you built by hand in Act 5 and
+makes it declarative. You describe what the UI should look like <em>for the current
+state</em>; React figures out the minimal DOM changes. Everything else — components,
+props, keys, effects — exists to make that loop scale.</p>
+
+
+<div class="toc"><strong>In this act</strong><ol><li><a href="#step-11-1-how-react-maps-onto-what-you-know">11.1 — How React Maps Onto What You Know</a></li><li><a href="#step-11-2-components-props-state">11.2 — Components, Props &amp; State</a></li><li><a href="#step-11-3-effects-data-fetching">11.3 — Effects &amp; Data Fetching</a></li><li><a href="#step-11-4-next-js-shadcn">11.4 — Next.js &amp; shadcn</a></li></ol></div>
+
+<h2 id="step-11-1-how-react-maps-onto-what-you-know">11.1 — How React Maps Onto What You Know</h2>
+
+<p class="lede">See React as a set of conventions on top of the DOM, not a new paradigm.</p>
+
+
+<h3>Your hand-written version (Act 5)</h3>
+<pre class="code"><code>let count = 0;
+const display = document.querySelector("#display");
+
+function render() {
+  display.textContent = count;
+}
+
+plusBtn.addEventListener("click", () =&gt; { count++; render(); });
+</code></pre>
+
+<h3>The React version</h3>
+<pre class="code"><code>function Counter() {
+  const [count, setCount] = useState(0);
+  return &lt;button onClick={() =&gt; setCount(count + 1)}&gt;{count}&lt;/button&gt;;
+}
+</code></pre>
+
+<table>
+<tr><th>Your version</th><th>React's version</th><th>What changed</th></tr>
+<tr><td><code>let count = 0</code></td><td><code>const [count, setCount] = useState(0)</code></td><td>state is per-component, not a global variable</td></tr>
+<tr><td><code>render()</code></td><td>the component function re-running</td><td>React re-runs it and applies the differences</td></tr>
+<tr><td><code>display.textContent = count</code></td><td><code>{count}</code> in JSX</td><td>you describe the result, React does the diff</td></tr>
+<tr><td><code>addEventListener</code></td><td><code>onClick={...}</code></td><td>React attaches the listener for you</td></tr>
+<tr><td>you call <code>render()</code></td><td>you call <code>setCount(...)</code></td><td>React schedules and batches the re-render</td></tr>
+</table>
+
+<h3>The virtual DOM</h3>
+<p>React keeps a JavaScript representation of your UI (the "virtual DOM"). When state
+changes, it:</p>
+<ol>
+<li>re-runs your component function, producing a new virtual tree</li>
+<li>diffs it against the previous virtual tree (a fast, cheap comparison)</li>
+<li>applies only the real differences to the actual DOM</li>
+</ol>
+<p>That's why React can re-render a whole tree on every state change and still be
+fast — the DOM itself is touched minimally.</p>
+
+<div class="note">
+<p><strong>You already know all of this.</strong> You built the render loop by hand.
+React is the same loop, with the diffing automated and the state scoped per
+component.</p>
+</div>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>React's re-render is <strong>not</strong> the DOM being rebuilt. It re-runs your functions and patches the DOM. That's why components should be pure functions of their props and state.</li><li>React 18+ batches multiple state updates into a single re-render automatically — you don't need to batch manually.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Predict the React behaviour</h3>
+
+<p>For each snippet, work out what the browser shows
+after one click:</p>
+<ol>
+<li><code>setCount(count + 1)</code> called twice in the same handler — what's the
+count?</li>
+<li><code>setCount(count + 1)</code> then <code>setCount(count + 2)</code> — what's
+the count? (This is the <strong>stale closure</strong> trap.)</li>
+<li><code>setCount(c =&gt; c + 1)</code> called twice — what's the count?</li>
+<li>Three different components each with their own <code>useState</code> — do they
+share state?</li>
+</ol>
+<p>Then set up a real React project and verify your answers. The difference between #2
+and #3 is one of the most important things to understand about React state.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>React batches state updates, but two updates based on the <em>same</em> <code>count</code> value both compute from that stale value. The functional form <code>c =&gt; c + 1</code> always uses the latest.</li><li><code>useState</code> is a <em>hook</em> — and hooks must be called at the top level of a component, never inside a condition or loop.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/11-1-how-react-maps-onto-what-you-know.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-11-2-components-props-state">11.2 — Components, Props &amp; State</h2>
+
+<p class="lede">Learn React's three core ideas, and the rules that govern them.</p>
+
+
+<h3>Components are functions</h3>
+<pre class="code"><code>function Greeting(props) {
+  return &lt;h1&gt;Hello, {props.name}!&lt;/h1&gt;;
+}
+
+function App() {
+  return (
+    &lt;div&gt;
+      &lt;Greeting name="Ana" /&gt;
+      &lt;Greeting name="Bruno" /&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+
+<h3>JSX is not a string — it's a function call</h3>
+<pre class="code"><code>&lt;Greeting name="Ana" /&gt;
+// is really:
+Greeting({ name: "Ana" })</code></pre>
+
+<p>JSX compiles to <code>React.createElement(...)</code> (or <code>jsx(...)</code>).
+It looks like HTML, but it's JavaScript: you can put <code>{expression}</code> inside
+it, and you can use <code>.map()</code> inside it. That's why you need a
+<code>key</code> on each item in a list.</p>
+
+<h3>Props: passed down, immutable</h3>
+<ul>
+<li>Props go from parent to child. A child never changes them.</li>
+<li>They can be anything: strings, numbers, objects, functions, JSX.</li>
+<li>A function passed as a prop is a <strong>callback</strong> — exactly like
+<code>addEventListener</code> in vanilla JS.</li>
+</ul>
+
+<pre class="code"><code>function List({ items, onSelect }) {
+  return (
+    &lt;ul&gt;
+      {items.map(item =&gt; (
+        &lt;li key={item.id} onClick={() =&gt; onSelect(item)}&gt;
+          {item.name}
+        &lt;/li&gt;
+      ))}
+    &lt;/ul&gt;
+  );
+}
+</code></pre>
+
+<div class="warn">
+<p><strong>The <code>key</code> prop.</strong> It's required for every element in a
+list. React uses it to identify which item is which across re-renders, so it can
+update the DOM efficiently. Use a <strong>stable, unique id</strong> — never the array
+index (unless the list is never reordered, and even then it's risky).</p>
+</div>
+
+<h3>State: the component's own memory</h3>
+<pre class="code"><code>const [value, setValue] = useState(initialValue);</code></pre>
+
+<ul>
+<li><code>useState</code> returns the current value and a setter.</li>
+<li>Each component instance has its <strong>own independent state</strong>.</li>
+<li>Calling the setter tells React "re-render me with the new value".</li>
+<li>State is <strong>immutable</strong> — you never modify it directly, you always
+replace it.</li>
+</ul>
+
+<pre class="code"><code>// WRONG - mutates the array in place; React won't notice
+items.push(newItem);
+setItems(items);
+
+// RIGHT - a new array
+setItems([...items, newItem]);
+setItems(prev =&gt; [...prev, newItem]);   // when you need the latest value
+</code></pre>
+
+<p>That "never mutate" rule is exactly the Python instinct to avoid — and it exists
+for the same reason React uses immutability: to detect changes cheaply and to make
+time-travel debugging possible.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>Hooks must be called at the <strong>top level</strong> of a component or a custom hook. Not inside an <code>if</code>, not inside a loop, not inside a callback. React relies on the call order being identical every render.</li><li>A component's name must start with a capital letter — <code>&lt;mycomponent /&gt;</code> is treated as an HTML tag, not a component.</li><li>Components must return a single element. Wrap multiple in a fragment: <code>&lt;&gt;...&lt;/&gt;</code>.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Rebuild an Act 5 project in React</h3>
+
+<p>Take the number counter (Act 5 Step 5.2) and rebuild it
+in React:</p>
+<ol>
+<li>Split it into components: <code>&lt;Counter&gt;</code>, <code>&lt;Display&gt;</code>,
+<code>&lt;Button&gt;</code>.</li>
+<li>State lives in <code>&lt;Counter&gt;</code> and is passed down as props.</li>
+<li>The buttons receive an <code>onClick</code> callback prop.</li>
+<li>Add a second counter to the page and confirm they are <strong>independent</strong>
+— that's per-component state.</li>
+<li>Then lift the state up: put <code>count</code> in the parent and pass it plus a
+setter down. <strong>Why might you need to do that?</strong></li>
+</ol>
+<p>Extra: a "Reset" button and the same disabled-at-min/max behaviour as the vanilla
+version.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>If two components need the same state, the state belongs in their closest common ancestor — that's "lifting state up".</li><li>Props flow down, events flow up. That's the mental model for every React form.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/11-2-components-props-state.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-11-3-effects-data-fetching">11.3 — Effects &amp; Data Fetching</h2>
+
+<p class="lede">Understand useEffect — the hook people misuse most — and the modern data-fetching alternative.</p>
+
+
+<h3>What an effect is</h3>
+<p>An effect lets a component <strong>reach outside itself</strong> after it renders:
+subscribe to something, set up a timer, fetch data, talk to an imperative API.</p>
+
+<pre class="code"><code>useEffect(() =&gt; {
+  // runs AFTER the render
+  const id = setInterval(() =&gt; setTick(t =&gt; t + 1), 1000);
+  return () =&gt; clearInterval(id);      // cleanup: runs BEFORE the next effect / on unmount
+}, [dependencies]);
+</code></pre>
+
+<h3>The dependency array</h3>
+<table>
+<tr><th>Dependency array</th><th>Effect runs</th></tr>
+<tr><td>omitted</td><td>after every render</td></tr>
+<tr><td><code>[]</code></td><td>once, on mount (and cleanup on unmount)</td></tr>
+<tr><td><code>[a, b]</code></td><td>when <code>a</code> or <code>b</code> changes (compared by <code>Object.is</code>)</td></tr>
+</table>
+
+<div class="note">
+<p><strong>React's rule:</strong> if an effect uses a value from the component
+(<code>props.x</code> or <code>state</code>), that value should be in the dependency
+array. The linter (<strong>react-hooks/exhaustive-deps</strong>) will tell you when
+you've missed one. This is the "stale closure" bug: an effect that captured an old
+value.</p>
+</div>
+
+<h3>Fetching data</h3>
+<pre class="code"><code>function Users() {
+  const [users, setUsers] = useState([]);
+  const [status, setStatus] = useState("loading");
+
+  useEffect(() =&gt; {
+    let cancelled = false;
+    fetch("/api/users")
+      .then(r =&gt; r.json())
+      .then(data =&gt; { if (!cancelled) { setUsers(data); setStatus("done"); } })
+      .catch(() =&gt; { if (!cancelled) setStatus("error"); });
+    return () =&gt; { cancelled = true; };
+  }, []);
+
+  if (status === "loading") return &lt;p&gt;Loading…&lt;/p&gt;;
+  if (status === "error") return &lt;p&gt;Something went wrong&lt;/p&gt;;
+  return &lt;ul&gt;{users.map(u =&gt; &lt;li key={u.id}&gt;{u.name}&lt;/li&gt;)}&lt;/ul&gt;
+}</code></pre>
+
+<p>Two important details:</p>
+<ul>
+<li><strong>Cleanup prevents a "set state on unmounted component" warning</strong> —
+and more importantly prevents a stale response overwriting fresh data.</li>
+<li><strong>All three states</strong> — loading, error, and data. (Act 6 Step 6.2.)</li>
+</ul>
+
+<h3>Modern React: you might not need useEffect</h3>
+<p>React 18.3+ / Next.js App Router have server components and a
+<code>use</code> hook. But the rule stands: <strong>don't put data fetching in an
+effect if there's a framework feature for it</strong>. In Next.js App Router, you
+fetch in the component itself (it runs on the server) — no effect, no loading state
+boilerplate, no waterfall.</p>
+
+<div class="warn">
+<p><strong>The most common effect mistake:</strong> using an effect to derive state.
+If you can compute a value from props/state during render, <strong>don't store it in
+state</strong> — just compute it. Effects are for synchronising with the outside
+world, not for deriving values.</p>
+<pre class="code"><code>// WRONG - state that could be derived
+const [full, setFull] = useState("");
+useEffect(() =&gt; { setFull(first + " " + last); }, [first, last]);
+
+// RIGHT - just compute it
+const full = first + " " + last;
+</code></pre>
+</div>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>An effect's cleanup function is essential: it's what prevents duplicate subscriptions and memory leaks.</li><li>React 18's <code>StrictMode</code> deliberately runs effects twice in development (mount → unmount → mount) to surface missing cleanup. If you see things happening twice, that's why — it's a development-only behaviour.</li><li><code>useEffect</code> with an empty dependency array is the equivalent of "on mount". Use <code>useLayoutEffect</code> only when you need to measure or mutate the DOM before the browser paints.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Effects, done and done wrong</h3>
+
+<ol>
+<li>Build a component with a counter that increments every second, with proper
+cleanup. <strong>Navigate away and back</strong> — does the interval keep running?</li>
+<li>Break the cleanup on purpose (remove the <code>return</code>). React's StrictMode
+in dev will show you the double-increment. Now you understand why cleanup matters.</li>
+<li>Add a search box that filters a list, using <strong>derived state</strong> (compute
+the filtered list during render) — not an effect.</li>
+<li>Fetch from the fake API with all three states (loading / error / data) and a
+cleanup that prevents setting state after unmount.</li>
+<li>Add a "Refresh" button that re-fetches — and figure out how to re-run an effect
+on demand (the answer involves a dependency array, and it's a common interview
+question).</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>To re-run an effect on demand, put a counter in state and include it in the dependency array — increment it to trigger a refetch.</li><li>React 18's <code>useEffect</code> cleanup pattern with a <code>cancelled</code> flag is the standard pattern; React 19 may handle unmount automatically, but the flag is still good practice.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/11-3-effects-data-fetching.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-11-4-next-js-shadcn">11.4 — Next.js &amp; shadcn</h2>
+
+<p class="lede">See the structure of a modern Next.js app with shadcn/ui, and how it uses everything you know.</p>
+
+
+<h3>What Next.js adds</h3>
+<table>
+<tr><th>Feature</th><th>What it does</th></tr>
+<tr><td><strong>File-based routing</strong></td><td><code>app/page.tsx</code> → <code>/</code>, <code>app/about/page.tsx</code> → <code>/about</code></td></tr>
+<tr><td><strong>Server Components</strong></td><td>components that run on the server — no JS shipped to the browser</td></tr>
+<tr><td><strong>Server Actions</strong></td><td>functions that run on the server, callable from the client like an API</td></tr>
+<tr><td><strong>Data fetching</strong></td><td>fetch in the component, with built-in <code>loading.tsx</code> and <code>error.tsx</code></td></tr>
+<tr><td><strong>Built-in optimisation</strong></td><td>image optimisation, font optimisation, code splitting, caching</td></tr>
+</table>
+
+<h3>The folder structure</h3>
+<pre class="code"><code>my-app/
+  app/
+    layout.tsx        -&gt; the shell (like &lt;body&gt;)
+    page.tsx          -&gt; /
+    about/page.tsx    -&gt; /about
+    blog/[slug]/page.tsx -&gt; /blog/:slug
+    api/hello/route.ts  -&gt; /api/hello (a route handler)
+    loading.tsx       -&gt; the loading state for this segment
+    error.tsx         -&gt; the error boundary
+  components/
+  lib/
+  public/</code></pre>
+
+<div class="note">
+<p><strong>Server vs Client Components</strong> is the concept to understand:</p>
+<ul>
+<li>A component is a <strong>Server Component</strong> by default. It runs on the
+server, can access the database directly, and its JavaScript is never sent to the
+browser.</li>
+<li>Add <code>"use client"</code> at the top to make it a <strong>Client
+Component</strong> — it ships JavaScript and can use state and effects.</li>
+<li>You can nest them: a server component can <em>render</em> a client component and
+pass it serialisable props.</li>
+</ul>
+<p>Rule of thumb: keep it on the server unless you need interactivity. The less
+JavaScript you ship, the faster your site.</p>
+</div>
+
+<h3>shadcn/ui</h3>
+<p>shadcn is not a component <em>library</em> you install — it's a set of components
+<strong>copied into your project</strong> as source code you own.</p>
+
+<pre class="code"><code>npx shadcn@latest init
+npx shadcn@latest add button card dialog input
+</code></pre>
+
+<p>What you get is real, readable code in <code>components/ui/</code>, built with
+Tailwind and CSS variables:</p>
+<pre class="code"><code>// components/ui/button.tsx  (simplified)
+const buttonVariants = cva(
+  "inline-flex items-center justify-center rounded-md text-sm font-medium",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline: "border border-input bg-background hover:bg-accent",
+      },
+      size: { default: "h-10 px-4 py-2", sm: "h-9 px-3", lg: "h-11 px-8" },
+    },
+    defaultVariants: { variant: "default", size: "default" },
+  }
+);</code></pre>
+
+<p>Look at what that is: <strong>your Act 2 and Act 3 knowledge</strong>. CSS
+variables for theming (<code>bg-primary</code> → <code>var(--primary)</code>),
+Tailwind utilities for styling, and a variant system for composition.</p>
+
+<div class="note">
+<p><strong>Why shadcn works this way:</strong> you can edit every component to fit
+your design system. No fighting a library's opinions, no "how do I override this
+component" — it's your code.</p>
+</div>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>The <code>cva</code> function (class-variance-authority) is the variant pattern from Act 3 Step 3.6, packaged. <code>cn()</code> (clsx + tailwind-merge) resolves conflicting Tailwind classes so the last one wins deterministically.</li><li>shadcn's theme lives in <code>app/globals.css</code> as CSS variables — exactly the Act 3 Step 3.5 approach, with an added <code>.dark</code> class.</li><li>Next.js has its own Tailwind setup, but the utility vocabulary is identical to Act 3.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Read the framework code</h3>
+
+<ol>
+<li>Create a Next.js app:
+<code>npx create-next-app@latest my-app</code> (choose TypeScript + Tailwind + App
+Router).</li>
+<li>Read <code>app/layout.tsx</code> and <code>app/page.tsx</code>. <strong>Where is
+the <code>&lt;html&gt;</code> and <code>&lt;body&gt;</code> tag?</strong> (Act 1 Step 1.3.)</li>
+<li>Add a route: create <code>app/about/page.tsx</code> and visit
+<code>/about</code>. <strong>What file did you create? What would happen if you'd
+created <code>app/about.tsx</code> instead?</strong></li>
+<li>Add a client component with a counter and use it inside a server component. Notice
+the <code>"use client"</code> directive and where it has to be.</li>
+<li>Run <code>npx shadcn@latest init</code> and then
+<code>npx shadcn@latest add button</code>. <strong>Read the generated component.</strong>
+How much of Act 2 and Act 3 do you recognise?</li>
+<li>Open <code>app/globals.css</code> and find the CSS variables. <strong>How is
+dark mode implemented?</strong></li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>In the App Router, a folder named <code>page.tsx</code> defines a route; a file named <code>about.tsx</code> inside a folder is just a module.</li><li>Next.js uses a <code>tsconfig.json</code> with a <code>paths</code> alias — <code>@/components/ui/button</code> resolves to the <code>components/ui/button.tsx</code> file.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/11-4-next-js-shadcn.html">▶ Open the runnable file for this step</a></p>
+
+<hr>
+
+<div class="ok"><strong>Act 11 checkpoint</strong>
+<p>That's the whole course. Let me close the loop by mapping every act onto
+where you'll actually use it:</p>
+
+<table>
+<tr><th>Act</th><th>Where it shows up tomorrow</th></tr>
+<tr><td>1 HTML</td><td>JSX, every component, semantic structure, forms, a11y</td></tr>
+<tr><td>2 CSS</td><td>Tailwind's foundation, shadcn's CSS variables, why your styles behave</td></tr>
+<tr><td>3 Tailwind</td><td>the default styling approach in modern React</td></tr>
+<tr><td>4 JavaScript</td><td><strong>the entire language</strong> — React, Next.js and shadcn are all JavaScript</td></tr>
+<tr><td>5 Projects</td><td>the mental model of state → render → event that React automates</td></tr>
+<tr><td>6 Advanced JS</td><td>data fetching, forms, performance, <code>useEffect</code> internals</td></tr>
+<tr><td>7 Browser</td><td>why Next.js optimises the way it does, and how to debug slow pages</td></tr>
+<tr><td>8 Security</td><td>auth flows, API integration, CORS errors on day one</td></tr>
+<tr><td>9 Modern APIs</td><td>streaming AI responses, realtime dashboards, offline apps</td></tr>
+<tr><td>10 Backend</td><td>API routes, server actions, webhooks</td></tr>
+<tr><td>11 Frameworks</td><td>React, Next.js, shadcn — all of the above, combined</td></tr>
+</table>
+
+<p><strong>Your plan for tomorrow:</strong> don't try to learn React from scratch. You
+already know JavaScript, the DOM, events, state, and async. Tomorrow you learn
+<em>React's conventions</em> on top of that — which is a much smaller job than it
+looks.</p>
+
+<p>And when something breaks, you'll know <em>where</em> to look: a rendering problem
+is CSS or the browser pipeline; a state problem is Act 5; a data problem is Act 6;
+a security question is Act 8.</p>
+</div>
+
+<div class="stepnav"><a href="../10-a-backend-touchpoint/lesson.html">← Act 10</a></div>
+</body>
+</html>

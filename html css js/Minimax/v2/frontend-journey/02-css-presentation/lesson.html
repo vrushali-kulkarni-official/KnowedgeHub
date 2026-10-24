@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Act 2 — CSS — Presentation — Frontend Journey</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+
+</head>
+<body>
+<span class="tag">Act 2 of 12</span>
+
+<h1>CSS — Presentation</h1>
+
+<p class="lede">The cascade, the box, and the two layout systems (flex and grid) that you will use every single day.</p>
+
+
+<p>HTML said <em>what</em> things are. CSS says <em>how</em> they look. The two are
+completely separate — which is exactly why you can restyle a page without touching its
+structure, and why a broken stylesheet never breaks the content.</p>
+
+<p>CSS has one surprising core idea, and everything else is detail: <strong>the
+cascade</strong>. When several rules try to set the same property on the same element,
+the browser picks a winner by asking a fixed set of questions. Learn those questions and
+CSS stops being mysterious.</p>
+
+<div class="note">
+<p><strong>How to use this act:</strong> for every step, open the runnable file and
+<em>change the values</em> — change <code>40px</code> to <code>200px</code>, change
+<code>red</code> to <code>rebeccapurple</code>, delete a rule and see what breaks. CSS
+is not learnable by reading. It's learnable by poking.</p>
+</div>
+
+
+<div class="toc"><strong>In this act</strong><ol><li><a href="#step-2-1-what-css-is-where-it-lives">2.1 — What CSS Is &amp; Where It Lives</a></li><li><a href="#step-2-2-selectors-specificity">2.2 — Selectors &amp; Specificity</a></li><li><a href="#step-2-3-inheritance-custom-properties">2.3 — Inheritance &amp; Custom Properties</a></li><li><a href="#step-2-4-the-box-model">2.4 — The Box Model</a></li><li><a href="#step-2-5-display-the-normal-flow">2.5 — Display &amp; the Normal Flow</a></li><li><a href="#step-2-6-flexbox">2.6 — Flexbox</a></li><li><a href="#step-2-7-css-grid">2.7 — CSS Grid</a></li><li><a href="#step-2-8-positioning-stacking">2.8 — Positioning &amp; Stacking</a></li><li><a href="#step-2-9-responsive-design-units">2.9 — Responsive Design &amp; Units</a></li><li><a href="#step-2-10-transitions-transforms-animation">2.10 — Transitions, Transforms &amp; Animation</a></li></ol></div>
+
+<h2 id="step-2-1-what-css-is-where-it-lives">2.1 — What CSS Is &amp; Where It Lives</h2>
+
+<p class="lede">Learn the only syntax CSS has, and the three places a rule can live.</p>
+
+
+<p>A CSS rule has exactly two parts: a <strong>selector</strong> (which elements) and a
+<strong>declaration block</strong> (what to do to them).</p>
+
+<pre class="code"><code>selector { property: value; property: value; }</code></pre>
+
+<pre class="code"><code>h1 {
+  color: #6366f1;
+  font-size: 2rem;
+}</code></pre>
+
+<ul>
+<li><code>h1</code> — the selector. "Every <code>&lt;h1&gt;</code> element."</li>
+<li><code>color</code> — the property.</li>
+<li><code>#6366f1</code> — the value.</li>
+<li>Semicolon after each declaration. The last one is optional; write it anyway.</li>
+</ul>
+
+<h3>Three places a rule can live</h3>
+<table>
+<tr><th>Where</th><th>Syntax</th><th>When</th></tr>
+<tr><td>Inline</td><td><code>&lt;h1 style="color:red"&gt;</code></td><td>almost never</td></tr>
+<tr><td>Block</td><td><code>&lt;style&gt; ... &lt;/style&gt;</code></td><td>small pages, critical CSS</td></tr>
+<tr><td>External</td><td><code>&lt;link rel="stylesheet" href="a.css"&gt;</code></td><td>everything else</td></tr>
+</table>
+
+<div class="warn">
+<p><strong>Inline styles win over everything</strong> (except <code>!important</code>) —
+they beat every stylesheet rule, no matter the specificity. That's why inline styles are
+a debugging trap: you cannot override them without <code>!important</code>. If a style
+"won't apply", check for an inline <code>style</code> attribute first.</p>
+</div>
+
+<h3>Comments</h3>
+<pre class="code"><code>/* this is a CSS comment */</code></pre>
+<p>Not <code>//</code>. That's a JavaScript comment, and it's a very common mistake on
+day one.</p>
+
+
+<h4 class="cap">Linking a stylesheet</h4>
+<pre class="code"><code class="lang-html">&amp;lt;head&amp;gt;
+  &amp;lt;link rel="stylesheet" href="/css/styles.css"&amp;gt;
+&amp;lt;/head&amp;gt;</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>The <code>href</code> path is relative to the <em>HTML file</em>, not to the CSS file. This trips people up constantly.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Three roads to the same style</h3>
+
+<p>Create a page with a heading that is <strong>green</strong> and
+<strong>24px</strong>. Achieve it three different ways:</p>
+<ol>
+<li>An external stylesheet (<code>styles.css</code> linked from the head)</li>
+<li>A <code>&lt;style&gt;</code> block in the head</li>
+<li>An inline <code>style</code> attribute on the element</li>
+</ol>
+<p>Then: make the inline style <em>red</em> while the other two stay green, and explain
+in one sentence why the red wins. Finally, add <code>!important</code> to the external
+rule and see the balance flip.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The order of the three mechanisms is: external/block rules < inline style < !important.</li><li>The <code>!important</code> flag isn't a magic bullet — it makes the rule impossible to override without another <code>!important</code>, which is a maintenance trap.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/2-1-what-css-is-where-it-lives.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-2-2-selectors-specificity">2.2 — Selectors &amp; Specificity</h2>
+
+<p class="lede">Predict which rule wins, every time, without guessing.</p>
+
+
+<h3>The selectors you'll actually use</h3>
+<pre class="code"><code>p            { }   /* type */
+.card         { }   /* class */
+#header       { }   /* id */
+.card p       { }   /* descendant: a p inside .card */
+.card > p     { }   /* child: a direct p inside .card */
+.card + .card { }   /* adjacent sibling */
+.card ~ p     { }   /* general sibling */
+a[href^="https"] { }  /* attribute */
+input:checked    { }  /* state (pseudo-class) */
+button:hover     { }  /* state */</code></pre>
+
+<p>That list is 95% of real-world CSS. Learn these and you can read any stylesheet.</p>
+
+<h3>Specificity — the scoring system</h3>
+<p>When two rules set the same property on the same element, the browser scores them
+and picks the higher score. Each selector contributes points:</p>
+<table>
+<tr><th>Selector part</th><th>Points</th></tr>
+<tr><td>id (<code>#foo</code>)</td><td><strong>100</strong></td></tr>
+<tr><td>class (<code>.foo</code>), attribute (<code>[type="text"]</code>), pseudo-class (<code>:hover</code>)</td><td><strong>10</strong></td></tr>
+<tr><td>type (<code>div</code>), pseudo-element (<code>::before</code>)</td><td><strong>1</strong></td></tr>
+<tr><td>the universal selector (<code>*</code>)</td><td><strong>0</strong></td></tr>
+</table>
+
+<p>Read it like a number, not like a sum: <code>#header .card p</code> scores
+<code>1-1-1</code> = 111. <code>.card p</code> scores <code>0-1-1</code> = 11.
+The 111 wins, every time.</p>
+
+<div class="note">
+<p><strong>Tiebreak:</strong> if two rules have the same specificity, the one that comes
+<em>later in the stylesheet</em> wins. That's the "cascade" part of the name — the rules
+<em>cascade</em> down the stylesheet.</p>
+</div>
+
+<div class="warn">
+<p><strong>The one thing to internalise:</strong> specificity means you can never
+"override" a high-specificity rule with a low-specificity one, no matter how much later
+it appears. This is why people reach for <code>!important</code> and then regret it.
+The fix is to write selectors of <em>equal</em> specificity, or to keep one class per
+concern.</p>
+</div>
+
+<p>Two practical habits that prevent almost all specificity wars:</p>
+<ol>
+<li><strong>One class per concern.</strong> <code>.btn</code> for the button,
+<code>.btn--danger</code> for the red variant — not <code>.red.bold.rounded</code>.</li>
+<li><strong>Never go below "class" for styling.</strong> A chain like
+<code>body .wrapper .card h2 span</code> (0-1-4) is nearly impossible to override later.
+Keep your selectors short.</li>
+</ol>
+
+
+<h4 class="cap">Reading specificity as a number</h4>
+<pre class="code"><code class="lang-css">#header .card p   -&gt;  1-1-1  -&gt;  111   (wins)
+.card p           -&gt;  0-1-1  -&gt;   11
+p                 -&gt;  0-0-1  -&gt;    1</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>The <code>*</code> selector has zero specificity, so <code>* { box-sizing: border-box }</code> never conflicts with anything.</li><li>Pseudo-classes like <code>:hover</code> count as classes (10). A class in an element's <em>HTML</em> is not the same thing as a <code>.class</code> <em>selector</em> — only selectors score.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Score these</h3>
+
+<p>For each selector, work out the specificity score and say
+which rule wins when they all target the same element:</p>
+<ol>
+<li><code>div</code></li>
+<li><code>.box</code></li>
+<li><code>div.box</code></li>
+<li><code>#main .box</code></li>
+<li><code>nav ul li a</code></li>
+<li><code>nav ul li a:hover</code></li>
+<li><code>input[type="text"]</code></li>
+<li><code>input[type="text"]:focus</code></li>
+</ol>
+<p>Then build a test page with a button styled by four different rules of increasing
+specificity and confirm the order of winners with the DevTools Styles panel (it shows
+struck-through rules — the ones that lost).</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li><code>:hover</code> and <code>:focus</code> are pseudo-classes, worth 10 each — the same as a class.</li><li>In the DevTools Styles panel, a struck-through declaration means a higher-specificity rule overrode it. That's your whole cascade, visualised.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/2-2-selectors-specificity.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-2-3-inheritance-custom-properties">2.3 — Inheritance &amp; Custom Properties</h2>
+
+<p class="lede">Control how properties flow down the tree, and build themable values with CSS variables.</p>
+
+
+<h3>Some properties inherit, most don't</h3>
+<p>Inherited (children take the parent's value): <code>color</code>,
+<code>font-family</code>, <code>font-size</code>, <code>line-height</code>,
+<code>text-align</code>, <code>visibility</code>, <code>letter-spacing</code>.</p>
+<p>Not inherited: <code>margin</code>, <code>padding</code>, <code>background</code>,
+<code>border</code>, <code>width</code>, <code>height</code>, <code>display</code>,
+<code>position</code>.</p>
+
+<div class="py">
+<p><strong>Python brain:</strong> inheritance in CSS is on the <em>property</em>, not on
+the element. It's like a class attribute being read down an object tree, but each
+property decides for itself whether to pass it on. There's no
+<code>inherit: false</code> global switch.</p>
+</div>
+
+<p>Three keywords override this per property:
+<code>inherit</code> (force it on), <code>initial</code> (reset to the spec default),
+<code>unset</code> (inherit if inheritable, else initial).</p>
+
+<h3>Custom properties — your first design tokens</h3>
+<pre class="code"><code>:root {
+  --brand: #6366f1;
+  --brand-dark: #4f46e5;
+  --radius: 10px;
+  --space: 16px;
+}
+
+.btn {
+  background: var(--brand);
+  border-radius: var(--radius);
+  padding: calc(var(--space) / 2) var(--space);
+}</code></pre>
+
+<p>Custom properties (<code>--name</code>) are the only way to store a value in CSS.
+They are inherited by default, and they can be <em>redefined on any element</em> — which
+makes them the foundation of theming and dark mode.</p>
+
+<div class="note">
+<p><strong>Why this matters for tomorrow:</strong> Tailwind, shadcn/ui and every modern
+design system are built on CSS variables. When you see
+<code>bg-background text-foreground</code> in a shadcn component, those are CSS variables
+under the hood. Learning them now means shadcn won't be a black box.</p>
+</div>
+
+
+<h4 class="cap">Theming by redefining one variable</h4>
+<pre class="code"><code class="lang-css">:root            { --bg: #ffffff; --fg: #15151d; }
+html[data-theme="dark"] { --bg: #101019; --fg: #e8e8f2; }
+
+body { background: var(--bg); color: var(--fg); }</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>Custom properties are resolved at <em>use</em> time, not at <em>definition</em> time. If <code>--brand</code> changes on an ancestor, everything using <code>var(--brand)</code> below it updates instantly.</li><li><code>var(--x, fallback)</code> provides a fallback value if the variable isn't defined — worth using for safety.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A themeable card</h3>
+
+<p>Build a card that works in both light and dark mode using
+<strong>only</strong> custom properties:</p>
+<ol>
+<li>Define <code>--card-bg</code>, <code>--card-fg</code>, <code>--card-border</code> and
+<code>--accent</code> in <code>:root</code>.</li>
+<li>Add a class <code>.dark</code> that redefines those four variables.</li>
+<li>Style the card using <code>var()</code> only — no literal colours anywhere in the
+card rule.</li>
+<li>Add a button that toggles the <code>.dark</code> class. (Hint: Act 4 has the
+JavaScript, but you can also do it with a tiny inline
+<code>onclick</code> just to see the effect.)</li>
+</ol>
+<p>Now change <code>--accent</code> in one place and confirm every accent in the card
+updates. That's the payoff.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>You need three variables, not one: the card's own background is different from the page's background, and in dark mode both change.</li><li>If a child element ignores your variable, check whether you're redefining the variable on the card instead of on <code>:root</code> — variables resolve from the element they're used on, walking up.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/2-3-inheritance-custom-properties.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-2-4-the-box-model">2.4 — The Box Model</h2>
+
+<p class="lede">Predict the size of every element on the page, exactly.</p>
+
+
+<p>Every element on the web is a rectangle, and every rectangle is made of four nested
+layers:</p>
+
+<pre class="code"><code>┌─────────────────────────────────┐  margin  (space OUTSIDE, always transparent)
+│ ┌───────────────────────────────┐ │  border
+│ │ ┌───────────────────────────┐ │ │  padding  (space INSIDE, takes the bg colour)
+│ │ │                           │ │ │  content  (text, images, ...)
+│ │ └───────────────────────────┘ │ │
+│ └───────────────────────────────┘ │
+└─────────────────────────────────┘</code></pre>
+
+<p>Two box-sizing modes decide how <code>width</code> is interpreted:</p>
+<table>
+<tr><th>Mode</th><th><code>width: 200px</code> means</th><th>Total space taken</th></tr>
+<tr><td><code>content-box</code> (default)</td><td>the content area is 200px</td><td>200 + padding + border</td></tr>
+<tr><td><code>border-box</code></td><td>the whole box is 200px</td><td>always 200</td></tr>
+</table>
+
+<div class="note">
+<p><strong>Always use <code>border-box</code>.</strong> Nearly every modern project
+starts with:</p>
+<pre class="code"><code>*, *::before, *::after { box-sizing: border-box; }</code></pre>
+<p>It makes <code>width</code> mean what you think it means. (Tailwind does this for
+you automatically — which is one of the nice things about it.)</p>
+</div>
+
+<h3>Margin collapse</h3>
+<p>Vertical margins between <em>block</em> elements collapse: the browser uses the
+<em>larger</em> of the two, not the sum. Two blocks with 20px and 30px top margins sit
+30px apart, not 50px.</p>
+<p>This is genuinely surprising and it is the cause of most "why is there a gap here"
+questions. It does not happen for horizontal margins, does not happen for flex or grid
+children, and does not happen when a parent has padding, a border, or
+<code>overflow: auto</code>.</p>
+
+
+<h4 class="cap">The global reset every project starts with</h4>
+<pre class="code"><code class="lang-css">*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; }</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>margin</code> pushes things apart and is outside the element. <code>padding</code> is inside and takes the element's own background colour. Confusing the two is the single most common CSS beginner bug.</li><li>The <code>*</code> selector has zero specificity, so it never fights with your own rules.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Calculate it before you run it</h3>
+
+<p>For each of these, <strong>write down the total width</strong>
+before you open DevTools:</p>
+<ol>
+<li><code>width: 200px; padding: 20px;</code> (content-box)</li>
+<li>The same, with <code>box-sizing: border-box</code></li>
+<li><code>width: 200px; padding: 20px; border: 5px solid;</code> (content-box)</li>
+<li><code>width: 50%; padding: 20px;</code> inside a 800px-wide parent (content-box)</li>
+<li>Two sibling blocks with <code>margin-bottom: 20px</code> and
+<code>margin-top: 30px</code> — what's the gap?</li>
+</ol>
+<p>Then verify each one in DevTools. The last one is the margin-collapse case — if your
+prediction was 50px, you're right about the arithmetic and wrong about the rule.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>In DevTools, hover the element and the tooltip shows you the exact used values for content, padding, border and margin.</li><li>Margin collapse takes the <em>maximum</em>, not the sum: 30px.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/2-4-the-box-model.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-2-5-display-the-normal-flow">2.5 — Display &amp; the Normal Flow</h2>
+
+<p class="lede">Understand the default layout algorithm, and how to take an element out of it.</p>
+
+
+<p>CSS lays out elements in a predictable way if you don't interfere. This is called
+<strong>normal flow</strong>, and understanding it explains 90% of "why is my layout
+weird".</p>
+
+<table>
+<tr><th><code>display</code></th><th>Behaviour</th></tr>
+<tr><td><code>block</code></td><td>Starts on a new line, fills the width, stacks vertically. The default for <code>div</code>, <code>p</code>, <code>section</code>, <code>h1</code>.</td></tr>
+<tr><td><code>inline</code></td><td>Flows inside a line of text. The default for <code>span</code>, <code>a</code>, <code>strong</code>, <code>img</code>.</td></tr>
+<tr><td><code>inline-block</code></td><td>Inline, but you can set width/height. <code>img</code> and <code>button</code> behave like this by default.</td></tr>
+<tr><td><code>none</code></td><td>Removed from the page entirely — not just invisible. It takes no space and isn't focusable.</td></tr>
+</table>
+
+<p>The two you will meet most in real code:</p>
+<pre class="code"><code>display: flex;        /* the element becomes a flex container */
+display: inline-flex; /* flex, but participates in an inline line */
+display: grid;        /* the element becomes a grid container */
+display: none;       /* gone */
+visibility: hidden;  /* invisible, but still takes up space */</code></pre>
+
+<div class="note">
+<p><strong><code>display:none</code> vs <code>visibility:hidden</code>:</strong> the
+first removes the element from the layout entirely (everything shifts up); the second
+keeps its space reserved. Choosing wrong causes "why did my whole page jump" bugs.</p>
+</div>
+
+<h3>Sizing</h3>
+<pre class="code"><code>width: 50%;          /* % of the PARENT's content width */
+max-width: 640px;   /* the cap — this is what makes readable text columns */
+min-width: 0;       /* critical inside flex/grid: lets items shrink */
+margin: 0 auto;     /* centres a block horizontally */</code></pre>
+
+<p><code>max-width</code> is underrated. A page of text at 2000px wide is unreadable —
+your eyes can't scan that. <code>max-width: 65ch</code> is a great default for body
+text, and <code>margin: 0 auto</code> centres it.</p>
+
+
+<h4 class="cap">Inline vs block, side by side</h4>
+<pre class="code"><code class="lang-html">&amp;lt;p&amp;gt;A &amp;lt;span&amp;gt;inside&amp;lt;/span&amp;gt; a paragraph stays in the line. &amp;lt;/p&amp;gt;
+
+&amp;lt;div&amp;gt;A div starts on its own line and fills the width.&amp;lt;/div&amp;gt;</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>Setting <code>width</code> on an <code>inline</code> element does nothing. That's why <code>inline-block</code> exists.</li><li>You can override a UA default like <code>display: inline</code> on a <code>&lt;span&gt;</code> — but then you're on the hook for all the other inline quirks.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A readable article column</h3>
+
+<p>Build a page that demonstrates the difference between block and
+inline layout:</p>
+<ol>
+<li>A <code>&lt;div&gt;</code> with a <code>background</code> — show that it fills the
+width and starts on a new line.</li>
+<li>Three <code>&lt;span&gt;</code>s with backgrounds on one line — show that they flow
+inside the text.</li>
+<li>Convert one span to <code>inline-block</code> with a fixed width, and another to
+<code>display: none</code>. Notice that the second one doesn't leave a gap, but a
+<code>visibility: hidden</code> one would.</li>
+<li>Add a <code>&lt;main&gt;</code> with <code>max-width: 65ch; margin: 0 auto;</code>
+and put a long paragraph in it. Read it. Compare with the same paragraph at full
+width.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>For the <code>display:none</code> vs <code>visibility:hidden</code> comparison, put a background on the parent so you can see whether the space is still reserved.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/2-5-display-the-normal-flow.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-2-6-flexbox">2.6 — Flexbox</h2>
+
+<p class="lede">Master the one layout system you'll use every single day.</p>
+
+
+<p>Flexbox lays out items <strong>in one dimension</strong> — a row or a column. It's
+the right tool for toolbars, nav bars, button groups, form rows, and "put this thing
+next to that thing and make it flex".</p>
+
+<h3>Vocabulary</h3>
+<ul>
+<li><strong>Container</strong> — the element with <code>display: flex</code>.</li>
+<li><strong>Items</strong> — its direct children. Only <em>direct</em> children are
+flex items; grandchildren are not.</li>
+<li><strong>Main axis</strong> — the direction items flow (set by
+<code>flex-direction</code>).</li>
+<li><strong>Cross axis</strong> — perpendicular to it.</li>
+</ul>
+
+<h3>The properties that matter</h3>
+<pre class="code"><code>.container {
+  display: flex;
+  flex-direction: row;       /* row | column | row-reverse | column-reverse */
+  justify-content: flex-start; /* along the MAIN axis: space distribution */
+  align-items: stretch;     /* along the CROSS axis: alignment */
+  gap: 12px;                /* space between items (always prefer this over margins) */
+  flex-wrap: nowrap;        /* wrap onto multiple lines */
+}</code></pre>
+
+<p>Mnemonic that actually sticks: <strong>justify = main axis, align = cross
+axis.</strong></p>
+
+<h3>Sizing items</h3>
+<pre class="code"><code>.item { flex: 1; }        /* grow:1 shrink:1 basis:0% — equal columns */
+.item { flex: 0 0 200px; } /* fixed-ish: no grow, no shrink, 200px basis */
+.item { flex: 1 1 auto; }  /* grow to fill, but start from content size */</code></pre>
+
+<p><code>flex: 1</code> means "share the leftover space equally" — the trick behind
+equal-width columns. <code>flex: 0 0 200px</code> means "don't grow, don't shrink, start
+at 200px" — the trick behind fixed-width sidebars.</p>
+
+<div class="note">
+<p><strong>Always use <code>gap</code></strong>, not margin tricks. <code>gap</code> only
+adds space <em>between</em> items, so there's no leading/trailing space to fight with,
+and it works with wrapping. The old <code>margin-right</code> + <code>:last-child
+{margin:0}</code> dance is unnecessary in every browser that matters.</p>
+</div>
+
+
+<h4 class="cap">A complete flex container in one shot</h4>
+<pre class="code"><code class="lang-css">.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toolbar .spacer { flex: 1; }   /* pushes everything after it to the right */</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>Flex items have <code>min-width: auto</code> by default, which means a long unbreakable word can stop them shrinking. The classic fix is <code>min-width: 0</code> on the item.</li><li><code>align-items: stretch</code> (the default) makes all items the same height as the tallest one. <code>flex-start</code> makes them keep their natural height.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Build a navbar with flexbox</h3>
+
+<p>No <code>float</code>, no <code>position: absolute</code> —
+flexbox only:</p>
+<ol>
+<li>A horizontal bar containing a logo on the left, three links in the middle, and a
+button on the right.</li>
+<li>Make the middle links push the button to the far right (the spacer trick).</li>
+<li>Make the whole bar a <em>column</em> layout on narrow screens: logo on top, links
+below, full width. (Do this with a media query — Act 2 Step 2.9.)</li>
+<li>Give the links a <code>gap</code> of <code>16px</code> and remove all default list
+bullets and padding.</li>
+</ol>
+<p>Extra credit: make the button <code>margin-left: auto</code> instead of using a
+spacer element. Same result, less markup — when is that better?</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The spacer approach uses <code>flex: 1</code> on an empty div. The <code>margin-left: auto</code> approach avoids the extra element — the browser pushes the rest of the flex line away.</li><li><code>ul</code> has default <code>padding-left</code> and <code>list-style</code>. Reset both: <code>list-style: none; padding: 0;</code></li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/2-6-flexbox.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-2-7-css-grid">2.7 — CSS Grid</h2>
+
+<p class="lede">Lay out in two dimensions, and stop reaching for nested flex hacks.</p>
+
+
+<p>Grid lays out items in <strong>two dimensions</strong> — rows and columns at once.
+That's the difference from flexbox, and it's why grid replaced most "float" and
+"flex-in-a-flex" layouts.</p>
+
+<pre class="code"><code>.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);   /* 3 equal columns */
+  grid-template-columns: 200px 1fr 200px;  /* sidebar | content | sidebar */
+  grid-template-rows: auto 1fr auto;      /* header | main | footer */
+  gap: 16px;
+}</code></pre>
+
+<p><code>1fr</code> means "one share of the free space" — the <code>fr</code> unit is
+grid's most useful idea. <code>200px 1fr 200px</code> gives you fixed sidebars and a
+fluid middle.</p>
+
+<h3>Explicit placement</h3>
+<pre class="code"><code>.layout {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "head head head head"
+    "side main main main"
+    "foot foot foot foot";
+}
+.head { grid-area: head; }
+.side { grid-area: side; }</code></pre>
+
+<p><code>grid-template-areas</code> is the most readable layout system ever invented. You
+draw the layout as ASCII art. A "media query" version of it (Act 2 Step 2.9) can redraw
+the whole page for mobile by changing just those strings.</p>
+
+<h3>Spanning</h3>
+<pre class="code"><code>.wide { grid-column: span 2; }   /* across two columns */
+.full { grid-column: 1 / -1; }      /* across ALL columns */</code></pre>
+
+<h3>Flex or grid?</h3>
+<table>
+<tr><th>Use</th><th>When</th></tr>
+<tr><td><strong>Flexbox</strong></td><td>One dimension. Rows of items, toolbars, button groups, "these should share the space equally".</td></tr>
+<tr><td><strong>Grid</strong></td><td>Two dimensions. Page layouts, card grids, dashboards, forms with aligned fields.</td></tr>
+</table>
+<p>Rule of thumb: if you're about to nest two flexboxes to fake rows and columns, use
+grid instead.</p>
+
+
+<h4 class="cap">A classic app shell in 12 lines</h4>
+<pre class="code"><code class="lang-css">.shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "side head" "side main";
+  min-height: 100vh;
+}
+.shell &gt; header { grid-area: head; }
+.shell &gt; aside  { grid-area: side; }
+.shell &gt; main   { grid-area: main; }</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>gap</code> works in grid exactly like flex — and again, prefer it over margins.</li><li><code>repeat(auto-fit, minmax(240px, 1fr))</code> is the famous responsive-card-grid one-liner: as many columns as fit, each at least 240px. You'll use it constantly.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A dashboard layout</h3>
+
+<p>Build a dashboard shell with <code>grid-template-areas</code>:</p>
+<pre class="code"><code>┌──────────┬──────────────────────┐
+│          │  header               │
+│  sidebar ├───────────┬──────────┤
+│          │  card     │  card    │
+│          ├───────────┴──────────┤
+│          │  main panel          │
+├──────────┴──────────────────────┤
+│  footer                         │
+└─────────────────────────────────�┘</code></pre>
+<ol>
+<li>Name the areas <code>side</code>, <code>head</code>, <code>card1</code>,
+<code>card2</code>, <code>main</code>, <code>foot</code>.</li>
+<li>Make the sidebar and footer span the full width where shown.</li>
+<li>Set the main row to <code>1fr</code> so it fills the remaining height.</li>
+<li>Bonus: on narrow screens, redraw the whole thing with a single media query that
+changes <code>grid-template-areas</code> to a one-column stack.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>An area name that appears in a row's string must appear in every row of the template, or the grid is invalid and the whole rule is dropped.</li><li>For the mobile version, just change the <code>grid-template-areas</code> value — the HTML stays identical. That's the payoff of named areas.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/2-7-css-grid.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-2-8-positioning-stacking">2.8 — Positioning &amp; Stacking</h2>
+
+<p class="lede">Take elements out of normal flow deliberately, and control what paints on top.</p>
+
+
+<table>
+<tr><th>Value</th><th>Behaviour</th><th>Use for</th></tr>
+<tr><td><code>static</code> (default)</td><td>Normal flow. <code>top/left</code> are ignored.</td><td>everything, unless you need otherwise</td></tr>
+<tr><td><code>relative</code></td><td>Stays in flow, but can be <em>nudged</em> with top/left/right/bottom. Also creates a positioning context.</td><td>small nudges, moving a badge</td></tr>
+<tr><td><code>absolute</code></td><td>Removed from flow. Positioned relative to its nearest positioned ancestor.</td><td>tooltips, dropdown panels</td></tr>
+<tr><td><code>fixed</code></td><td>Removed from flow and pinned to the <em>viewport</em> — doesn't scroll away.</td><td>sticky headers, chat widgets</td></tr>
+<tr><td><code>sticky</code></td><td>Stays in flow until it would scroll out, then sticks.</td><td>section headers, toolbars</td></tr>
+</table>
+
+<div class="note">
+<p><strong>The key idea:</strong> an absolutely-positioned element is positioned relative
+to the nearest ancestor that is <em>itself</em> positioned (<code>relative</code>,
+<code>absolute</code>, <code>fixed</code> or <code>sticky</code>). If there is no such
+ancestor, it goes to the initial containing block (the page). This is why an absolutely
+positioned element sometimes appears in a surprising place — it found a different
+ancestor than you expected.</p>
+</div>
+
+<h3>Stacking and z-index</h3>
+<p><code>z-index</code> only applies to <em>positioned</em> elements (and flex/grid items
+with a z-index). It works within a <strong>stacking context</strong> — and here's the
+gotcha: an element that creates a stacking context (via <code>position</code> +
+<code>z-index</code>, <code>opacity &lt; 1</code>, <code>transform</code>,
+<code>filter</code>, <code>will-change</code>, <code>isolation</code>) becomes a
+<em>ceiling</em>. Its children are locked inside it — a child with <code>z-index: 9999</code>
+cannot rise above a sibling of its parent.</p>
+<p>This is why "my z-index 9999 element is still behind something" happens. DevTools
+explains it: the element is covered by something in a <em>different</em> stacking
+context.</p>
+
+
+<h4 class="cap">A sticky header and an absolute tooltip</h4>
+<pre class="code"><code class="lang-css">.header { position: sticky; top: 0; z-index: 10; background: #fff; }
+.tooltip { position: absolute; bottom: 100%; left: 0; }
+/* the tooltip is positioned against .wrap, because .wrap is position: relative */
+.wrap { position: relative; }</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>position: fixed</code> is relative to the viewport <em>unless</em> an ancestor has <code>transform</code>, <code>filter</code> or <code>will-change</code> — then it becomes relative to that ancestor. A classic mobile bug: a <code>transform</code> on an ancestor breaks <code>position:fixed</code>.</li><li>Use <code>inset: 0</code> as a shorthand for <code>top:0; right:0; bottom:0; left:0</code>.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A tooltip and a sticky header</h3>
+
+<ol>
+<li>Build a button with a tooltip that appears on hover. The tooltip must be positioned
+relative to the button, not the page — and it must not affect the layout when hidden.</li>
+<li>Make a page tall enough to scroll, and give it a header that stays at the top when
+you scroll. <code>position: sticky</code> only.</li>
+<li>Add a <code>z-index</code> to the header so it passes over the content.</li>
+<li>Then break it on purpose: set <code>transform: rotate(0.001deg)</code> on an
+ancestor of the sticky header and see what happens. Now you know why "fixed" headers
+sometimes jump around on mobile.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The tooltip wrapper needs <code>position: relative</code>, and the tooltip <code>position: absolute</code> with <code>bottom: 100%</code> to sit above it.</li><li>For the sticky header, the parent must not have <code>overflow: hidden</code> — a sticky element can't escape a scroll container that isn't scrolling.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/2-8-positioning-stacking.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-2-9-responsive-design-units">2.9 — Responsive Design &amp; Units</h2>
+
+<p class="lede">Write layouts that adapt to any screen, and size things in units that respect the user's settings.</p>
+
+
+<h3>Units</h3>
+<table>
+<tr><th>Unit</th><th>Relative to</th><th>Use for</th></tr>
+<tr><td><code>px</code></td><td>nothing — absolute</td><td>borders, hairlines, tiny fixed bits</td></tr>
+<tr><td><code>rem</code></td><td>the <strong>root</strong> font size (usually 16px)</td><td><strong>almost everything</strong></td></tr>
+<tr><td><code>em</code></td><td>the <em>element's own</em> font size</td><td>padding/margins that should scale with the text</td></tr>
+<tr><td><code>%</code></td><td>the parent's size</td><td>widths, max-width</td></tr>
+<tr><td><code>vw</code>/<code>vh</code></td><td>1% of the viewport width/height</td><td>full-height sections</td></tr>
+<tr><td><code>ch</code></td><td>the width of a "0" character</td><td>max-width for text columns</td></tr>
+</table>
+
+<div class="note">
+<p><strong>Use <code>rem</code> for typography and spacing.</strong> Because
+<code>rem</code> is relative to the root font size, when the user increases their
+browser's default font size, your whole layout scales with it. A layout built in
+<code>px</code> ignores the user's accessibility settings entirely — that's a real
+problem, not a theoretical one.</p>
+</div>
+
+<h3>Media queries — mobile first</h3>
+<pre class="code"><code>/* base styles: mobile by default */
+.container { display: grid; grid-template-columns: 1fr; gap: 16px; }
+
+/* then enhance upward */
+@media (min-width: 768px) {
+  .container { grid-template-columns: 240px 1fr; }
+}</code></pre>
+
+<p>Write the base styles for the smallest screen, then add
+<code>min-width</code> breakpoints. "Mobile first" isn't a buzzword — it means your
+default CSS is the simple case, and enhancements are opt-in.</p>
+
+<p>Common breakpoints: <code>640px</code> (sm), <code>768px</code> (md),
+<code>1024px</code> (lg), <code>1280px</code> (xl), <code>1536px</code> (2xl). These are
+conventions, not standards — but matching Tailwind's defaults is worth it.</p>
+
+<h3>Modern fluid sizing</h3>
+<pre class="code"><code>h1 { font-size: clamp(1.5rem, 1.1rem + 2vw, 3rem); }</code></pre>
+<p><code>clamp(min, preferred, max)</code> gives you a size that fluidly scales between
+a floor and a ceiling. No breakpoints, no JavaScript. It's the modern answer to
+"responsive typography".</p>
+
+
+<h4 class="cap">A fluid type scale</h4>
+<pre class="code"><code class="lang-css">:root { --step-0: clamp(1rem, 0.95rem + 0.25vw, 1.125rem); }
+body  { font-size: var(--step-0); }
+h1    { font-size: clamp(1.8rem, 1.3rem + 2.5vw, 3rem); }</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>In DevTools, toggle the device toolbar (the phone/tablet icon) and set a custom width to test breakpoints. You can also type a CSS width directly in the toolbar.</li><li><code>prefers-reduced-motion</code> is a media query too — respect it for animations.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — One layout, three widths</h3>
+
+<p>Build a single card component that lays out differently at
+three sizes <strong>without changing its HTML</strong>:</p>
+<ul>
+<li><strong>Under 640px:</strong> everything stacked in one column</li>
+<li><strong>640px–1024px:</strong> image beside the text</li>
+<li><strong>Over 1024px:</strong> image, text, and a sidebar meta column</li>
+</ul>
+<p>Then set the page font-size in DevTools to 24px and confirm the layout still works
+(that's what <code>rem</code> buys you).</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Change the <code>grid-template-columns</code> value at each breakpoint — the HTML doesn't move at all.</li><li>Using <code>em</code> for the gap inside the card makes the gap scale with the card's font size. Try it.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/2-9-responsive-design-units.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-2-10-transitions-transforms-animation">2.10 — Transitions, Transforms &amp; Animation</h2>
+
+<p class="lede">Add motion that feels good and stays smooth.</p>
+
+
+<h3>Transition — animate a state change</h3>
+<pre class="code"><code>.btn {
+  background: #6366f1;
+  transition: background .2s ease, transform .2s ease;
+}
+.btn:hover { background: #4f46e5; transform: translateY(-1px); }</code></pre>
+
+<p>A transition needs three things: a property that changes, a duration, and a timing
+function. Without a duration it's instantaneous (nothing animates).</p>
+
+<h3>Transform — change shape without triggering layout</h3>
+<pre class="code"><code>transform: translate(10px, 20px);  /* move */
+transform: scale(1.1);             /* resize */
+transform: rotate(45deg);          /* rotate */
+transform: translateX(-50%);      /* the classic "centre absolutely-positioned element" trick */</code></pre>
+
+<div class="note">
+<p><strong>Why transforms are special:</strong> changing <code>width</code> forces the
+browser to re-run layout (reflow) and repaint. Changing <code>transform</code> can be
+handled on the compositor thread alone — no layout, no paint. That's the difference
+between 60fps and jank, and it's why you animate <code>transform</code> and
+<code>opacity</code> and almost nothing else.</p>
+</div>
+
+<h3>Keyframe animation</h3>
+<pre class="code"><code>@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.spinner { animation: spin 1s linear infinite; }</code></pre>
+
+<p>Note the order: <code>animation: name duration timing iteration fill-mode;</code>. The
+shorthand is famously hard to read, so many people write the long form:</p>
+<pre class="code"><code>animation-name: spin;
+animation-duration: 1s;
+animation-timing-function: linear;
+animation-iteration-count: infinite;</code></pre>
+
+<h3>Respect user preferences</h3>
+<pre class="code"><code>@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}</code></pre>
+
+<p>Some people get motion sickness from animations. This media query is a real
+accessibility requirement, not a nicety.</p>
+
+
+<h4 class="cap">A complete hover interaction</h4>
+<pre class="code"><code class="lang-css">.card {
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0,0,0,.12);
+}</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>Animating <code>width</code>/<code>height</code>/<code>top</code>/<code>left</code> triggers layout every frame. Animating <code>transform</code> and <code>opacity</code> does not. This is the single most useful performance fact in CSS.</li><li>The transition shorthand order matters: <code>transition: property duration timing-function;</code></li></ul></div>
+
+<div class="challenge"><h3>Challenge — Animate it the right way</h3>
+
+<p>Take a card and give it a hover state that lifts it. Then:</p>
+<ol>
+<li>Make it lift using <code>transform: translateY()</code>.</li>
+<li>Now rewrite it using <code>margin-top</code> instead, and open DevTools →
+Performance while hovering repeatedly. <strong>What extra work appears, and why?</strong></li>
+<li>Add a smooth <code>transition</code> to the hover state — and notice that if you
+forget the duration, nothing animates at all.</li>
+<li>Add a CSS-only "loading spinner" using <code>@keyframes</code> and
+<code>animation: ... infinite</code>.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>In the Performance panel, look for yellow "Layout" bars — those are the expensive frames. Animating transform shows purple "Composite" bars instead.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/2-10-transitions-transforms-animation.html">▶ Open the runnable file for this step</a></p>
+
+<hr>
+
+<div class="ok"><strong>Act 2 checkpoint</strong>
+<p>You should now be able to look at any page and say: "that's a flex row, that
+column is grid, that element is absolutely positioned, and this rule wins because of
+specificity."</p>
+<p>Next act: we delete all of this and write it in Tailwind instead — which will make
+the cascade discussion above feel surprisingly relevant.</p>
+</div>
+
+<div class="stepnav"><a href="../01-html-structure/lesson.html">← Act 1</a><a href="../03-tailwind-css/lesson.html">Act 3 →</a></div>
+</body>
+</html>

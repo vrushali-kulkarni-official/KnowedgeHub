@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frontend Journey — course index</title>
+<style>
+:root{--ink:#15151d;--mut:#5b5b74;--line:#e7e7f1;--acc:#6366f1;--acc-bg:#f4f4ff;--code:#f7f7fc}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6;
+  color:var(--ink);max-width:1000px;margin:0 auto;padding:44px 22px 90px;background:#fff}
+h1{font-size:2.1rem;margin:6px 0 8px;letter-spacing:-.02em}
+.lede{color:var(--mut);font-size:1.05rem;margin:0 0 6px}
+.meta{color:var(--mut);font-size:.9rem;margin:0 0 26px}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+a{color:var(--acc)}
+.act{border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:16px 0;background:#fbfbfe}
+.act h2{margin:0 0 2px;font-size:1.2rem}
+.act h2 a{text-decoration:none;color:var(--ink)}
+.act h2 a:hover{color:var(--acc)}
+.act .lede{margin:0 0 12px;font-size:.94rem}
+ol{margin:0;padding-left:24px}
+li{margin:3px 0}
+li a{text-decoration:none}
+li a:hover{text-decoration:underline}
+li .n{color:var(--mut);font-family:ui-monospace,Menlo,monospace;font-size:.85em;margin-right:6px}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.links a{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  border-radius:8px;padding:5px 11px;background:#fff}
+.links a:hover{border-color:var(--acc)}
+.extras{border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:16px 0;background:var(--acc-bg)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:ui-monospace,Menlo,monospace;border:1px solid var(--line)}
+.bar{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);
+  padding:10px 0;margin-bottom:18px;z-index:10;font-size:.9rem}
+.bar a{margin-right:14px;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="bar"><a href="#act-0">Act 0</a><a href="#act-1">Act 1</a><a href="#act-2">Act 2</a><a href="#act-3">Act 3</a><a href="#act-4">Act 4</a><a href="#act-5">Act 5</a><a href="#act-6">Act 6</a><a href="#act-7">Act 7</a><a href="#act-8">Act 8</a><a href="#act-9">Act 9</a><a href="#act-10">Act 10</a><a href="#act-11">Act 11</a></div>
+<span class="tag">Frontend Journey</span>
+<h1>The whole course, in one page</h1>
+<p class="lede">12 acts · 77 steps · every file is a standalone HTML page you can open directly in a browser. No build step, no server (until Act 10).</p>
+<p class="meta">Start with <a href="00-setup-orientation/orientation.html">Setup</a>, then work through the acts in order. The progress board with checkboxes is <a href="ROADMAP.md">ROADMAP.md</a>.</p>
+<div class="act" id="act-0">
+<h2><a href="00-setup-orientation/lesson.html">Act 0 — Setup &amp; Orientation</a></h2>
+<p class="lede">Everything you need, nothing you don't. Fifteen minutes, once.</p>
+<ol><li><span class="n">0.1</span><a href="00-setup-orientation/steps/0-1-your-toolkit.html">Your Toolkit</a></li></ol>
+<div class="links"><a href="00-setup-orientation/lesson.html">Open the full act lesson →</a></div>
+</div>
+<div class="act" id="act-1">
+<h2><a href="01-html-structure/lesson.html">Act 1 — HTML — Structure</a></h2>
+<p class="lede">HTML is a description of structure. Once this act clicks, the rest of the web makes far more sense.</p>
+<ol><li><span class="n">1.1</span><a href="01-html-structure/steps/1-1-html-describes-it-doesn-t-do.html">HTML Describes, It Doesn't Do</a></li><li><span class="n">1.2</span><a href="01-html-structure/steps/1-2-anatomy-of-a-tag.html">Anatomy of a Tag</a></li><li><span class="n">1.3</span><a href="01-html-structure/steps/1-3-the-document-skeleton.html">The Document Skeleton</a></li><li><span class="n">1.4</span><a href="01-html-structure/steps/1-4-nesting-the-forgiving-parser.html">Nesting &amp; the Forgiving Parser</a></li><li><span class="n">1.5</span><a href="01-html-structure/steps/1-5-the-vocabulary-of-a-page.html">The Vocabulary of a Page</a></li><li><span class="n">1.6</span><a href="01-html-structure/steps/1-6-headings-lists-text-semantics.html">Headings, Lists &amp; Text Semantics</a></li><li><span class="n">1.7</span><a href="01-html-structure/steps/1-7-attributes-are-hooks.html">Attributes Are Hooks</a></li><li><span class="n">1.8</span><a href="01-html-structure/steps/1-8-forms-inputs.html">Forms &amp; Inputs</a></li><li><span class="n">1.9</span><a href="01-html-structure/steps/1-9-images-links-entities.html">Images, Links &amp; Entities</a></li></ol>
+<div class="links"><a href="01-html-structure/lesson.html">Open the full act lesson →</a></div>
+</div>
+<div class="act" id="act-2">
+<h2><a href="02-css-presentation/lesson.html">Act 2 — CSS — Presentation</a></h2>
+<p class="lede">The cascade, the box, and the two layout systems (flex and grid) that you will use every single day.</p>
+<ol><li><span class="n">2.1</span><a href="02-css-presentation/steps/2-1-what-css-is-where-it-lives.html">What CSS Is &amp; Where It Lives</a></li><li><span class="n">2.2</span><a href="02-css-presentation/steps/2-2-selectors-specificity.html">Selectors &amp; Specificity</a></li><li><span class="n">2.3</span><a href="02-css-presentation/steps/2-3-inheritance-custom-properties.html">Inheritance &amp; Custom Properties</a></li><li><span class="n">2.4</span><a href="02-css-presentation/steps/2-4-the-box-model.html">The Box Model</a></li><li><span class="n">2.5</span><a href="02-css-presentation/steps/2-5-display-the-normal-flow.html">Display &amp; the Normal Flow</a></li><li><span class="n">2.6</span><a href="02-css-presentation/steps/2-6-flexbox.html">Flexbox</a></li><li><span class="n">2.7</span><a href="02-css-presentation/steps/2-7-css-grid.html">CSS Grid</a></li><li><span class="n">2.8</span><a href="02-css-presentation/steps/2-8-positioning-stacking.html">Positioning &amp; Stacking</a></li><li><span class="n">2.9</span><a href="02-css-presentation/steps/2-9-responsive-design-units.html">Responsive Design &amp; Units</a></li><li><span class="n">2.10</span><a href="02-css-presentation/steps/2-10-transitions-transforms-animation.html">Transitions, Transforms &amp; Animation</a></li></ol>
+<div class="links"><a href="02-css-presentation/lesson.html">Open the full act lesson →</a></div>
+</div>
+<div class="act" id="act-3">
+<h2><a href="03-tailwind-css/lesson.html">Act 3 — Tailwind CSS</a></h2>
+<p class="lede">The same layout knowledge, expressed as small composable utility classes.</p>
+<ol><li><span class="n">3.1</span><a href="03-tailwind-css/steps/3-1-the-utility-first-shift.html">The Utility-First Shift</a></li><li><span class="n">3.2</span><a href="03-tailwind-css/steps/3-2-reading-the-scales.html">Reading the Scales</a></li><li><span class="n">3.3</span><a href="03-tailwind-css/steps/3-3-layout-with-utilities.html">Layout with Utilities</a></li><li><span class="n">3.4</span><a href="03-tailwind-css/steps/3-4-variants.html">Variants</a></li><li><span class="n">3.5</span><a href="03-tailwind-css/steps/3-5-dark-mode.html">Dark Mode</a></li><li><span class="n">3.6</span><a href="03-tailwind-css/steps/3-6-customising-extracting.html">Customising &amp; Extracting</a></li></ol>
+<div class="links"><a href="03-tailwind-css/lesson.html">Open the full act lesson →</a></div>
+</div>
+<div class="act" id="act-4">
+<h2><a href="04-javascript-the-language/lesson.html">Act 4 — JavaScript — The Language</a></h2>
+<p class="lede">You have never seen this language. So we build it from nothing: one idea at a time, each one mapped onto Python.</p>
+<ol><li><span class="n">4.1</span><a href="04-javascript-the-language/steps/4-1-how-javascript-runs.html">How JavaScript Runs</a></li><li><span class="n">4.2</span><a href="04-javascript-the-language/steps/4-2-values-variables.html">Values &amp; Variables</a></li><li><span class="n">4.3</span><a href="04-javascript-the-language/steps/4-3-types-code-typeof-code.html">Types &amp; &lt;code&gt;typeof&lt;/code&gt;</a></li><li><span class="n">4.4</span><a href="04-javascript-the-language/steps/4-4-strings-template-literals.html">Strings &amp; Template Literals</a></li><li><span class="n">4.5</span><a href="04-javascript-the-language/steps/4-5-truthiness-coercion-code-code-code-code.html">Truthiness, Coercion, &lt;code&gt;??&lt;/code&gt; &amp; &lt;code&gt;?.&lt;/code&gt;</a></li><li><span class="n">4.6</span><a href="04-javascript-the-language/steps/4-6-arrays.html">Arrays</a></li><li><span class="n">4.7</span><a href="04-javascript-the-language/steps/4-7-objects.html">Objects</a></li><li><span class="n">4.8</span><a href="04-javascript-the-language/steps/4-8-destructuring-spread-rest.html">Destructuring, Spread &amp; Rest</a></li><li><span class="n">4.9</span><a href="04-javascript-the-language/steps/4-9-functions.html">Functions</a></li><li><span class="n">4.10</span><a href="04-javascript-the-language/steps/4-10-scope-hoisting-closures.html">Scope, Hoisting &amp; Closures</a></li><li><span class="n">4.11</span><a href="04-javascript-the-language/steps/4-11-control-flow-loops.html">Control Flow &amp; Loops</a></li><li><span class="n">4.12</span><a href="04-javascript-the-language/steps/4-12-the-dom.html">The DOM</a></li><li><span class="n">4.13</span><a href="04-javascript-the-language/steps/4-13-events.html">Events</a></li><li><span class="n">4.14</span><a href="04-javascript-the-language/steps/4-14-modules-npm.html">Modules &amp; npm</a></li><li><span class="n">4.15</span><a href="04-javascript-the-language/steps/4-15-errors-try-catch-throw.html">Errors: try / catch / throw</a></li><li><span class="n">4.16</span><a href="04-javascript-the-language/steps/4-16-classes-prototypes-code-this-code.html">Classes, Prototypes &amp; &lt;code&gt;this&lt;/code&gt;</a></li><li><span class="n">4.17</span><a href="04-javascript-the-language/steps/4-17-the-event-loop.html">The Event Loop</a></li></ol>
+<div class="links"><a href="04-javascript-the-language/lesson.html">Open the full act lesson →</a></div>
+</div>
+<div class="act" id="act-5">
+<h2><a href="05-your-five-projects/lesson.html">Act 5 — Your Five Projects</a></h2>
+<p class="lede">Everything so far, assembled. Each project is small on purpose — the goal is the pattern, not the pixels.</p>
+<ol><li><span class="n">5.1</span><a href="05-your-five-projects/steps/5-1-project-1-background-changing-button.html">Project 1 — Background-Changing Button</a></li><li><span class="n">5.2</span><a href="05-your-five-projects/steps/5-2-project-2-number-counter.html">Project 2 — Number Counter</a></li><li><span class="n">5.3</span><a href="05-your-five-projects/steps/5-3-project-3-progress-bar.html">Project 3 — Progress Bar</a></li><li><span class="n">5.4</span><a href="05-your-five-projects/steps/5-4-project-4-dark-mode-toggle.html">Project 4 — Dark Mode Toggle</a></li><li><span class="n">5.5</span><a href="05-your-five-projects/steps/5-5-project-5-show-hide-sidebar.html">Project 5 — Show / Hide Sidebar</a></li></ol>
+<div class="links"><a href="05-your-five-projects/lesson.html">Open the full act lesson →</a></div>
+</div>
+<div class="act" id="act-6">
+<h2><a href="06-advanced-javascript/lesson.html">Act 6 — Advanced JavaScript</a></h2>
+<p class="lede">The patterns that separate 'I know the syntax' from 'I can build real things'.</p>
+<ol><li><span class="n">6.1</span><a href="06-advanced-javascript/steps/6-1-promises-async-await.html">Promises &amp; async/await</a></li><li><span class="n">6.2</span><a href="06-advanced-javascript/steps/6-2-fetch-rendering-data.html">Fetch &amp; Rendering Data</a></li><li><span class="n">6.3</span><a href="06-advanced-javascript/steps/6-3-forms-formdata-file-upload.html">Forms, FormData &amp; File Upload</a></li><li><span class="n">6.4</span><a href="06-advanced-javascript/steps/6-4-higher-order-functions-functional-patterns.html">Higher-Order Functions &amp; Functional Patterns</a></li><li><span class="n">6.5</span><a href="06-advanced-javascript/steps/6-5-debounce-throttle-requestanimationframe.html">Debounce, Throttle &amp; requestAnimationFrame</a></li><li><span class="n">6.6</span><a href="06-advanced-javascript/steps/6-6-web-workers.html">Web Workers</a></li><li><span class="n">6.7</span><a href="06-advanced-javascript/steps/6-7-performance-best-practices.html">Performance &amp; Best Practices</a></li></ol>
+<div class="links"><a href="06-advanced-javascript/lesson.html">Open the full act lesson →</a></div>
+</div>
+<div class="act" id="act-7">
+<h2><a href="07-browser-architecture/lesson.html">Act 7 — Browser Architecture</a></h2>
+<p class="lede">What the browser is actually doing, from the moment you hit Enter to the moment pixels appear.</p>
+<ol><li><span class="n">7.1</span><a href="07-browser-architecture/steps/7-1-from-bytes-to-a-render-tree.html">From Bytes to a Render Tree</a></li><li><span class="n">7.2</span><a href="07-browser-architecture/steps/7-2-layout-paint-compositing.html">Layout, Paint &amp; Compositing</a></li><li><span class="n">7.3</span><a href="07-browser-architecture/steps/7-3-the-critical-rendering-path.html">The Critical Rendering Path</a></li><li><span class="n">7.4</span><a href="07-browser-architecture/steps/7-4-rendering-tasks-responsiveness.html">Rendering, Tasks &amp; Responsiveness</a></li></ol>
+<div class="links"><a href="07-browser-architecture/lesson.html">Open the full act lesson →</a></div>
+</div>
+<div class="act" id="act-8">
+<h2><a href="08-networking-storage-security/lesson.html">Act 8 — Networking, Storage &amp; Security</a></h2>
+<p class="lede">How the web talks to servers, where data lives, and how to not let someone else take over your app.</p>
+<ol><li><span class="n">8.1</span><a href="08-networking-storage-security/steps/8-1-http-fundamentals.html">HTTP Fundamentals</a></li><li><span class="n">8.2</span><a href="08-networking-storage-security/steps/8-2-client-side-storage.html">Client-Side Storage</a></li><li><span class="n">8.3</span><a href="08-networking-storage-security/steps/8-3-cors.html">CORS</a></li><li><span class="n">8.4</span><a href="08-networking-storage-security/steps/8-4-xss-content-security-policy.html">XSS &amp; Content Security Policy</a></li><li><span class="n">8.5</span><a href="08-networking-storage-security/steps/8-5-csrf-samesite-tokens.html">CSRF, SameSite &amp; Tokens</a></li><li><span class="n">8.6</span><a href="08-networking-storage-security/steps/8-6-jwt-sessions.html">JWT &amp; Sessions</a></li><li><span class="n">8.7</span><a href="08-networking-storage-security/steps/8-7-http-caching.html">HTTP Caching</a></li></ol>
+<div class="links"><a href="08-networking-storage-security/lesson.html">Open the full act lesson →</a></div>
+</div>
+<div class="act" id="act-9">
+<h2><a href="09-modern-apis/lesson.html">Act 9 — Modern APIs</a></h2>
+<p class="lede">Streaming responses, server-sent events, service workers and real-time communication.</p>
+<ol><li><span class="n">9.1</span><a href="09-modern-apis/steps/9-1-streaming-responses.html">Streaming Responses</a></li><li><span class="n">9.2</span><a href="09-modern-apis/steps/9-2-server-sent-events-sse.html">Server-Sent Events (SSE)</a></li><li><span class="n">9.3</span><a href="09-modern-apis/steps/9-3-service-workers-pwas.html">Service Workers &amp; PWAs</a></li><li><span class="n">9.4</span><a href="09-modern-apis/steps/9-4-websockets.html">WebSockets</a></li></ol>
+<div class="links"><a href="09-modern-apis/lesson.html">Open the full act lesson →</a></div>
+</div>
+<div class="act" id="act-10">
+<h2><a href="10-a-backend-touchpoint/lesson.html">Act 10 — A Backend Touchpoint</a></h2>
+<p class="lede">Enough Node to make the front end make sense: webhooks, sessions, and CORS you control.</p>
+<ol><li><span class="n">10.1</span><a href="10-a-backend-touchpoint/steps/10-1-node-js-in-45-minutes.html">Node.js in 45 Minutes</a></li><li><span class="n">10.2</span><a href="10-a-backend-touchpoint/steps/10-2-cors-env-vars-serving-a-front-end.html">CORS, Env Vars &amp; Serving a Front End</a></li><li><span class="n">10.3</span><a href="10-a-backend-touchpoint/steps/10-3-webhooks-end-to-end.html">Webhooks, End to End</a></li></ol>
+<div class="links"><a href="10-a-backend-touchpoint/lesson.html">Open the full act lesson →</a></div>
+</div>
+<div class="act" id="act-11">
+<h2><a href="11-the-framework-bridge/lesson.html">Act 11 — The Framework Bridge</a></h2>
+<p class="lede">Everything you learned, mapped onto React, Next.js and shadcn — so tomorrow is recognition, not learning.</p>
+<ol><li><span class="n">11.1</span><a href="11-the-framework-bridge/steps/11-1-how-react-maps-onto-what-you-know.html">How React Maps Onto What You Know</a></li><li><span class="n">11.2</span><a href="11-the-framework-bridge/steps/11-2-components-props-state.html">Components, Props &amp; State</a></li><li><span class="n">11.3</span><a href="11-the-framework-bridge/steps/11-3-effects-data-fetching.html">Effects &amp; Data Fetching</a></li><li><span class="n">11.4</span><a href="11-the-framework-bridge/steps/11-4-next-js-shadcn.html">Next.js &amp; shadcn</a></li></ol>
+<div class="links"><a href="11-the-framework-bridge/lesson.html">Open the full act lesson →</a></div>
+</div>
+<div class="extras">
+<h2>Runnable extras</h2>
+<ul>
+<li><a href="10-a-backend-touchpoint/public/index.html">Act 10 demo page</a> — REST + SSE + webhooks + a Web Worker, live against the Node server</li>
+<li><a href="11-the-framework-bridge/react-mini/index.html">React mini-app</a> — no build step (needs a server: <code>python3 -m http.server 8000</code>)</li>
+<li><a href="10-a-backend-touchpoint/server.js">server.js</a> — the Express backend (<code>npm install &amp;&amp; npm start</code>)</li>
+<li><a href="10-a-backend-touchpoint/public/sw.js">sw.js</a> — a service worker for the offline exercise</li>
+<li><a href="10-a-backend-touchpoint/public/worker.js">worker.js</a> — a web worker for the Act 6.6 exercise</li>
+<li><a href="ROADMAP.md">ROADMAP.md</a> — the progress board</li>
+<li><a href="README.md">README.md</a> — how to use the course</li>
+</ul></div>
+</body>
+</html>

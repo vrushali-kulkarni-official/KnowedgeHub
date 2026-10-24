@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Act 5 — Your Five Projects — Frontend Journey</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+
+</head>
+<body>
+<span class="tag">Act 5 of 12</span>
+
+<h1>Your Five Projects</h1>
+
+<p class="lede">Everything so far, assembled. Each project is small on purpose — the goal is the pattern, not the pixels.</p>
+
+
+<p>These are the five you asked for, in increasing order of difficulty. Each one is a
+complete, working app in a single file. Open it, run it, break it, then extend it with
+the challenge.</p>
+
+<div class="note">
+<p><strong>How to work through these:</strong> don't just read the code. For each
+project, <em>delete the JavaScript and write it yourself</em> using the hint list. If you
+can do that, you've got the concept. If you can't, re-read the explanation and try
+again. These five projects are the muscle you'll need tomorrow.</p>
+</div>
+
+<h3>The shape they all share</h3>
+<pre class="code"><code>1. Find the elements       (querySelector / querySelectorAll)
+2. Keep the state          (a let variable, or a class)
+3. Write a render function (state -> DOM)
+4. Listen for events       (addEventListener)
+5. On event: change state, then call render</code></pre>
+
+<p>That loop — <strong>state → render → event → state</strong> — is the entire mental
+model of React. Every project below is a hand-rolled version of it, and when React
+arrives tomorrow you'll recognise it immediately.</p>
+
+
+<div class="toc"><strong>In this act</strong><ol><li><a href="#step-5-1-project-1-background-changing-button">5.1 — Project 1 — Background-Changing Button</a></li><li><a href="#step-5-2-project-2-number-counter">5.2 — Project 2 — Number Counter</a></li><li><a href="#step-5-3-project-3-progress-bar">5.3 — Project 3 — Progress Bar</a></li><li><a href="#step-5-4-project-4-dark-mode-toggle">5.4 — Project 4 — Dark Mode Toggle</a></li><li><a href="#step-5-5-project-5-show-hide-sidebar">5.5 — Project 5 — Show / Hide Sidebar</a></li></ol></div>
+
+<h2 id="step-5-1-project-1-background-changing-button">5.1 — Project 1 — Background-Changing Button</h2>
+
+<p class="lede">The smallest complete interaction: find an element, listen, change it.</p>
+
+
+<h3>What it teaches</h3>
+<ul>
+<li>Finding elements with <code>querySelector</code></li>
+<li>Listening for clicks with <code>addEventListener</code></li>
+<li>Changing styles from JavaScript</li>
+<li>Why you usually change a <em>class</em> instead of a style</li>
+</ul>
+
+<h3>How it's built</h3>
+<pre class="code"><code>const btn = document.querySelector("#cycle");
+const box  = document.querySelector("#box");
+const colors = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+
+let index = 0;                                   // the state
+
+btn.addEventListener("click", () =&gt; {
+  index = (index + 1) % colors.length;            // change state
+  box.style.backgroundColor = colors[index];     // render
+  label.textContent = colors[index];
+});</code></pre>
+
+<div class="note">
+<p><strong>Note the two kinds of "state change" here.</strong> The page's background
+colour is set with <code>style.backgroundColor</code> — a direct style change.
+The button's <em>class</em> is changed with <code>classList</code> — and the CSS decides
+what that class looks like.</p>
+<p><strong>Prefer the class approach whenever you can.</strong> The CSS stays in the
+stylesheet (where a designer can find it), and JavaScript just says "this is now in the
+active state". You'll see this in the dark mode project.</p>
+</div>
+
+<h3>The state → render loop</h3>
+<p>Even this tiny app has a <code>state</code> (<code>index</code>) and a <code>render</code>
+step. As projects get bigger, you'll separate them into a named <code>render()</code>
+function. Do that deliberately in project 3.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>(index + 1) % colors.length</code> wraps around. The modulo operator is how you cycle through a list forever.</li><li>Setting <code>element.style.X</code> writes an inline style, which beats your stylesheet. If you later try to style it with CSS, use <code>element.style.removeProperty('background-color')</code> or switch to classes.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Extend it</h3>
+
+<ol>
+<li>Add a "Random" button that picks a random colour (avoid picking the same colour
+twice in a row).</li>
+<li>Add a "Reset" button that returns to the first colour and sets
+<code>index = 0</code>.</li>
+<li>Make the button's own background match the current page colour (use
+<code>classList</code> or set the style) — and think about what happens when the button
+is the same colour as the page.</li>
+<li>Add a keyboard shortcut: press <code>Space</code> anywhere to trigger the same
+action. (Hint: <code>document.addEventListener("keydown", ...)</code> and check
+<code>event.code === "Space"</code>.)</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Random that avoids a repeat: <code>let next; do { next = Math.floor(Math.random() * colors.length); } while (next === index);</code></li><li>For the keyboard shortcut, be careful — if the user is typing in an input, Space should type a space, not trigger your button. Check <code>event.target.tagName</code>.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/5-1-project-1-background-changing-button.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-5-2-project-2-number-counter">5.2 — Project 2 — Number Counter</h2>
+
+<p class="lede">Hold state in a variable, render it, and handle multiple inputs to the same state.</p>
+
+
+<h3>What it teaches</h3>
+<ul>
+<li>State held in a <code>let</code> variable</li>
+<li>Multiple elements reading from one piece of state</li>
+<li>Separating a <code>render()</code> function from the event handlers</li>
+</ul>
+
+<h3>How it's built</h3>
+<pre class="code"><code>let count = 0;
+
+function render() {
+  display.textContent = count;
+  minusBtn.disabled = count &lt;= 0;         // state can affect the UI
+  plusBtn.disabled = count &gt;= 100;
+}
+
+plusBtn.addEventListener("click", () =&gt; { count++; render(); });
+minusBtn.addEventListener("click", () =&gt; { count--; render(); });
+resetBtn.addEventListener("click", () =&gt; { count = 0; render(); });
+</code></pre>
+
+<div class="note">
+<p><strong>This is the pattern to internalise.</strong> Notice:</p>
+<ul>
+<li>The event handlers do <strong>not</strong> touch the DOM directly. They change
+<code>count</code> and call <code>render()</code>.</li>
+<li><code>render()</code> is the <em>only</em> place that writes to the DOM.</li>
+<li>Because of that, you can change the state from anywhere — a button, a keyboard
+shortcut, a timer — and the UI stays correct.</li>
+</ul>
+<p>This is exactly how React works: you change state, and the framework calls
+render for you. You're about to build React by hand.</p>
+</div>
+
+<h3>Also notice: the disabled state</h3>
+<p><code>minusBtn.disabled = count &lt;= 0</code> — the UI is derived from state, and
+it also <em>controls</em> what the user can do. That's a nice property: you can't get
+into an invalid state, because the invalid state isn't representable in the UI.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>A <code>disabled</code> button doesn't fire click events — so the counter can't go below zero even if someone calls the handler directly. (Well — it can, if they call the function. Guard in the handler too.)</li><li>Using <code>textContent</code> (not <code>innerHTML</code>) is right here: the count is data, not markup.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Extend it</h3>
+
+<ol>
+<li>Add a "step size" input. Changing it changes how much +/- moves the counter.</li>
+<li>Add a reset button that also restores the step size to 1.</li>
+<li>Show a running total of every increment (e.g. "+3, +1, +10" — a history). Clear
+it on reset.</li>
+<li>Make the counter display turn red when it reaches the max, and green at the min.</li>
+<li>Persist the count in <code>localStorage</code> so it survives a refresh.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>For the step input: <code>document.querySelector('#step').value</code> gives a string — use <code>Number(...)</code> on it.</li><li><code>localStorage.setItem('count', count)</code> and <code>localStorage.getItem('count')</code>. Remember it returns a string, so wrap it in <code>Number()</code>.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/5-2-project-2-number-counter.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-5-3-project-3-progress-bar">5.3 — Project 3 — Progress Bar</h2>
+
+<p class="lede">Animate a value over time, and learn why you should animate with CSS transitions, not a tight loop.</p>
+
+
+<h3>What it teaches</h3>
+<ul>
+<li><code>setInterval</code> / <code>clearInterval</code></li>
+<li>Animating a width with a CSS transition</li>
+<li>Why you should <strong>not</strong> update the DOM 60 times a second</li>
+</ul>
+
+<h3>How it's built</h3>
+<pre class="code"><code>let progress = 0;
+const INTERVAL = 40;   // ms between ticks
+
+function render() {
+  bar.style.width = progress + "%";
+  label.textContent = progress + "%";
+}
+
+const timer = setInterval(() =&gt; {
+  progress += 2;
+  if (progress &gt;= 100) {
+    progress = 100;
+    clearInterval(timer);          // stop it!
+    console.log("done");
+  }
+  render();
+}, INTERVAL);
+</code></pre>
+
+<div class="note">
+<p><strong>Why a CSS transition instead of manual animation?</strong> If you update
+<code>width</code> every 40ms, the browser repaints each time — and if you animate
+faster than that, you force layout on every frame (the "layout thrashing" problem from
+Act 2 Step 2.10).</p>
+<p>Instead: set the width once, and let the browser's compositor animate the change
+smoothly. Your JS runs 25 times a second; the animation runs at the display's refresh
+rate. <strong>Let the browser do what it's good at.</strong></p>
+</div>
+
+<h3>Layout thrashing — the thing to avoid</h3>
+<pre class="code"><code>// BAD: read and write layout in a loop -> forces recalculation every iteration
+items.forEach(item =&gt; {
+  const h = item.offsetHeight;   // read  (forces layout)
+  item.style.height = h + "px";  // write (invalidates layout)
+});
+
+// GOOD: read everything first, then write
+const heights = items.map(i =&gt; i.offsetHeight);
+items.forEach((item, i) =&gt; { item.style.height = heights[i] + "px"; });
+</code></pre>
+
+<h3>Stopping cleanly</h3>
+<p>Timers keep running even when the user has moved on. Always keep the id and
+<code>clearInterval</code> it when you need to stop — and if the element might be
+removed, clear it then too.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>setInterval</code> returns a number (the timer id). <code>clearInterval(id)</code> cancels it. <code>setTimeout</code> works the same way with <code>clearTimeout</code>.</li><li>A 40ms interval gives roughly 25 updates/second, and with a 300ms CSS transition the bar moves smoothly. Try 400ms and watch it look chunky — then compare.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Extend it</h3>
+
+<ol>
+<li>Make the progress bar <strong>accelerate</strong> — the further along it is, the
+faster it goes. (Try adding 2 + progress/20 each tick.)</li>
+<li>Add a second button "Fill instantly" that jumps straight to 100% with no
+animation (remove the transition class or set the width with a 0s duration).</li>
+<li>Add an <code>&lt;input type="range"&gt;</code> that lets the user drag the progress
+manually, which should cancel the running timer.</li>
+<li>Change the bar's colour based on the percentage: red under 30, amber under 70,
+green above. (Use a class and CSS — not inline styles.)</li>
+<li>Show a "Complete!" message when it hits 100%.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>To stop the CSS transition for one frame, you can set <code>bar.style.transition = 'none'</code>, set the width, then restore it on the next frame with <code>requestAnimationFrame</code>.</li><li>The <code>input</code> event fires as the slider moves — use <code>event.target.value</code>.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/5-3-project-3-progress-bar.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-5-4-project-4-dark-mode-toggle">5.4 — Project 4 — Dark Mode Toggle</h2>
+
+<p class="lede">Combine CSS variables, a class on the root element, localStorage, and system preference detection.</p>
+
+
+<h3>What it teaches</h3>
+<ul>
+<li>How to toggle a class on <code>document.documentElement</code> (the <code>&lt;html&gt;</code>
+element)</li>
+<li>CSS variables as a theming system (Act 2 Step 2.3)</li>
+<li><code>localStorage</code> for persistence</li>
+<li><code>matchMedia</code> for reading the OS preference</li>
+<li>The anti-flash script from Act 3 Step 3.5</li>
+</ul>
+
+<h3>How it's built</h3>
+<pre class="code"><code>// 1. The theme is ONE class on &lt;html&gt;
+// 2. CSS variables hold the colours
+:root            { --bg: #ffffff; --fg: #15151d; --card: #f7f7fc; }
+html.dark        { --bg: #101019; --fg: #e8e8f2; --card: #191926; }
+
+body { background: var(--bg); color: var(--fg); }
+
+// 3. JavaScript toggles the class and saves the choice
+const root = document.documentElement;
+root.classList.toggle("dark");
+localStorage.setItem("theme", root.classList.contains("dark") ? "dark" : "light");
+</code></pre>
+
+<div class="note">
+<p><strong>Why put the class on <code>&lt;html&gt;</code> and not on
+<code>&lt;body&gt;</code>?</strong> Because CSS variables cascade downward from where
+they're defined. Putting the class on the root means the <em>entire page</em> — including
+portals, modals, and anything you append later — picks up the theme. If you put it on
+<code>&lt;body&gt;</code>, anything outside the body stays light.</p>
+</div>
+
+<h3>The full toggle logic</h3>
+<pre class="code"><code>const root = document.documentElement;
+const KEY = "theme";
+
+function getStored() { return localStorage.getItem(KEY); }
+function prefersDark() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+function apply(theme) {
+  root.classList.toggle("dark", theme === "dark");
+  localStorage.setItem(KEY, theme);
+}
+</code></pre>
+
+<h3>The three modes</h3>
+<p>A real implementation supports three: <code>light</code>, <code>dark</code>, and
+<code>system</code>. "System" means "follow the OS", and it should update live when
+the OS setting changes while the page is open.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>classList.toggle(name, force)</code> — the second argument forces the state to <code>true</code>/<code>false</code> instead of flipping it. Useful for <code>apply(theme)</code>.</li><li><code>localStorage</code> only stores <strong>strings</strong>. Storing an object means <code>JSON.stringify</code> on the way in and <code>JSON.parse</code> on the way out.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Extend it</h3>
+
+<ol>
+<li>Add a three-way switch: <strong>Light / Dark / System</strong>. "System" should
+remove the explicit class and follow the OS.</li>
+<li>Make "System" update live: listen to
+<code>matchMedia("(prefers-color-scheme: dark)")</code>'s <code>change</code> event.</li>
+<li>Add the anti-flash script to <code>&lt;head&gt;</code> so the page doesn't flash
+white before your JavaScript runs. (Act 3 Step 3.5.)</li>
+<li>Add a smooth transition between themes (the transition is already on the panel —
+now make sure <em>every</em> themed element transitions, not just the container).</li>
+<li>Add a third theme: <code>sepia</code>, with its own variable values.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>For the live OS listener: <code>const mq = window.matchMedia('(prefers-color-scheme: dark)'); mq.addEventListener('change', handler);</code></li><li>A common trick for the anti-flash: put a small inline <code>&lt;script&gt;</code> in the head that sets the class before the body renders.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/5-4-project-4-dark-mode-toggle.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-5-5-project-5-show-hide-sidebar">5.5 — Project 5 — Show / Hide Sidebar</h2>
+
+<p class="lede">The most common real UI pattern: a toggle that changes layout — and the accessibility details that make it good.</p>
+
+
+<h3>What it teaches</h3>
+<ul>
+<li>A boolean state variable</li>
+<li>CSS transitions for a smooth width/transform change</li>
+<li><code>aria-expanded</code> — how you make a toggle button accessible</li>
+<li>Persisting UI state in <code>localStorage</code></li>
+</ul>
+
+<h3>How it's built</h3>
+<pre class="code"><code>let open = true;
+
+function render() {
+  sidebar.classList.toggle("open", open);
+  toggleBtn.setAttribute("aria-expanded", String(open));
+  toggleBtn.textContent = open ? "Hide sidebar" : "Show sidebar";
+}
+
+toggleBtn.addEventListener("click", () =&gt; {
+  open = !open;      // state
+  render();          // render
+});
+</code></pre>
+
+<div class="note">
+<p><strong><code>aria-expanded</code> is the detail that matters.</strong> A screen
+reader user can't see that the sidebar is open. Setting
+<code>aria-expanded="true"</code> on the button tells assistive technology the state of
+the thing the button controls. This is one line, and it's the difference between a
+toggle that works for everyone and one that doesn't.</p>
+</div>
+
+<h3>Three ways to implement the hide</h3>
+<table>
+<tr><th>Technique</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><code>display: none</code></td><td>simplest</td><td>can't animate; removes it from the tab order</td></tr>
+<tr><td><code>width: 0</code></td><td>animatable</td><td>the content is still focusable — a real a11y bug</td></tr>
+<tr><td><code>transform: translateX(-100%)</code></td><td>smooth, GPU-accelerated</td><td>still in the tab order unless you also hide it</td></tr>
+</table>
+
+<p>The correct approach combines them: animate with transform, and use
+<code>visibility: hidden</code> (or <code>inert</code>) at the end so the content
+leaves the tab order. Modern browsers support the <code>inert</code> attribute, which
+is exactly designed for this.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>inert</code> on the closed sidebar removes it from the tab order and from screen readers, without removing it from the layout (so the transition still works).</li><li>The <code>transition</code> should be on the <em>sidebar</em>, and the class toggled on it — not on the parent, or you'll animate the wrong element.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Extend it</h3>
+
+<ol>
+<li>Add a keyboard shortcut (<code>[</code> or <code>B</code>) to toggle — done above,
+but make sure it doesn't fire while the user is typing in an input.</li>
+<li>Persist the open/closed state in <code>localStorage</code>, and restore it on
+load.</li>
+<li>On small screens, make the sidebar an <strong>overlay</strong> (position fixed,
+full height) with a dark backdrop behind it that closes the sidebar when clicked.</li>
+<li>Add <code>inert</code> to the main content while the mobile overlay is open, so
+tabbing doesn't wander behind the overlay.</li>
+<li>Add a subtle animation: the sidebar slides, and the main content shifts.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Overlay: <code>position: fixed; inset: 0 auto 0 0; width: 260px; z-index: 40;</code> and the backdrop <code>position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 30;</code></li><li>To close on backdrop click, give the backdrop an id and attach a listener to it.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/5-5-project-5-show-hide-sidebar.html">▶ Open the runnable file for this step</a></p>
+
+<hr>
+
+<div class="ok"><strong>Act 5 checkpoint</strong>
+<p>Five projects done. You have now built, by hand, the state → render → event loop
+that React automates.</p>
+<p><strong>Before moving on, do this:</strong> take project 3 (progress bar) and rewrite
+it so that <em>all</em> DOM writes happen in one <code>render()</code> function, and all
+event handlers only change state. If that refactor is easy, you've got it.</p>
+</div>
+
+<div class="stepnav"><a href="../04-javascript-the-language/lesson.html">← Act 4</a><a href="../06-advanced-javascript/lesson.html">Act 6 →</a></div>
+</body>
+</html>

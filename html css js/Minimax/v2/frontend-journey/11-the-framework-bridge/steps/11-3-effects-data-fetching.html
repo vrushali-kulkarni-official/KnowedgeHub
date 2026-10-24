@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>11.3 Effects &amp; Data Fetching — Act 11: The Framework Bridge</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+<script>
+(function(){
+  var out = document.getElementById('out');
+  if(!out) return;
+  function fmt(v){
+    if (typeof v === 'string') return v;
+    if (v instanceof Error) return v.name + ': ' + v.message;
+    try { return JSON.stringify(v); } catch(e){ return String(v); }
+  }
+  ['log','info','warn','error'].forEach(function(k){
+    var orig = console[k].bind(console);
+    console[k] = function(){
+      orig.apply(null, arguments);
+      out.textContent += Array.prototype.map.call(arguments, fmt).join(' ') + '\n';
+      out.scrollTop = out.scrollHeight;
+    };
+  });
+})();
+</script>
+<script type="module">
+import React, { useState, useEffect } from "https://esm.sh/react@18";
+import { createRoot } from "https://esm.sh/react-dom@18/client";
+import htm from "https://esm.sh/htm";
+const html = htm.bind(React.createElement);
+
+function Clock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return html`<p class="clock">${now.toLocaleTimeString()}</p>`;
+}
+
+function Users() {
+  const [state, setState] = useState({ status: "loading", users: [] });
+  useEffect(() => {
+    let cancelled = false;
+    fetch("https://jsonplaceholder.typicode.com/users?_limit=5")
+      .then(r => r.json())
+      .then(users => { if (!cancelled) setState({ status: "done", users }); })
+      .catch(() => { if (!cancelled) setState({ status: "error", users: [] }); });
+    return () => { cancelled = true; };
+  }, []);
+
+  if (state.status === "loading") return html`<p class="muted">Loading users…</p>`;
+  if (state.status === "error") return html`<p class="error">Could not load users.</p>`;
+  return html`
+    <ul class="users">
+      ${state.users.map(u => html`<li key=${u.id}>${u.name} <span class="muted">${u.email}</span></li>`)}
+    </ul>`;
+}
+
+function App() {
+  return html`<div><${Clock} /><${Users} /></div>`;
+}
+
+createRoot(document.getElementById("root")).render(html`<${App} />`);
+</script>
+</head>
+<body>
+<span class="tag">Act 11 · Step 11.3</span>
+
+<h1>Effects &amp; Data Fetching</h1>
+
+<p class="lede">Understand useEffect — the hook people misuse most — and the modern data-fetching alternative.</p>
+
+<div class="notice"><h3>What to notice</h3><ul><li>An effect's cleanup function is essential: it's what prevents duplicate subscriptions and memory leaks.</li><li>React 18's <code>StrictMode</code> deliberately runs effects twice in development (mount → unmount → mount) to surface missing cleanup. If you see things happening twice, that's why — it's a development-only behaviour.</li><li><code>useEffect</code> with an empty dependency array is the equivalent of "on mount". Use <code>useLayoutEffect</code> only when you need to measure or mutate the DOM before the browser paints.</li></ul></div>
+
+
+<div id="root"></div>
+
+
+<div class="warn"><p><strong>This file needs a server.</strong> It uses ES modules (<code>import</code>), and browsers refuse to load modules from a <code>file://</code> page. From this folder run <code>python3 -m http.server 8000</code> and open <code>http://localhost:8000</code> in that folder.</p></div>
+
+<div class="outlabel">Console output</div>
+
+<pre id="out"></pre>
+
+<div class="challenge"><h3>Challenge — Effects, done and done wrong</h3>
+
+<ol>
+<li>Build a component with a counter that increments every second, with proper
+cleanup. <strong>Navigate away and back</strong> — does the interval keep running?</li>
+<li>Break the cleanup on purpose (remove the <code>return</code>). React's StrictMode
+in dev will show you the double-increment. Now you understand why cleanup matters.</li>
+<li>Add a search box that filters a list, using <strong>derived state</strong> (compute
+the filtered list during render) — not an effect.</li>
+<li>Fetch from the fake API with all three states (loading / error / data) and a
+cleanup that prevents setting state after unmount.</li>
+<li>Add a "Refresh" button that re-fetches — and figure out how to re-run an effect
+on demand (the answer involves a dependency array, and it's a common interview
+question).</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>To re-run an effect on demand, put a counter in state and include it in the dependency array — increment it to trigger a refetch.</li><li>React 18's <code>useEffect</code> cleanup pattern with a <code>cancelled</code> flag is the standard pattern; React 19 may handle unmount automatically, but the flag is still good practice.</li></ul></details>
+
+</div>
+
+<div class="stepnav"><a href="../lesson.html">← Full Act 11 lesson</a><a href="11-4-next-js-shadcn.html">Next step →</a></div>
+</body>
+</html>

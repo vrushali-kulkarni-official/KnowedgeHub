@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.5 Dark Mode — Act 3: Tailwind CSS</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+
+</head>
+<body>
+<span class="tag">Act 3 · Step 3.5</span>
+
+<h1>Dark Mode</h1>
+
+<p class="lede">Build dark mode with CSS variables so it doesn't require duplicating every class.</p>
+
+<div class="notice"><h3>What to notice</h3><ul><li>Act 5's dark-mode project does exactly this — it's the perfect place to apply everything from Acts 3 and 4 together.</li></ul></div>
+
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { darkMode: 'class' }</script>
+<div class="max-w-md mx-auto my-6 space-y-4">
+  <button onclick="document.documentElement.classList.toggle('dark')"
+          class="rounded-lg bg-indigo-600 px-4 py-2 text-white font-medium">
+    Toggle dark mode
+  </button>
+  <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+    <h3 class="font-bold text-gray-900 dark:text-gray-100">This card adapts</h3>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Each element carries both the light and the dark class.</p>
+  </div>
+</div>
+
+
+<div class="challenge"><h3>Challenge — A theme that persists</h3>
+
+<p>Build a proper theme switcher:</p>
+<ol>
+<li>A button that toggles dark mode.</li>
+<li>The choice <strong>persists across reloads</strong> — that means
+<code>localStorage</code> (Act 4 Step 4.9 will show you the API).</li>
+<li>On first visit, respect the OS setting via
+<code>matchMedia('(prefers-color-scheme: dark)')</code>.</li>
+<li>Add the anti-flash snippet to the <code>&lt;head&gt;</code> so the page never flashes
+white.</li>
+<li>Use the CSS-variable approach (Approach B) so you only write
+<code>bg-background</code> and <code>text-foreground</code> once.</li>
+</ol>
+<p>Bonus: add a "system" option that follows the OS and updates live when the OS
+changes.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>`localStorage.setItem('theme','dark')` and `localStorage.getItem('theme')` — you'll use these in the Act 5 dark-mode project too.</li><li>The anti-flash script must run in <code>&lt;head&gt;</code> BEFORE the stylesheet, so the class is set before the first paint.</li></ul></details>
+
+</div>
+
+<div class="stepnav"><a href="../lesson.html">← Full Act 3 lesson</a><a href="3-6-customising-extracting.html">Next step →</a></div>
+</body>
+</html>

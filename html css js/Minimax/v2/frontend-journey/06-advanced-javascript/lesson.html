@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Act 6 — Advanced JavaScript — Frontend Journey</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+
+</head>
+<body>
+<span class="tag">Act 6 of 12</span>
+
+<h1>Advanced JavaScript</h1>
+
+<p class="lede">The patterns that separate 'I know the syntax' from 'I can build real things'.</p>
+
+
+<p>Act 4 gave you the language. This act gives you the <em>techniques</em> — the
+patterns you'll see in every real codebase, and the exact set of skills your brief
+lists: APIs, forms, file uploads, streaming, workers, and performance.</p>
+
+<div class="note">
+<p><strong>Everything here is JavaScript, no new language.</strong> The DOM APIs
+(<code>fetch</code>, <code>FormData</code>, <code>FileReader</code>,
+<code>Worker</code>) are browser APIs, not language features — the same way
+<code>document.querySelector</code> is a browser API.</p>
+</div>
+
+
+<div class="toc"><strong>In this act</strong><ol><li><a href="#step-6-1-promises-async-await">6.1 — Promises &amp; async/await</a></li><li><a href="#step-6-2-fetch-rendering-data">6.2 — Fetch &amp; Rendering Data</a></li><li><a href="#step-6-3-forms-formdata-file-upload">6.3 — Forms, FormData &amp; File Upload</a></li><li><a href="#step-6-4-higher-order-functions-functional-patterns">6.4 — Higher-Order Functions &amp; Functional Patterns</a></li><li><a href="#step-6-5-debounce-throttle-requestanimationframe">6.5 — Debounce, Throttle &amp; requestAnimationFrame</a></li><li><a href="#step-6-6-web-workers">6.6 — Web Workers</a></li><li><a href="#step-6-7-performance-best-practices">6.7 — Performance &amp; Best Practices</a></li></ol></div>
+
+<h2 id="step-6-1-promises-async-await">6.1 — Promises &amp; async/await</h2>
+
+<p class="lede">Understand asynchronous execution as a value you can wait on.</p>
+
+
+<p>A <strong>Promise</strong> is a value that isn't ready yet. Python's closest
+relative is <code>asyncio.Future</code>.</p>
+
+<pre class="code"><code>const p = new Promise((resolve, reject) =&gt; {
+  setTimeout(() =&gt; resolve("done"), 1000);
+});
+
+p.then(value =&gt; console.log(value));     // "done" (later)
+p.catch(err =&gt; console.error(err));
+p.finally(() =&gt; console.log("always"));</code></pre>
+
+<h3>The three states</h3>
+<ul>
+<li><strong>pending</strong> — still working</li>
+<li><strong>fulfilled</strong> — succeeded, with a value</li>
+<li><strong>rejected</strong> — failed, with a reason</li>
+</ul>
+
+<p>Once a promise settles, it never changes. That's why a promise is safe to await
+multiple times.</p>
+
+<h3>async/await</h3>
+<pre class="code"><code>async function getUser(id) {
+  const response = await fetch(`/api/users/${id}`);
+  const user = await response.json();
+  return user;
+}
+</code></pre>
+
+<p><code>async</code> makes a function always return a promise. <code>await</code>
+pauses that function until a promise settles, and <strong>resumes it in a
+microtask</strong> (Act 4 Step 4.17).</p>
+
+<div class="py">
+<p><strong>Python brain:</strong> <code>async def</code> / <code>await</code> is almost
+a perfect match. The differences:</p>
+<ul>
+<li>Python's <code>await</code> yields to the event loop. JavaScript's <code>await</code>
+also yields — but to the <em>microtask</em> queue, which runs before the next
+macrotask.</li>
+<li>In Python, <code>asyncio.gather</code> runs coroutines concurrently. In JS,
+<code>Promise.all</code> does the same thing.</li>
+<li>JS has no <code>asyncio.run()</code> — the browser (or Node) owns the loop.</li>
+</ul>
+</div>
+
+<h3>Error handling</h3>
+<pre class="code"><code>try {
+  const data = await fetch(url).then(r =&gt; r.json());
+} catch (error) {
+  // network error OR the .then threw
+}
+</code></pre>
+
+<p>Unlike Python's <code>except</code>, a JS <code>try/catch</code> around an
+<code>await</code> catches both network rejections <em>and</em> errors thrown by the
+code after the await. One <code>try</code> covers the whole async body.</p>
+
+<h3>Sequential vs parallel</h3>
+<pre class="code"><code>// SEQUENTIAL - slow, 2 seconds total
+const a = await fetch("/a");
+const b = await fetch("/b");
+
+// PARALLEL - fast, ~1 second total
+const [a, b] = await Promise.all([fetch("/a"), fetch("/b")]);
+</code></pre>
+
+<p>This is the single most important async performance rule. <strong>Start all your
+requests first, then await them together.</strong></p>
+
+<div class="warn">
+<p><strong>The classic bug:</strong></p>
+<pre class="code"><code>// WRONG - waits for a before even starting b
+const a = await fetch("/a");
+const b = await fetch("/b");
+
+// RIGHT - both start immediately
+const [a, b] = await Promise.all([fetch("/a"), fetch("/b")]);</code></pre>
+</div>
+
+<h3>Other useful combinators</h3>
+<table>
+<tr><th>Method</th><th>Resolves when</th></tr>
+<tr><td><code>Promise.all</code></td><td>all resolve (rejects if any rejects)</td></tr>
+<tr><td><code>Promise.allSettled</code></td><td>all settle — never rejects, gives you each result's status</td></tr>
+<tr><td><code>Promise.race</code></td><td>the first one settles</td></tr>
+<tr><td><code>Promise.any</code></td><td>the first one <em>fulfills</em> (rejects only if all reject)</td></tr>
+</table>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>An unhandled promise rejection shows up in the console but doesn't stop your code. In Node it can crash the process. Always attach a <code>.catch</code> or use try/catch.</li><li><code>Promise.all</code> with an empty array resolves immediately with <code>[]</code>. Useful for the "if the list is empty, skip the request" case.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Parallel vs sequential, measured</h3>
+
+<p>Write a script that fetches three "endpoints" (fake them
+with a <code>delay</code> helper) and:</p>
+<ol>
+<li>measures the time for sequential awaits</li>
+<li>measures the time for <code>Promise.all</code></li>
+<li>logs both — the difference should be obvious</li>
+</ol>
+<p>Then: one of the three "endpoints" should <em>fail</em>. Show the difference between
+<code>Promise.all</code> (rejects on the first failure, losing the other results) and
+<code>Promise.allSettled</code> (gives you every result, including the failures).</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li><code>Promise.allSettled</code> returns an array of <code>{ status: 'fulfilled', value }</code> or <code>{ status: 'rejected', reason }</code> objects.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/6-1-promises-async-await.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-6-2-fetch-rendering-data">6.2 — Fetch &amp; Rendering Data</h2>
+
+<p class="lede">Pull data from an API and render it — the shape of almost every real app.</p>
+
+
+<h3>The fetch pipeline</h3>
+<pre class="code"><code>async function load() {
+  const response = await fetch("/api/items");
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  return data;
+}
+</code></pre>
+
+<p>Three distinct steps, three distinct failure modes:</p>
+<ol>
+<li><code>fetch()</code> rejects only on <strong>network</strong> failure (no
+connection, DNS failure, CORS block).</li>
+<li>A <code>404</code> or <code>500</code> resolves normally — you must check
+<code>response.ok</code> yourself.</li>
+<li><code>response.json()</code> can throw if the body isn't valid JSON.</li>
+</ol>
+
+<div class="warn">
+<p><strong>Check <code>response.ok</code>. Every time.</strong> Skipping it is the
+number-one cause of "Unexpected token &lt; in JSON at position 0" errors, which is
+actually the browser's HTML error page failing to parse as JSON.</p>
+</div>
+
+<h3>JSON</h3>
+<pre class="code"><code>const obj = JSON.parse('{"a":1}');   // string -> object  (like Python json.loads)
+const str = JSON.stringify({ a: 1 });  // object -> string  (like Python json.dumps)</code></pre>
+
+<h3>The render loop</h3>
+<pre class="code"><code>function render(items) {
+  const list = document.querySelector("#list");
+  list.textContent = "";                 // clear
+  for (const item of items) {
+    const li = document.createElement("li");
+    li.textContent = item.name;          // textContent, not innerHTML
+    list.appendChild(li);
+  }
+}
+</code></pre>
+
+<div class="note">
+<p><strong>Always <code>textContent</code> for data.</strong> The moment you use
+<code>innerHTML</code> with data from an API, you have an XSS vulnerability (Act 8
+Step 8.4). The only reason to use <code>innerHTML</code> is markup you wrote
+yourself.</p>
+</div>
+
+<h3>Loading, empty, and error states</h3>
+<p>Real UI has three states, and beginners forget two of them:</p>
+<pre class="code"><code>async function load() {
+  showLoading();
+  try {
+    const items = await loadItems();
+    if (items.length === 0) showEmpty();
+    else render(items);
+  } catch (error) {
+    showError(error.message);
+  } finally {
+    hideLoading();
+  }
+}
+</code></pre>
+
+<p>Every real app needs all three. Designing them is a design decision, not an
+afterthought.</p>
+
+<h3>Using a public API right now</h3>
+<pre class="code"><code>const res = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=5");
+const posts = await res.json();
+console.log(posts.map(p =&gt; p.title));</code></pre>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>response.json()</code>, <code>response.text()</code> and <code>response.blob()</code> can each be called only once — the body is a stream. Read it once.</li><li>CORS (Act 8 Step 8.3) is why some APIs work from a page and others don't. The error is in the Console, not in your code.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A real API, three states</h3>
+
+<p>Build a page with a list that fetches from
+<code>https://jsonplaceholder.typicode.com/users</code> (a free fake API — no key
+needed) and shows:</p>
+<ol>
+<li>a <strong>loading</strong> state ("Loading…")</li>
+<li>the <strong>list</strong> of users (name + email) once loaded</li>
+<li>an <strong>error</strong> state with a Retry button</li>
+</ol>
+<p>Then: add a search box that filters the already-loaded list (don't re-fetch on every
+keystroke — filter the data you have).</p>
+<p>Finally, simulate a failure by pointing the URL at a bad host and confirm your error
+state shows up.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Keep the fetched data in a variable, and have the search box filter that variable and call <code>render(filtered)</code>.</li><li>The error state should be reachable — temporarily change the URL to something like <code>https://jsonplaceholder.typicode.comXX</code> to test it.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/6-2-fetch-rendering-data.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-6-3-forms-formdata-file-upload">6.3 — Forms, FormData &amp; File Upload</h2>
+
+<p class="lede">Intercept a form, read its values, and send them — including files.</p>
+
+
+<h3>Reading values from a form</h3>
+<pre class="code"><code>const form = document.querySelector("#form");
+const email = form.email.value;            // by name
+const email2 = form.querySelector("#email").value;   // by id
+</code></pre>
+
+<p>Note: <code>form.email</code> works because named form controls are accessible as
+properties of the form element. This is a genuinely useful, underused feature.</p>
+
+<h3>Intercepting the submit</h3>
+<pre class="code"><code>form.addEventListener("submit", async (event) =&gt; {
+  event.preventDefault();      // stop the page navigating
+  const data = Object.fromEntries(new FormData(form));
+  console.log(data);           // { name: "Ana", email: "a@b.c" }
+});
+</code></pre>
+
+<div class="note">
+<p><strong>Two steps, both essential:</strong></p>
+<ol>
+<li><code>event.preventDefault()</code> — otherwise the browser navigates away and your
+code never finishes.</li>
+<li><code>new FormData(form)</code> — builds an object of all the form's named
+controls. Checked checkboxes and selected options are included; unchecked checkboxes
+are <em>not</em> (that's correct HTML behaviour — a missing key means "unchecked").</li>
+</ol>
+</div>
+
+<h3>FormData vs JSON</h3>
+<table>
+<tr><th></th><th>FormData</th><th>JSON</th></tr>
+<tr><td>Content-Type</td><td>set automatically (multipart/form-data)</td><td>you set it: <code>application/json</code></td></tr>
+<tr><td>Files</td><td><strong>yes</strong></td><td>no (not without base64 encoding)</td></tr>
+<tr><td>Nested values</td><td>flat (or <code>formdata.append(name, value, filename)</code>)</td><td>arbitrarily nested</td></tr>
+<tr><td>Readable in DevTools</td><td>no</td><td>yes</td></tr>
+</table>
+
+<pre class="code"><code>// JSON
+await fetch("/api/users", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ name, email }),
+});
+
+// FormData - note: NO Content-Type header!
+const fd = new FormData();
+fd.append("name", name);
+fd.append("avatar", fileInput.files[0]);
+await fetch("/api/users", { method: "POST", body: fd });
+</code></pre>
+
+<div class="warn">
+<p><strong>Do NOT set <code>Content-Type</code> manually when sending
+<code>FormData</code>.</strong> The browser must set it itself, because the
+<code>boundary</code> (the separator between parts) is generated at send time. If you
+set it to <code>multipart/form-data</code> without a boundary, the server can't parse
+the body and you'll get a confusing 400.</p>
+</div>
+
+<h3>File uploads</h3>
+<pre class="code"><code>const input = document.querySelector("#avatar");
+input.addEventListener("change", () =&gt; {
+  const files = input.files;          // a FileList
+  const file = files[0];              // a File
+  console.log(file.name, file.size, file.type);
+  console.log(file instanceof File);
+});
+</code></pre>
+
+<ul>
+<li><code>input.files</code> → a <code>FileList</code> (array-like, has
+<code>length</code> and index access).</li>
+<li>Each <code>File</code> has <code>name</code>, <code>size</code> (bytes),
+<code>type</code> (MIME string, from the browser — <strong>not</strong> verified
+content!), and <code>lastModified</code>.</li>
+<li>You can read the file as text, data URL, or blob:
+<code>file.text()</code>, <code>URL.createObjectURL(file)</code>.</li>
+</ul>
+
+<div class="py">
+<p><strong>Python brain:</strong> <code>FormData</code> is like a
+<code>requests</code> <code>files={...}</code> dict, and <code>File</code> is like
+Django's <code>UploadedFile</code>. The browser handles the multipart encoding for
+you, exactly like <code>requests</code> does.</p>
+</div>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>file.type</code> comes from the browser and is <strong>not</strong> a security check — a user can send a <code>.exe</code> renamed to <code>.jpg</code>. Always validate on the server.</li><li><code>Object.fromEntries(new FormData(form))</code> gives a plain object — but multiple values with the same name (checkboxes) need <code>formData.getAll(name)</code> instead of <code>get(name)</code>.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A working signup form</h3>
+
+<p>Build a signup form that:</p>
+<ol>
+<li>On submit, prevents the default and reads all values with <code>FormData</code>.</li>
+<li>Validates the email client-side and shows an error message under the field (use
+<code>textContent</code>).</li>
+<li>Shows the payload it <em>would</em> send as JSON, so you can see the shape.</li>
+<li>Adds a file input for an avatar, and shows the file's name and size after
+selection.</li>
+<li>Sends it to a fake endpoint with <code>fetch</code> and
+<code>body: formData</code> — <strong>without setting a Content-Type header</strong> —
+and handles the failure gracefully (the endpoint won't exist, so the error path
+<em>will</em> run — that's the point).</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li><code>form.elements.email.value</code> is a reliable way to read a field by name.</li><li>To preview a selected file: <code>URL.createObjectURL(file)</code> into an <code>&lt;img&gt;</code>. Remember to <code>URL.revokeObjectURL</code> when you replace it.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/6-3-forms-formdata-file-upload.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-6-4-higher-order-functions-functional-patterns">6.4 — Higher-Order Functions &amp; Functional Patterns</h2>
+
+<p class="lede">Write functions that take and return functions — and use closures for real.</p>
+
+
+<p>A <strong>higher-order function</strong> is a function that takes a function as an
+argument, or returns one. Python has these too (<code>map</code>,
+<code>sorted(key=...)</code>, decorators).</p>
+
+<pre class="code"><code>function withLogging(fn) {
+  return function (...args) {
+    console.log("calling", fn.name);
+    return fn(...args);
+  };
+}
+
+const loggedSum = withLogging((a, b) =&gt; a + b);
+loggedSum(1, 2);   // "calling sum" then 3
+</code></pre>
+
+<h3>Common patterns</h3>
+<pre class="code"><code>// map with an index
+names.map((name, i) =&gt; `${i + 1}. ${name}`);
+
+// filter with extra conditions
+users.filter(u =&gt; u.active &amp;&amp; u.score &gt; 80);
+
+// reduce into a Map (grouping)
+const byRole = users.reduce((acc, u) =&gt; {
+  (acc[u.role] ??= []).push(u);
+  return acc;
+}, {});
+
+// sort with a comparator
+items.sort((a, b) =&gt; a.price - b.price);
+
+// chaining with a custom method
+const words = text.toLowerCase().split(/\s+/).filter(Boolean);
+</code></pre>
+
+<h3>Memoization — a closure doing real work</h3>
+<pre class="code"><code>function memoize(fn) {
+  const cache = new Map();
+  return function (...args) {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) return cache.get(key);
+    const result = fn(...args);
+    cache.set(key, result);
+    return result;
+  };
+}
+
+const slowSquare = memoize(n =&gt; { /* expensive */ return n * n; });
+</code></pre>
+
+<p>This is the payoff of closures: the cache lives inside the returned function, is
+private, and persists for exactly as long as someone holds a reference. No class, no
+global, no cleanup needed.</p>
+
+<div class="note">
+<p><strong>Watch out for:</strong></p>
+<ul>
+<li>Unbounded caches are a memory leak. Add a size limit for real use.</li>
+<li>Caching by <code>JSON.stringify(args)</code> breaks for functions, DOM nodes, and
+circular objects. For objects, use a <code>WeakMap</code> keyed by the object itself.</li>
+</ul>
+</div>
+
+<h3>Composition</h3>
+<pre class="code"><code>const withPrefix = s =&gt; "Mr. " + s;
+const upper = s =&gt; s.toUpperCase();
+const greet = s =&gt; `Hello, ${s}`;
+
+const formal = compose(greet, upper, withPrefix);
+formal("ana");   // "Hello, MR. ANA"
+</code></pre>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>??=</code> (logical assignment) is new-ish and handy: <code>acc[u.role] ??= []</code> creates the array only if it's missing. It also works with <code>||=</code> and <code>&amp;&amp;=</code>.</li><li>Array methods accept an <em>index</em> as a second argument: <code>map((v, i) =&gt; ...)</code> and <code>filter((v, i) =&gt; ...)</code>. <code>reduce</code> gets <code>(acc, value, index, array)</code>.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Build a utility belt</h3>
+
+<p>Write these higher-order functions yourself:</p>
+<ol>
+<li><code>once(fn)</code> — calls <code>fn</code> only the first time; later calls
+return the first result.</li>
+<li><code>debounce(fn, ms)</code> — delays <code>fn</code> until <code>ms</code> have
+passed without another call. (Act 6 Step 6.5.)</li>
+<li><code>curry(fn)</code> — turns <code>f(a, b)</code> into <code>f(a)(b)</code>.</li>
+<li><code>pipe(...fns)</code> — left-to-right function composition.</li>
+</ol>
+<p>Each one takes a function and returns a function. <strong>Each one must be built
+with a closure</strong> — no classes.</p>
+<p>Test <code>debounce</code> by calling it 5 times in 100ms and confirming the function
+only ran once.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li><code>once</code> is: <code>let called = false, result; return (...args) =&gt; { if (!called) { called = true; result = fn(...args); } return result; }</code></li><li><code>debounce</code> needs a timer id in the closure, cleared and re-set on every call.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/6-4-higher-order-functions-functional-patterns.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-6-5-debounce-throttle-requestanimationframe">6.5 — Debounce, Throttle &amp; requestAnimationFrame</h2>
+
+<p class="lede">Keep the UI responsive when the user does things too fast.</p>
+
+
+<h3>The problem</h3>
+<p>Typing in a search box fires an <code>input</code> event on every keystroke. If each
+one triggers an API call, you'll fire 8 requests for an 8-letter word, and 7 of them
+are wasted. Worse, a heavy <code>input</code> handler makes typing feel laggy.</p>
+
+<h3>Debounce — wait until they stop</h3>
+<pre class="code"><code>function debounce(fn, delay) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() =&gt; fn.apply(this, args), delay);
+  };
+}
+
+const search = debounce(() =&gt; fetchResults(input.value), 300);
+input.addEventListener("input", search);
+</code></pre>
+
+<p>The function runs <strong>only after the user stops for 300ms</strong>. Use it for:
+search suggestions, autosave, validation after typing, resize handlers that trigger
+layout.</p>
+
+<h3>Throttle — run at most every N ms</h3>
+<pre class="code"><code>function throttle(fn, interval) {
+  let last = 0, timer = null;
+  return function (...args) {
+    const now = Date.now();
+    const remaining = interval - (now - last);
+    if (remaining &lt;= 0) {
+      clearTimeout(timer);
+      last = now;
+      fn.apply(this, args);
+    } else if (!timer) {
+      timer = setTimeout(() =&gt; {
+        last = Date.now();
+        timer = null;
+        fn.apply(this, args);
+      }, remaining);
+    }
+  };
+}
+</code></pre>
+
+<p>Use it for: scroll handlers, mouse-move handlers, infinite-scroll loading, drag
+tracking.</p>
+
+<table>
+<tr><th></th><th>Debounce</th><th>Throttle</th></tr>
+<tr><td>Runs</td><td>once, after activity stops</td><td>at a fixed maximum rate</td></tr>
+<tr><td>During continuous activity</td><td>never runs</td><td>runs periodically</td></tr>
+<tr><td>Use for</td><td>"the user finished typing"</td><td>"this happens a lot, don't overdo it"</td></tr>
+</table>
+
+<h3>requestAnimationFrame — the right way to animate</h3>
+<pre class="code"><code>function animate() {
+  el.style.transform = `translateX(${x}px)`;
+  x += 1;
+  if (x &lt; 500) requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+</code></pre>
+
+<p><code>rAF</code> runs your callback right before the next repaint, synced to the
+display's refresh rate (usually 60 or 120Hz). It's <strong>far</strong> better than
+<code>setInterval(fn, 16)</code>, because it:</p>
+<ul>
+<li>pauses when the tab is in the background (no wasted work),</li>
+<li>stays in sync with the actual refresh rate,</li>
+<li>is the only correct way to drive a canvas or a smooth drag.</li>
+</ul>
+
+<h3>requestIdleCallback — do low-priority work</h3>
+<pre class="code"><code>requestIdleCallback((deadline) =&gt; {
+  if (deadline.timeRemaining() &gt; 5) {
+    // do a little work while the browser is idle
+  }
+});</code></pre>
+
+<p>Perfect for: prefetching, analytics, pre-computing a list, cleaning up unused
+resources. <strong>Never</strong> use it for anything the user is waiting on.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>The <code>this</code> inside a debounced/throttled function is lost unless you use <code>fn.apply(this, args)</code>. That's exactly what <code>apply</code> is for — this is a legitimate use of it.</li><li><code>requestIdleCallback</code> isn't supported in Safari (as of writing). Feature-detect with <code>if ('requestIdleCallback' in window)</code> and fall back to <code>setTimeout(fn, 1)</code>.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Make it feel instant</h3>
+
+<ol>
+<li>Build a search box that only queries after the user stops typing for 400ms. Log
+every call so you can prove it works.</li>
+<li>Add a debounced <code>window</code> <code>resize</code> handler that logs the new
+width — and show the difference with and without debouncing (scroll a
+<code>resize</code> by dragging the window).</li>
+<li>Implement <code>throttle</code> and use it on a <code>scroll</code> listener that
+updates a "scroll position" readout.</li>
+<li>Rewrite the scroll readout using <code>requestAnimationFrame</code> instead — and
+explain why rAF is smoother here.</li>
+<li>Bonus: use <code>requestIdleCallback</code> to precompute a list of 10,000
+squares while the user is idle, and measure how long it takes.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>For the resize test, use the browser's device toolbar (Ctrl+Shift+M) and rotate it — that fires many resize events quickly.</li><li>A rAF-based scroll handler typically stores the latest scroll value and only re-renders on the next frame: <code>let ticking = false;</code></li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/6-5-debounce-throttle-requestanimationframe.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-6-6-web-workers">6.6 — Web Workers</h2>
+
+<p class="lede">Move CPU-heavy work off the main thread so the page never freezes.</p>
+
+
+<p>JavaScript is single-threaded. A long synchronous calculation blocks everything —
+clicks, scrolling, animations, rendering. The page appears frozen and the browser
+may show the "This page is unresponsive" dialog.</p>
+
+<h3>The solution</h3>
+<pre class="code"><code>// worker.js - a completely separate script, running on its own thread
+self.onmessage = function (e) {
+  const result = heavyWork(e.data);
+  self.postMessage(result);
+};
+
+// main.js
+const worker = new Worker("worker.js");
+worker.postMessage({ data: myBigArray });
+worker.onmessage = (e) =&gt; console.log("result:", e.data);
+</code></pre>
+
+<p>A worker is a full JavaScript environment on a background thread. It has no DOM
+(no <code>document</code>, no <code>window</code>), but it has
+<code>fetch</code>, <code>setTimeout</code>, <code>IndexedDB</code>, and
+<code>postMessage</code>.</p>
+
+<table>
+<tr><th>Main thread</th><th>Worker</th></tr>
+<tr><td>DOM, <code>window</code></td><td><code>self</code>, no DOM</td></tr>
+<tr><td>UI rendering</td><td>no rendering</td></tr>
+<tr><td><code>document.querySelector</code></td><td><strong>not available</strong></td></tr>
+<tr><td><code>fetch</code></td><td><code>fetch</code> (with CORS rules)</td></tr>
+<tr><td>blocking</td><td>never blocks the UI</td></tr>
+</table>
+
+<h3>Transferring data</h3>
+<p>By default, data is <strong>copied</strong> to the worker (structured clone). For
+big typed arrays you can <strong>transfer</strong> instead — zero copy, and the
+original becomes unusable:</p>
+<pre class="code"><code>const buffer = new ArrayBuffer(1024 * 1024 * 50);
+worker.postMessage({ buffer }, [buffer]);   // transfer list
+</code></pre>
+
+<div class="note">
+<p><strong>When you actually need a worker:</strong></p>
+<ul>
+<li>Parsing a huge JSON payload</li>
+<li>Image/video processing (pixel loops)</li>
+<li>Encrypting/decrypting large amounts of data</li>
+<li>Syntax highlighting a huge file</li>
+<li>Complex math (physics, geometry, statistics)</li>
+</ul>
+<p>For a list of 100 items — <strong>don't</strong>. The overhead of starting a worker
+is real. Measure first.</p>
+</div>
+
+<h3>Service workers are different</h3>
+<p>A <strong>Web Worker</strong> does computation. A <strong>Service Worker</strong>
+intercepts network requests — it's a proxy between your app and the network. That one
+is Act 9 Step 9.3.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>You can't create a Worker from a <code>file://</code> page — the browser blocks it (same-origin policy). Serve the folder.</li><li>A worker script must be a separate file (or a Blob URL). You can't inline it in a <code>&lt;script&gt;</code> tag.</li><li>Workers have no access to <code>localStorage</code> — use <code>IndexedDB</code> instead, or pass data via <code>postMessage</code>.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Move it to a worker</h3>
+
+<ol>
+<li>Create <code>worker.js</code> that receives a number and posts back the result of
+the heavy calculation.</li>
+<li>Create <code>index.html</code> that starts the worker, sends the number, and
+displays the result and the elapsed time.</li>
+<li><strong>Serve the folder</strong> (Live Server or <code>python3 -m http.server</code>)
+— workers don't work from <code>file://</code>.</li>
+<li>Compare: run the same work on the main thread and on the worker, and measure both.
+While the worker runs, keep clicking around — the page should stay responsive.</li>
+<li>Add a "Cancel" button that calls <code>worker.terminate()</code>.</li>
+<li>Bonus: send a 50MB <code>ArrayBuffer</code> using the transfer list and measure the
+difference in copy time.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>In the worker, <code>self</code> is the global object (like <code>window</code> in the main thread). Use <code>self.onmessage = (e) =&gt; { self.postMessage(result) }</code>.</li><li><code>worker.terminate()</code> kills the thread immediately — there's no graceful shutdown.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/6-6-web-workers.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-6-7-performance-best-practices">6.7 — Performance &amp; Best Practices</h2>
+
+<p class="lede">Know the handful of rules that cover most real-world performance wins.</p>
+
+
+<h3>The rules that matter most</h3>
+<ol>
+<li><strong>Batch DOM writes.</strong> Changing the DOM repeatedly in a loop forces
+layout recalculation. Write once, at the end. (Read all, then write all — never
+interleave.)</li>
+<li><strong>Animate <code>transform</code> and <code>opacity</code> only.</strong> They
+don't trigger layout or paint. (Act 2 Step 2.10.)</li>
+<li><strong>Use <code>requestAnimationFrame</code> for visual updates</strong>, not
+<code>setInterval</code>. (Act 6 Step 6.5.)</li>
+<li><strong>Debounce/throttle</strong> anything triggered by user activity. (Act 6
+Step 6.5.)</li>
+<li><strong>Lazy-load</strong> images and code you don't need yet:
+<code>loading="lazy"</code> on images, <code>import()</code> for code.</li>
+<li><strong>Do the least work</strong> — a faster algorithm beats any micro-optimisation.
+<code>.filter().map()</code> over 10,000 items is usually fine; sorting 10,000 items
+inside a loop is not.</li>
+</ol>
+
+<h3>Lazy-loading JavaScript</h3>
+<pre class="code"><code>// dynamic import - the chunk is fetched only when needed
+button.addEventListener("click", async () =&gt; {
+  const { openEditor } = await import("./editor.js");
+  openEditor();
+});
+</code></pre>
+
+<p>This is <strong>code splitting</strong>, and it's the single biggest performance
+feature of modern bundlers. React's <code>React.lazy</code> and Next.js's dynamic
+imports are built on exactly this.</p>
+
+<h3>Measuring, not guessing</h3>
+<table>
+<tr><th>Tool</th><th>Question it answers</th></tr>
+<tr><td><strong>Performance panel</strong></td><td>What's slow? Layout, paint, script, or a long task?</td></tr>
+<tr><td><strong>Network panel</strong></td><td>What did I download? How big? How long did the server take?</td></tr>
+<tr><td><strong>Coverage panel</strong></td><td>What CSS/JS did I download but never use?</td></tr>
+<tr><td><strong>Lighthouse</strong></td><td>An overall score: performance, a11y, SEO, best practices</td></tr>
+<tr><td><strong>Memory panel</strong></td><td>What am I leaking?</td></tr>
+</table>
+
+<div class="note">
+<p><strong>The workflow that actually works:</strong> measure → find the bottleneck →
+change one thing → measure again. Never optimise blind. The Performance panel's
+"Frames" and "Main Thread" tracks will show you a red "Long Task" bar if your
+JavaScript is blocking — that's usually the answer.</p>
+</div>
+
+<h3>The Core Web Vitals that matter</h3>
+<table>
+<tr><th>Metric</th><th>Measures</th><th>Good</th></tr>
+<tr><td><strong>LCP</strong></td><td>largest contentful paint — when the main content appears</td><td>&lt; 2.5s</td></tr>
+<tr><td><strong>INP</strong></td><td>interaction to next paint — how fast the UI responds to input</td><td>&lt; 200ms</td></tr>
+<tr><td><strong>CLS</strong></td><td>cumulative layout shift — how much the page jumps</td><td>&lt; 0.1</td></tr>
+</table>
+
+<p>INP is the one you'll feel. A heavy <code>click</code> handler, a big re-render, or a
+long synchronous task all hurt it. Everything in the list above is aimed at INP and
+LCP.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>CLS is caused by content that appears late (images without dimensions, ads, fonts). Setting <code>width</code>/<code>height</code> on images is the biggest fix.</li><li>The Coverage panel shows you unused CSS — it's how you discover that a framework's stylesheet is 200KB and you use 12% of it.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Optimise something real</h3>
+
+<p>Build a page that renders 2,000 list items, then make
+it fast:</p>
+<ol>
+<li>Measure the render time with <code>performance.now()</code> around the render
+call.</li>
+<li>Open DevTools → Performance → record while rendering. What is the long task doing?</li>
+<li>Try three fixes and measure each:
+<ul>
+<li>build the whole list as a string and assign it once with <code>innerHTML</code>
+(much faster, but only safe for trusted data)</li>
+<li>use a <code>DocumentFragment</code> and append it once</li>
+<li>render only the first 50 items and add a "Show more" button</li>
+</ul></li>
+<li>Report the before/after numbers. Which fix won, and why?</li>
+</ol>
+<p>Bonus: use <code>IntersectionObserver</code> to render more items as the user
+scrolls (that's infinite scroll — and it's how you avoid rendering 10,000 items at
+once).</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>A <code>DocumentFragment</code>: <code>const frag = document.createDocumentFragment(); ... frag.appendChild(li); ... list.appendChild(frag);</code> — one DOM insertion instead of 2,000.</li><li><code>IntersectionObserver</code> fires a callback when elements enter the viewport — perfect for lazy rendering.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/6-7-performance-best-practices.html">▶ Open the runnable file for this step</a></p>
+
+<hr>
+
+<div class="ok"><strong>Act 6 checkpoint</strong>
+<p>You now have the full practical JavaScript toolkit: async, APIs, forms, files,
+functional patterns, workers and performance.</p>
+<p>Next act: what the browser is actually doing while all of this runs.</p>
+</div>
+
+<div class="stepnav"><a href="../05-your-five-projects/lesson.html">← Act 5</a><a href="../07-browser-architecture/lesson.html">Act 7 →</a></div>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>React mini-app — no build step</title>
+<link rel="stylesheet" href="./app.css">
+</head>
+<body>
+
+<div id="root">
+  <p style="padding:40px;font-family:system-ui;color:#666">Loading React from esm.sh…</p>
+</div>
+
+<!--
+  A real React app with NO build step.
+
+  Normally you'd write JSX and compile it with Vite / Next.js. Here we use
+  `htm` (Hyperscript Tagged Markup) instead of JSX, so the browser can run
+  the file directly — and you can see the *structure* of React without any
+  tooling getting in the way.
+
+  JSX:        <Counter count={count} onClick={() => setCount(count+1)} />
+  htm:        html`<${Counter} count=${count} onClick=${() => setCount(count+1)} />`
+
+  Same thing. The tag is a function call either way.
+-->
+<script type="module" src="./app.js"></script>
+
+</body>
+</html>

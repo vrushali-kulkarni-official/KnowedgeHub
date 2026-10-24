@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Act 10 — Backend touchpoint demo</title>
+<style>
+  body{font-family:system-ui,-apple-system,sans-serif;line-height:1.6;max-width:860px;margin:0 auto;padding:36px 20px 80px;color:#15151d}
+  h1{font-size:1.9rem;margin:0 0 4px}
+  .lede{color:#5b5b74;margin-top:0}
+  section{border:1px solid #e7e7f1;border-radius:12px;padding:16px 18px;margin:18px 0;background:#fbfbfe}
+  h2{font-size:1.1rem;margin:0 0 10px}
+  button{border:1px solid #d4d4e0;background:#fff;border-radius:8px;padding:7px 13px;cursor:pointer;font-weight:600}
+  button:hover{background:#f1f1f8}
+  button.primary{background:#15151d;color:#fff;border-color:#15151d}
+  input{border:1px solid #d4d4e0;border-radius:8px;padding:7px 10px;font:inherit}
+  pre{background:#101019;color:#d6ffd6;border-radius:10px;padding:12px 14px;font-family:ui-monospace,Menlo,monospace;font-size:.8rem;max-height:260px;overflow:auto;white-space:pre-wrap}
+  ul{padding-left:20px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+  .pill{font-size:.75rem;padding:3px 9px;border-radius:999px;background:#ececf5;color:#44445c;font-weight:600}
+  .ok{background:#d1fae5;color:#065f46}.bad{background:#fee2e2;color:#991b1b}
+</style>
+</head>
+<body>
+
+<span class="pill">Act 10</span>
+<h1>Backend touchpoint — live demo</h1>
+<p class="lede">This page is served by the same Node process that hosts the API, so
+everything below is <strong>same-origin</strong>: no CORS, cookies just work.</p>
+
+<section>
+  <h2>1 · REST — <code>fetch()</code> + JSON</h2>
+  <div class="row">
+    <button class="primary" id="load">GET /api/items</button>
+    <button id="fail">GET /api/boom (500)</button>
+    <input id="new-name" placeholder="New item name" value="Pencil">
+    <button id="create">POST /api/items</button>
+  </div>
+  <ul id="items"></ul>
+  <pre id="rest-out">(click a button)</pre>
+</section>
+
+<section>
+  <h2>2 · Server-Sent Events</h2>
+  <div class="row">
+    <button class="primary" id="sse">Connect to /events</button>
+    <button id="sse-stop">Disconnect</button>
+    <span class="pill" id="sse-state">disconnected</span>
+  </div>
+  <pre id="sse-out">(not connected)</pre>
+</section>
+
+<section>
+  <h2>3 · Webhooks — POST to the server, watch the browser update</h2>
+  <p style="font-size:.92rem;color:#5b5b74">The server broadcasts what it receives to
+  every connected SSE client. Keep the SSE panel open and trigger a webhook.</p>
+  <div class="row">
+    <button class="primary" id="hook">POST /webhooks/demo</button>
+    <button id="hook-bad">POST with a bad signature</button>
+  </div>
+  <pre id="hook-out">(not sent)</pre>
+</section>
+
+<section>
+  <h2>4 · Web Worker — heavy work off the main thread</h2>
+  <div class="row">
+    <button class="primary" id="work">Run 3,000,000 iterations in a worker</button>
+    <span class="pill" id="work-state">idle</span>
+  </div>
+  <pre id="work-out">(click to run)</pre>
+</section>
+
+<script>
+const out = (id, text) => { document.getElementById(id).textContent = text; };
+
+/* ---- 1. REST ---- */
+async function showItems() {
+  const res = await fetch("/api/items");
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const data = await res.json();
+  document.getElementById("items").innerHTML = "";
+  for (const item of data) {
+    const li = document.createElement("li");
+    li.textContent = `${item.name} — $${item.price}  (id: ${item.id})`;
+    document.getElementById("items").appendChild(li);
+  }
+  out("rest-out", `GET /api/items -> ${res.status} ${res.statusText}\n` + JSON.stringify(data, null, 2));
+}
+
+document.getElementById("load").addEventListener("click", async () => {
+  try { await showItems(); } catch (e) { out("rest-out", "Error: " + e.message); }
+});
+
+document.getElementById("fail").addEventListener("click", async () => {
+  const res = await fetch("/api/boom");
+  out("rest-out", `GET /api/boom -> ${res.status} ${res.statusText}\n` +
+    "Note: fetch did NOT throw. response.ok is false. This is why you always check it.");
+});
+
+document.getElementById("create").addEventListener("click", async () => {
+  const name = document.getElementById("new-name").value || "Untitled";
+  const res = await fetch("/api/items", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, price: 9.99 }),
+  });
+  out("rest-out", `POST /api/items -> ${res.status}\n` + JSON.stringify(await res.json(), null, 2));
+  await showItems();
+});
+
+/* ---- 2. SSE ---- */
+let es = null;
+document.getElementById("sse").addEventListener("click", () => {
+  if (es) return;
+  es = new EventSource("/events");
+  const state = document.getElementById("sse-state");
+  es.onopen = () => { state.textContent = "connected"; state.className = "pill ok"; };
+  es.onmessage = (e) => {
+    const el = document.getElementById("sse-out");
+    el.textContent = e.data + "\n" + el.textContent;
+  };
+  es.onerror = () => { state.textContent = "error — retrying"; state.className = "pill bad"; };
+});
+document.getElementById("sse-stop").addEventListener("click", () => {
+  if (es) { es.close(); es = null; }
+  const state = document.getElementById("sse-state");
+  state.textContent = "disconnected"; state.className = "pill";
+});
+
+/* ---- 3. Webhooks ---- */
+document.getElementById("hook").addEventListener("click", async () => {
+  const res = await fetch("/webhooks/demo", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type: "demo.payment", amount: 4200, at: Date.now() }),
+  });
+  out("hook-out", `POST /webhooks/demo -> ${res.status}\n` + JSON.stringify(await res.json(), null, 2) +
+    "\n\nThe event was broadcast to every SSE client — watch panel 2 above.");
+});
+
+document.getElementById("hook-bad").addEventListener("click", async () => {
+  const res = await fetch("/webhooks/demo", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-webhook-signature": "totally-wrong" },
+    body: JSON.stringify({ type: "forged" }),
+  });
+  out("hook-out", `POST (bad signature) -> ${res.status} ${res.statusText}\n` +
+    (await res.text()));
+});
+
+/* ---- 4. Web Worker ---- */
+document.getElementById("work").addEventListener("click", () => {
+  const state = document.getElementById("work-state");
+  state.textContent = "running…"; state.className = "pill";
+  const t0 = performance.now();
+  const worker = new Worker("/worker.js");
+  worker.onmessage = (e) => {
+    out("work-out", `Worker finished in ${e.data.ms}ms (result: ${e.data.result.toFixed(2)})\n` +
+      `Main thread was NOT blocked — try clicking the other buttons while it runs.`);
+    state.textContent = "done"; state.className = "pill ok";
+    worker.terminate();
+  };
+  worker.postMessage({ n: 3_000_000 });
+});
+</script>
+
+</body>
+</html>

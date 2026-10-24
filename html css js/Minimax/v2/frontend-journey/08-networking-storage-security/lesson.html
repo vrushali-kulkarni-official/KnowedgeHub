@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Act 8 — Networking, Storage &amp; Security — Frontend Journey</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+
+</head>
+<body>
+<span class="tag">Act 8 of 12</span>
+
+<h1>Networking, Storage &amp; Security</h1>
+
+<p class="lede">How the web talks to servers, where data lives, and how to not let someone else take over your app.</p>
+
+
+<p>This act covers the parts of the front end that aren't about pixels: how requests
+work, where you store things, and the three attacks you must be able to recognise and
+defend against.</p>
+
+<div class="note">
+<p><strong>Why this matters for you specifically:</strong> these are the topics that
+interviewers ask about, that break production apps, and that separate "I can build a
+website" from "I can build a <em>safe</em> website".</p>
+</div>
+
+
+<div class="toc"><strong>In this act</strong><ol><li><a href="#step-8-1-http-fundamentals">8.1 — HTTP Fundamentals</a></li><li><a href="#step-8-2-client-side-storage">8.2 — Client-Side Storage</a></li><li><a href="#step-8-3-cors">8.3 — CORS</a></li><li><a href="#step-8-4-xss-content-security-policy">8.4 — XSS &amp; Content Security Policy</a></li><li><a href="#step-8-5-csrf-samesite-tokens">8.5 — CSRF, SameSite &amp; Tokens</a></li><li><a href="#step-8-6-jwt-sessions">8.6 — JWT &amp; Sessions</a></li><li><a href="#step-8-7-http-caching">8.7 — HTTP Caching</a></li></ol></div>
+
+<h2 id="step-8-1-http-fundamentals">8.1 — HTTP Fundamentals</h2>
+
+<p class="lede">Understand the request/response model well enough to debug any API problem.</p>
+
+
+<p>Every time your page loads a file, asks for data, or submits a form, the browser
+makes an <strong>HTTP request</strong> and the server sends back an
+<strong>HTTP response</strong>.</p>
+
+<pre class="code"><code>GET /api/users/42 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+Authorization: Bearer eyJhbGci...
+Cookie: session=abc123</code></pre>
+
+<pre class="code"><code>HTTP/1.1 200 OK
+Content-Type: application/json
+Cache-Control: no-store
+Set-Cookie: session=abc123; HttpOnly; Secure; SameSite=Lax
+
+{ "id": 42, "name": "Ana" }</code></pre>
+
+<h3>Methods</h3>
+<table>
+<tr><th>Method</th><th>Means</th><th>Safe?</th><th>Idempotent?</th></tr>
+<tr><td><code>GET</code></td><td>read a resource</td><td>yes</td><td>yes</td></tr>
+<tr><td><code>POST</code></td><td>create / trigger an action</td><td>no</td><td>no</td></tr>
+<tr><td><code>PUT</code></td><td>replace a resource entirely</td><td>no</td><td>yes</td></tr>
+<tr><td><code>PATCH</code></td><td>partially update</td><td>no</td><td>no</td></tr>
+<tr><td><code>DELETE</code></td><td>remove</td><td>no</td><td>yes</td></tr>
+</table>
+<p><strong>Safe</strong> = doesn't change server state. <strong>Idempotent</strong> =
+calling it twice has the same effect as calling it once. These matter for retries and
+caching.</p>
+
+<h3>Status codes</h3>
+<table>
+<tr><th>Code</th><th>Meaning</th><th>What your code should do</th></tr>
+<tr><td>200</td><td>OK</td><td>parse the body</td></tr>
+<tr><td>201</td><td>Created</td><td>parse the body, expect the new resource</td></tr>
+<tr><td>204</td><td>No Content</td><td><strong>don't call <code>.json()</code></strong> — there's no body</td></tr>
+<tr><td>301 / 308</td><td>Permanent redirect</td><td>follow automatically</td></tr>
+<tr><td>302 / 307</td><td>Temporary redirect</td><td>follow automatically</td></tr>
+<tr><td>400</td><td>Bad Request</td><td>your fault — fix the payload</td></tr>
+<tr><td>401</td><td>Unauthorized</td><td><strong>not logged in</strong> (the name is a misnomer)</td></tr>
+<tr><td>403</td><td>Forbidden</td><td>logged in, but not allowed</td></tr>
+<tr><td>404</td><td>Not Found</td><td>the resource doesn't exist</td></tr>
+<tr><td>409</td><td>Conflict</td><td>duplicate, or a stale version</td></tr>
+<tr><td>429</td><td>Too Many Requests</td><td>back off and retry later</td></tr>
+<tr><td>500</td><td>Server Error</td><td>their fault — show a friendly message</td></tr>
+</table>
+
+<div class="warn">
+<p><strong>401 vs 403</strong> trips up everyone: 401 means "who are you?"
+(unauthenticated), 403 means "we know who you are, but no" (unauthorised).</p>
+</div>
+
+<h3>Headers that matter</h3>
+<table>
+<tr><th>Request</th><th>Response</th></tr>
+<tr><td><code>Content-Type</code></td><td><code>Content-Type</code> — what format the body is</td></tr>
+<tr><td><code>Authorization</code></td><td><code>Set-Cookie</code> — the server setting a cookie</td></tr>
+<tr><td><code>Accept</code></td><td><code>Cache-Control</code>, <code>ETag</code> — caching rules</td></tr>
+<tr><td><code>Origin</code></td><td><code>Access-Control-*</code> — CORS permissions</td></tr>
+</table>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>fetch()</code> by default sends <code>Accept: */*</code> and no <code>Content-Type</code> for a GET. Add headers explicitly with <code>headers: { ... }</code>.</li><li>A 204 response has an empty body — calling <code>response.json()</code> on it throws a JSON parse error. Check <code>response.status === 204</code> first, or just check <code>response.ok</code> and only parse if there's content.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Read the wire</h3>
+
+<ol>
+<li>Open DevTools → Network, reload any page, and find the HTML document request.
+Read the status, the request method, and the response headers.</li>
+<li>Find a request that returned 304 (Not Modified) and explain what that means
+(hint: caching, Act 8 Step 8.7).</li>
+<li>Write a script that makes three requests to
+<code>https://jsonplaceholder.typicode.com</code> and logs, for each: the status, the
+<code>content-type</code>, and the number of keys in the parsed body.</li>
+<li>Then make one request to a URL that returns 404 and confirm your error handling
+(not a crash).</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The Network panel's "Headers" tab shows the raw request and response. "Payload" and "Response" tabs show the body.</li><li>A 404 still resolves — <code>response.ok</code> is <code>false</code> but nothing throws. Test both paths.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/8-1-http-fundamentals.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-8-2-client-side-storage">8.2 — Client-Side Storage</h2>
+
+<p class="lede">Choose the right storage mechanism for what you're building.</p>
+
+
+<table>
+<tr><th>Mechanism</th><th>Size</th><th>Sync?</th><th>Sent to server?</th><th>Cleared</th></tr>
+<tr><td><strong>Cookie</strong></td><td>~4KB</td><td>yes</td><td><strong>yes, every request</strong></td><td>manually / on expiry</td></tr>
+<tr><td><strong>localStorage</strong></td><td>~5-10MB</td><td>yes</td><td>no</td><td>never (until cleared)</td></tr>
+<tr><td><strong>sessionStorage</strong></td><td>~5-10MB</td><td>yes</td><td>no</td><td>when the tab closes</td></tr>
+<tr><td><strong>IndexedDB</strong></td><td>large</td><td>no (async)</td><td>no</td><td>manually</td></tr>
+<tr><td><strong>Cache Storage</strong></td><td>large</td><td>no (async)</td><td>no</td><td>manually</td></tr>
+</table>
+
+<h3>Cookies</h3>
+<pre class="code"><code>document.cookie = "theme=dark; path=/; max-age=3600; SameSite=Lax";
+// read (only non-HttpOnly cookies are visible here!)
+document.cookie;</code></pre>
+
+<p>Cookies are special because the <strong>browser attaches them to every request to
+that domain</strong> automatically. That's why auth sessions use them — the server
+doesn't need any client-side code.</p>
+
+<p>Cookie flags:</p>
+<ul>
+<li><code>HttpOnly</code> — JavaScript can't read it. <strong>Always use for session
+tokens.</strong> This is your main defence against token theft via XSS.</li>
+<li><code>Secure</code> — only sent over HTTPS.</li>
+<li><code>SameSite=Lax</code> — not sent on cross-site POSTs. Your main defence
+against CSRF. (Modern browsers default to <code>Lax</code>.)</li>
+<li><code>Path</code>, <code>Max-Age</code>/<code>Expires</code> — scope and lifetime.</li>
+</ul>
+
+<h3>localStorage / sessionStorage</h3>
+<pre class="code"><code>localStorage.setItem("theme", "dark");
+localStorage.getItem("theme");        // "dark" or null
+localStorage.removeItem("theme");
+localStorage.clear();
+
+// objects need JSON
+localStorage.setItem("user", JSON.stringify({ id: 1 }));
+JSON.parse(localStorage.getItem("user"));   // { id: 1 }
+</code></pre>
+
+<div class="warn">
+<p><strong>localStorage is synchronous.</strong> Reading it blocks the main thread.
+For anything large, use IndexedDB. And never store anything sensitive in
+localStorage — it's readable by any script on the page, so one XSS bug and your token
+is gone. (This is the central tension in Act 8 Step 8.6.)</p>
+</div>
+
+<h3>IndexedDB</h3>
+<p>An asynchronous, transactional key-value <em>database</em> in the browser. It can
+store structured data, blobs and files, and it doesn't block the main thread. Its API
+is callback/promise-heavy, which is why most people use a small wrapper library.</p>
+
+<h3>Decision guide</h3>
+<table>
+<tr><th>I need to…</th><th>Use</th></tr>
+<tr><td>Send a token to the server on every request</td><td>Cookie (HttpOnly)</td></tr>
+<tr><td>Remember a user's theme / preferences</td><td>localStorage</td></tr>
+<tr><td>Keep data that dies with the tab</td><td>sessionStorage</td></tr>
+<tr><td>Store a big dataset for offline use</td><td>IndexedDB</td></tr>
+<tr><td>Cache files for offline use</td><td>Cache Storage (+ a Service Worker)</td></tr>
+</table>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>localStorage and sessionStorage throw a <code>SecurityError</code> in some privacy modes. Wrap access in try/catch if that matters.</li><li>Storage is per-origin: <code>http://localhost:3000</code> and <code>http://localhost:3001</code> are different origins and don't share storage. This trips people up constantly in development.</li><li>An <code>HttpOnly</code> cookie is invisible to <code>document.cookie</code> — but it IS still sent with requests. That's the whole point.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A preferences store</h3>
+
+<p>Build a small preferences system:</p>
+<ol>
+<li>Store the user's theme, their name, and their "compact mode" toggle in
+<code>localStorage</code>.</li>
+<li>On page load, read all three and apply them to the page (theme class, name in a
+header, a CSS class for compact mode).</li>
+<li>Save each change immediately as it happens.</li>
+<li>Add a "Reset all" button that clears the app's keys (careful — don't call
+<code>localStorage.clear()</code> if other apps share the origin; remove your own keys
+instead).</li>
+<li>Now move the theme into a <code>document.cookie</code> instead, and explain what
+changed (and why you might <em>not</em> want that).</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>A tiny helper makes this much cleaner: <code>const store = { get(k, d) { return JSON.parse(localStorage.getItem(k)) ?? d }, set(k, v) { localStorage.setItem(k, JSON.stringify(v)) } }</code></li><li>Remember: <code>localStorage.getItem</code> returns <code>null</code> for a missing key, and <code>JSON.parse(null)</code> returns <code>null</code> — not an error.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/8-2-client-side-storage.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-8-3-cors">8.3 — CORS</h2>
+
+<p class="lede">Understand why the browser blocks some requests, and how to fix it.</p>
+
+
+<p><strong>Same-origin policy</strong>: a page on <code>https://a.com</code> may only
+read responses from <code>https://a.com</code>. The "origin" is the triple
+<strong>scheme + host + port</strong> — <code>https://example.com</code> and
+<code>http://example.com</code> are <em>different</em> origins.</p>
+
+<p><strong>CORS</strong> (Cross-Origin Resource Sharing) is the mechanism that lets a
+server explicitly opt out of that restriction for specific origins.</p>
+
+<div class="note">
+<p><strong>The crucial thing:</strong> CORS is enforced by the <em>browser</em>, not
+the server. Your <code>fetch()</code> still goes out, and the server still processes
+it — the browser just <strong>withholds the response</strong> from your JavaScript.
+</p>
+<p>That means: <strong>CORS is not a security control for your server.</strong> It
+protects the <em>browser user's</em> data. A non-browser client (curl, Postman, a
+server-side fetch) ignores CORS entirely.</p>
+</div>
+
+<h3>Simple vs preflight</h3>
+<p>A "simple request" (GET/POST/HEAD, with simple headers like
+<code>Content-Type: application/json</code>… actually JSON is <em>not</em> simple) is
+sent directly, and the server must include
+<code>Access-Control-Allow-Origin</code> in the response.</p>
+
+<p>Anything "non-simple" triggers a <strong>preflight</strong>: the browser first
+sends an <code>OPTIONS</code> request asking permission:</p>
+<pre class="code"><code>OPTIONS /api/users HTTP/1.1
+Origin: https://myapp.com
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: content-type, authorization</code></pre>
+
+<pre class="code"><code>HTTP/1.1 204 No Content
+Access-Control-Allow-Origin: https://myapp.com
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+Access-Control-Allow-Headers: content-type, authorization
+Access-Control-Allow-Credentials: true
+Access-Control-Max-Age: 86400</code></pre>
+
+<p>Only after a successful preflight does the real request go out.</p>
+
+<table>
+<tr><th>Header</th><th>Meaning</th></tr>
+<tr><td><code>Access-Control-Allow-Origin</code></td><td>which origins may read this</td></tr>
+<tr><td><code>Access-Control-Allow-Methods</code></td><td>which methods are allowed</td></tr>
+<tr><td><code>Access-Control-Allow-Headers</code></td><td>which request headers are allowed</td></tr>
+<tr><td><code>Access-Control-Allow-Credentials</code></td><td>allow cookies to be sent</td></tr>
+<tr><td><code>Access-Control-Max-Age</code></td><td>how long to cache the preflight</td></tr>
+</table>
+
+<div class="warn">
+<p><strong>Two rules that surprise people:</strong></p>
+<ol>
+<li>With credentials, you <strong>cannot</strong> use <code>Access-Control-Allow-Origin:
+*</code>. You must name the exact origin. (Because <code>*</code> would allow
+<code>https://evil.com</code> to read the response with the user's cookies.)</li>
+<li>In <code>fetch</code>, sending cookies cross-origin requires
+<code>credentials: "include"</code> — and the server must send
+<code>Access-Control-Allow-Credentials: true</code>.</li>
+</ol>
+</div>
+
+<h3>How to fix a CORS error</h3>
+<ol>
+<li>Read the error in the Console — it names the exact header missing.</li>
+<li>Look at the <strong>Network</strong> panel for the failed request (often it's the
+<code>OPTIONS</code> request, and it's there even though your code never made one).</li>
+<li>If you own the server: configure it (Act 10 Step 10.2).</li>
+<li>If you don't own the server: you can't fix it from the client. Use a proxy on your
+own server, or find an API that allows CORS.</li>
+</ol>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>A <code>file://</code> page has the origin <code>null</code> — which many servers won't allow. That's why fetching from a local file often fails with CORS.</li><li>The preflight <code>OPTIONS</code> request appears in the Network panel. It may be marked as &quot;(blocked)&quot; or hidden behind a filter.</li><li>In the Network panel, DevTools can show you the CORS headers of a response under the response's Headers tab.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Diagnose a CORS failure</h3>
+
+<ol>
+<li>Write a script that fetches from <code>https://api.github.com/users/octocat</code>.
+Does it work? Why or why not?</li>
+<li>Now fetch from an endpoint that definitely doesn't send CORS headers (try
+<code>https://httpbin.org/get</code> or any random API). Read the error message
+carefully — what exactly is it telling you?</li>
+<li>In the Network panel, find the failed request. What type is it (the preflight
+<code>OPTIONS</code> or the actual request)? What status did it get?</li>
+<li>Open a request to a site that <em>does</em> send CORS headers and look at the
+<code>Access-Control-Allow-Origin</code> response header. What does it say?</li>
+<li>Write a short paragraph explaining, in plain English, what you would tell a
+backend developer to fix it.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The Console error usually says: "Access to fetch at '...' from origin '...' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource."</li><li>The GitHub API works because it sends <code>Access-Control-Allow-Origin: *</code>.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/8-3-cors.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-8-4-xss-content-security-policy">8.4 — XSS &amp; Content Security Policy</h2>
+
+<p class="lede">Recognise the three kinds of cross-site scripting and defend against them.</p>
+
+
+<p><strong>XSS</strong> (Cross-Site Scripting) = your app runs attacker-controlled
+JavaScript in a user's browser. If it works, the attacker can read the user's page,
+steal their session token, and act as them. It's the <em>most common</em> web
+vulnerability, and it is entirely preventable.</p>
+
+<h3>The three kinds</h3>
+<table>
+<tr><th>Type</th><th>How the payload arrives</th><th>Example</th></tr>
+<tr><td><strong>Reflected</strong></td><td>in the URL</td><td><code>/search?q=&lt;script&gt;...&lt;/script&gt;</code></td></tr>
+<tr><td><strong>Stored</strong></td><td>saved in a database, shown to other users</td><td>a comment containing a script</td></tr>
+<tr><td><strong>DOM-based</strong></td><td>never sent to the server — pure client-side</td><td><code>location.hash</code> → <code>innerHTML</code></td></tr>
+</table>
+
+<p>The DOM-based one is the one to watch in modern apps, because it can hide in a
+client-side framework with no server involvement at all.</p>
+
+<h3>How it happens</h3>
+<pre class="code"><code>// VULNERABLE - innerHTML parses and executes
+el.innerHTML = userInput;
+
+// ALSO VULNERABLE - building HTML strings
+el.innerHTML = `&lt;p&gt;${userInput}&lt;/p&gt;`;
+
+// SAFE - textContent inserts text, never markup
+el.textContent = userInput;
+
+// SAFE - and if you must use innerHTML, sanitize first
+el.innerHTML = DOMPurify.sanitize(userInput);
+</code></pre>
+
+<div class="note">
+<p><strong>The rule:</strong> <code>innerHTML</code> is only safe for strings <em>you</em>
+wrote. <code>textContent</code> is safe for anything. If a framework gives you
+"dangerouslySetInnerHTML", that's the framework telling you the same thing.</p>
+</div>
+
+<h3>Defence in depth</h3>
+<ol>
+<li><strong>Don't inject.</strong> <code>textContent</code> over <code>innerHTML</code>.
+This alone stops the vast majority of XSS.</li>
+<li><strong>Sanitize when you must.</strong> DOMPurify is the standard. Never write
+your own sanitizer.</li>
+<li><strong>Use a CSP</strong> (Content Security Policy) — the browser's last line of
+defence.</li>
+<li><strong>Escape on the server too</strong> — defence in depth, because other
+clients consume your API.</li>
+<li><strong>HttpOnly cookies</strong> — so even if XSS happens, the token can't be
+read.</li>
+</ol>
+
+<h3>Content Security Policy</h3>
+<pre class="code"><code>&lt;meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; object-src 'none'"&gt;</code></pre>
+
+<table>
+<tr><th>Directive</th><th>Controls</th></tr>
+<tr><td><code>default-src</code></td><td>the fallback for everything else</td></tr>
+<tr><td><code>script-src</code></td><td>where scripts may come from</td></tr>
+<tr><td><code>style-src</code></td><td>where styles may come from</td></tr>
+<tr><td><code>img-src</code></td><td>where images may come from</td></tr>
+<tr><td><code>connect-src</code></td><td>where fetch/XHR may connect</td></tr>
+<tr><td><code>frame-ancestors</code></td><td>who may embed this page (clickjacking)</td></tr>
+<tr><td><code>object-src 'none'</code></td><td>kill plugins (legacy XSS vector)</td></tr>
+</table>
+
+<div class="warn">
+<p><strong>Strict CSP, no <code>'unsafe-inline'</code>.</strong> A CSP that allows
+inline scripts allows inline scripts — an attacker who can inject a
+<code>&lt;script&gt;</code> tag can also bypass it. The modern strict version:</p>
+<pre class="code"><code>script-src 'self' 'nonce-{random-per-response}'</code></pre>
+<p>Each allowed script tag gets a unique nonce that the attacker can't know. This is
+how frameworks like Next.js implement CSP without breaking inline scripts.</p>
+</div>
+
+<h3>Other browser security headers</h3>
+<table>
+<tr><th>Header</th><th>Does</th></tr>
+<tr><td><code>Content-Security-Policy</code></td><td>restricts what the page may load/run</td></tr>
+<tr><td><code>X-Frame-Options</code> / <code>frame-ancestors</code></td><td>prevents clickjacking</td></tr>
+<tr><td><code>Strict-Transport-Security</code> (HSTS)</td><td>forces HTTPS</td></tr>
+<tr><td><code>Referrer-Policy</code></td><td>controls how much URL is leaked in the Referer header</td></tr>
+<tr><td><code>X-Content-Type-Options: nosniff</code></td><td>stops MIME sniffing</td></tr>
+</table>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>React escapes <code>{"..."}</code> by default, so setting <code>innerHTML</code>-like behaviour requires <code>dangerouslySetInnerHTML</code>. That name is a warning, not a convenience.</li><li>A CSP violation shows up in the Console as "Refused to execute inline script". That's the CSP working.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Prove the difference</h3>
+
+<ol>
+<li>Use the input above to paste
+<code>&lt;img src=x onerror="console.log('XSS!')"&gt;</code>. With the safe renderer,
+nothing happens. Now call the unsafe renderer on the same input. <strong>What
+happens?</strong></li>
+<li>Add a CSP to the page via a <code>&lt;meta http-equiv="Content-Security-Policy"&gt;</code>
+tag with <code>script-src 'self'</code> and try again. <strong>What does the Console
+say now?</strong></li>
+<li>Write a <code>renderUserList</code> function that takes an array of
+<code>{ name, bio }</code> and renders them safely. Then find the <em>one</em> place
+where you'd need <code>innerHTML</code> and explain what you'd do instead.</li>
+<li>Explain, in two sentences, why <code>textContent</code> is safe and
+<code>innerHTML</code> is not — in terms of what the browser does with the string.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>An <code>onerror</code> handler fires when the image fails to load — it's a reliable way to execute JS without a <code>&lt;script&gt;</code> tag.</li><li>The CSP message names the exact directive that blocked it.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/8-4-xss-content-security-policy.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-8-5-csrf-samesite-tokens">8.5 — CSRF, SameSite &amp; Tokens</h2>
+
+<p class="lede">Understand cross-site request forgery and how modern cookies mostly solve it.</p>
+
+
+<p><strong>CSRF</strong> (Cross-Site Request Forgery): the attacker can't read your
+data, but they can make your browser <em>send</em> a request to a site where you're
+logged in — because the browser attaches your cookies automatically.</p>
+
+<pre class="code"><code>&lt;!-- on evil.com, while you're logged into bank.com --&gt;
+&lt;form action="https://bank.com/transfer" method="POST"&gt;
+  &lt;input name="to" value="attacker"&gt;
+  &lt;input name="amount" value="10000"&gt;
+&lt;/form&gt;
+&lt;script&gt;document.forms[0].submit()&lt;/script&gt;</code></pre>
+
+<p>The browser sends the request with your session cookie. The server can't tell it
+apart from a legitimate one — because, from its point of view, it's a normal request
+from an authenticated browser.</p>
+
+<h3>Defences</h3>
+<ol>
+<li><strong><code>SameSite</code> cookies</strong> — the modern default answer.
+<ul>
+<li><code>SameSite=Strict</code> — the cookie is never sent on cross-site requests
+at all. Breaks nothing if you're a pure SPA; breaks things if you land on your site
+from an external link (you'd appear logged out for one request).</li>
+<li><code>SameSite=Lax</code> — sent on top-level GET navigations, not on
+cross-site POSTs. <strong>This is the modern default</strong> and the right choice for
+almost everything.</li>
+<li><code>SameSite=None</code> — always sent, requires <code>Secure</code>. Needed
+for genuine cross-site embedding (e.g. Stripe iframes).</li>
+</ul></li>
+<li><strong>CSRF tokens</strong> — the server embeds a random token in the form, and
+checks it on submission. The attacker's page can't read your page, so it can't
+produce a valid token. The classic <code>double-submit cookie</code> pattern is a
+practical variant.</li>
+<li><strong>Custom headers</strong> — a <code>Authorization</code> header set by
+JavaScript triggers a preflight, which a cross-site form can't cause. This is why
+token-based APIs are inherently CSRF-resistant.</li>
+<li><strong>Check the <code>Origin</code> header</strong> server-side.</li>
+</ol>
+
+<div class="note">
+<p><strong>The clean modern rule:</strong> for a same-site SPA, use
+<code>SameSite=Lax</code> (or Strict) session cookies, and you're protected from CSRF
+without a token. If you need cross-site embedding, add CSRF tokens.</p>
+</div>
+
+<h3>The related attack: clickjacking</h3>
+<p>An attacker iframes your page and overlays a transparent button, tricking a user
+into clicking it. Defended by <code>frame-ancestors 'none'</code> (or the older
+<code>X-Frame-Options: DENY</code>).</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>CSRF requires the server to rely on cookies alone. If your API requires an <code>Authorization</code> header (a JWT), CSRF isn't possible — because a cross-site form can't set custom headers.</li><li><code>SameSite=None</code> without <code>Secure</code> is rejected by modern browsers.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Spot the vulnerable design</h3>
+
+<p>For each scenario, decide: <strong>is it vulnerable to
+CSRF? What should the server do?</strong></p>
+<ol>
+<li>A banking site where the session is a <code>HttpOnly; SameSite=Strict</code>
+cookie, and actions are triggered by <code>POST</code> forms.</li>
+<li>An API where the client sends <code>Authorization: Bearer &lt;jwt&gt;</code> on
+every request.</li>
+<li>A legacy internal tool that uses a session cookie with no <code>SameSite</code>
+attribute and <code>POST</code> endpoints.</li>
+</ol>
+<p>Then: for scenario 3, list the three mitigations you could apply (cookie's
+<code>SameSite</code>, a CSRF token, and checking the <code>Origin</code> header) and
+explain what each one stops.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The key question for each: "does the browser attach the victim's credentials to a request the attacker can trigger?"</li><li>A CSRF token must be <em>unpredictable</em> and <em>bound to the session</em> — otherwise the attacker can guess it.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/8-5-csrf-samesite-tokens.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-8-6-jwt-sessions">8.6 — JWT &amp; Sessions</h2>
+
+<p class="lede">Understand what a JWT is, what it is not, and where to store one safely.</p>
+
+
+<p>A <strong>JWT</strong> (JSON Web Token) is a compact, signed, self-contained token
+that carries claims. It's three base64url segments separated by dots:</p>
+
+<pre class="code"><code>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQyLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDAwMDAwMDB9.Xk3abc123signature
+└──────── header ────────┘ └────────── payload ──────────┘ └── signature ──┘</code></pre>
+
+<ul>
+<li><strong>Header</strong> — the algorithm (<code>HS256</code>, <code>RS256</code>).</li>
+<li><strong>Payload</strong> — the claims: <code>sub</code> (subject/user id),
+<code>iat</code> (issued at), <code>exp</code> (expiry), plus whatever you add.</li>
+<li><strong>Signature</strong> — proves the token wasn't tampered with. The server
+verifies it with a secret key.</li>
+</ul>
+
+<h3>Decoding a JWT client-side</h3>
+<pre class="code"><code>function decode(token) {
+  const payload = token.split(".")[1];
+  const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+  return JSON.parse(json);
+}
+
+const claims = decode(token);
+console.log(claims.exp, new Date(claims.exp * 1000));
+</code></pre>
+
+<div class="warn">
+<p><strong>You can decode a JWT, but you cannot trust it.</strong> The payload is
+base64-encoded, not encrypted — anyone can read it. And you cannot verify the
+signature in the browser (that requires the secret key). <strong>Always treat a
+client-decoded JWT as untrusted display data.</strong> The server must verify it on
+every request.</p>
+<p>Never put secrets in a JWT payload. It is <em>visible to the user</em>.</p>
+</div>
+
+<h3>Access tokens vs refresh tokens</h3>
+<table>
+<tr><th></th><th>Access token</th><th>Refresh token</th></tr>
+<tr><td>Lifetime</td><td>short (5-60 min)</td><td>long (days-weeks)</td></tr>
+<tr><td>Sent with</td><td>every API request</td><td>only to the refresh endpoint</td></tr>
+<tr><td>Contains</td><td>claims</td><td>a token ID</td></tr>
+<tr><td>Revocable</td><td>hard (until it expires)</td><td>easy (server-side list)</td></tr>
+</table>
+
+<h3>Where to store the access token</h3>
+<table>
+<tr><th>Storage</th><th>XSS risk</th><th>CSRF risk</th><th>Verdict</th></tr>
+<tr><td><code>localStorage</code></td><td><strong>high</strong> — readable by any script</td><td>none</td><td>simple, common, risky</td></tr>
+<tr><td><code>sessionStorage</code></td><td>high</td><td>none</td><td>same, but per-tab</td></tr>
+<tr><td><code>HttpOnly</code> cookie</td><td>none — JS can't read it</td><td><strong>yes</strong> (mitigated by SameSite)</td><td>strongest with SameSite=Lax</td></tr>
+<tr><td>in-memory variable</td><td>high (but gone on refresh)</td><td>none</td><td>needs a refresh flow</td></tr>
+</table>
+
+<p>The modern consensus for a web app that needs <code>Authorization</code> headers:
+<strong>HttpOnly cookie + SameSite + CSRF protection</strong>. For a pure SPA with a
+backend you also control, the <code>HttpOnly</code> cookie wins on security. The
+"JWT in localStorage" pattern is common because it's easy, and it's genuinely
+weaker.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>atob</code> is the browser's base64 decoder. JWT uses base64<em>url</em>, so you must replace <code>-</code> with <code>+</code> and <code>_</code> with <code>/</code> — and pad with <code>=</code> if needed.</li><li><code>atob</code> gives you a binary string. For UTF-8 text, use <code>decodeURIComponent(escape(atob(s)))</code> or <code>TextDecoder</code>.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Build an auth helper</h3>
+
+<ol>
+<li>Write <code>decodeToken(token)</code> that safely extracts the payload, and
+returns <code>null</code> for a malformed token (no try/catch crash).</li>
+<li>Write <code>isExpired(token)</code> using the <code>exp</code> claim.</li>
+<li>Write <code>isAdmin(token)</code> reading the <code>role</code> claim — and add a
+comment saying this is <strong>display only</strong> and the server must check
+authorisation itself.</li>
+<li>Write <code>setSession(token)</code> and <code>getSession()</code> using
+<code>localStorage</code>, and <code>clearSession()</code>.</li>
+<li>Now the important part: write a short note (in a comment) explaining what would
+change if you used an <code>HttpOnly</code> cookie instead, and what you'd lose (the
+ability to read the token from JavaScript).</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Wrap <code>JSON.parse</code> in a try/catch — a malformed token is a normal thing to encounter.</li><li><code>Date.now()</code> is milliseconds; JWT's <code>exp</code> is seconds. Divide by 1000.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/8-6-jwt-sessions.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-8-7-http-caching">8.7 — HTTP Caching</h2>
+
+<p class="lede">Understand how browsers cache, and how to make your app load fast on a second visit.</p>
+
+
+<p>Caching lets the browser skip the network entirely for resources it already has.
+Two strategies:</p>
+
+<h3>1. Cache-Control (freshness)</h3>
+<pre class="code"><code>Cache-Control: max-age=3600          // fresh for 1 hour
+Cache-Control: no-cache          // always revalidate (but may still 304)
+Cache-Control: no-store          // never cache (sensitive data)
+Cache-Control: public, max-age=31536000, immutable   // for hashed assets
+Cache-Control: private, max-age=0   // only the browser may cache it
+</code></pre>
+
+<h3>2. ETag / If-None-Match (revalidation)</h3>
+<p>When a cached resource goes stale, the browser asks "has it changed?":</p>
+<pre class="code"><code>GET /app.js HTTP/1.1
+If-None-Match: "abc123"
+
+HTTP/1.1 304 Not Modified
+ETag: "abc123"</code></pre>
+
+<p>304 means "your copy is still good" — no body is sent, and the browser uses its
+cached copy. That's how a "hard refresh" is actually cheap.</p>
+
+<h3>The good pattern for assets</h3>
+<p>Build tools put a content hash in the filename: <code>app.9f3a2b.js</code>. If the
+content changes, the filename changes, so you can cache it
+<strong>forever</strong>:</p>
+<pre class="code"><code>&lt;script src="/app.9f3a2b.js"&gt;&lt;/script&gt;   &lt;!-- cache for a year --&gt;
+&lt;link rel="stylesheet" href="/app.9f3a2b.css"&gt;</code></pre>
+
+<p>Meanwhile <code>index.html</code> should <strong>not</strong> be cached hard, so
+users get the new asset filenames immediately:
+<code>Cache-Control: no-cache</code>.</p>
+
+<div class="note">
+<p><strong>The rule of thumb:</strong> hashed filenames → cache forever.
+HTML → revalidate every time.</p>
+</div>
+
+<h3>Cache-Control vs localStorage</h3>
+<p>They're different tools. The HTTP cache stores <em>responses</em> (images, JS, CSS)
+and is managed by the browser with heuristics you don't control precisely.
+<code>localStorage</code> stores <em>your data</em> and is entirely under your
+control. Don't cache API responses in localStorage by default — use the HTTP cache
+and <code>ETag</code> revalidation, which is far more efficient.</p>
+
+<h3>Seeing it work</h3>
+<p>In DevTools → Network, check the "Disable cache" box and compare:</p>
+<ul>
+<li>First load: many 200s with full bodies</li>
+<li>Reload: 304s (or "from memory cache" / "from disk cache")</li>
+</ul>
+<p>The Size column shows "(disk cache)" vs the actual transfer size. That's the metric
+that matters — <strong>transfer size</strong>, not content size.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>The Network panel's Size column shows two numbers: the transferred size and the decoded size. A cached resource shows 0 B transferred.</li><li>In DevTools, the "Disable cache" checkbox only works while DevTools is open — that's why a normal reload may look cached when a hard reload doesn't.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Make the second load instant</h3>
+
+<ol>
+<li>Build a page with a CSS file, a JS file, and a large image, all external.</li>
+<li>Load it once with the Network panel open. Note the transfer size of each.</li>
+<li>Reload. <strong>Which requests were served from cache? What did the transfer size
+become?</strong></li>
+<li>Add <code>Cache-Control: public, max-age=31536000, immutable</code> to the CSS and
+JS (via a local server — Act 10) and reload. What changed?</li>
+<li>Explain why you would <em>not</em> set a one-year cache on
+<code>index.html</code>.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>You need a server to set response headers — a <code>file://</code> page can't. Act 10 Step 10.2 sets one up in 20 lines.</li><li>The Network panel shows "(memory cache)" for resources used in the current page load, and "(disk cache)" for ones from a previous visit.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/8-7-http-caching.html">▶ Open the runnable file for this step</a></p>
+
+<hr>
+
+<div class="ok"><strong>Act 8 checkpoint</strong>
+<p>You now understand the network, the storage options, and the three attacks that
+every front-end developer needs to understand: XSS, CSRF, and CORS mistakes.</p>
+</div>
+
+<div class="stepnav"><a href="../07-browser-architecture/lesson.html">← Act 7</a><a href="../09-modern-apis/lesson.html">Act 9 →</a></div>
+</body>
+</html>

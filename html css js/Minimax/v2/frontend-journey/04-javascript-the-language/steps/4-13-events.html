@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4.13 Events — Act 4: JavaScript — The Language</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+<script>
+(function(){
+  var out = document.getElementById('out');
+  if(!out) return;
+  function fmt(v){
+    if (typeof v === 'string') return v;
+    if (v instanceof Error) return v.name + ': ' + v.message;
+    try { return JSON.stringify(v); } catch(e){ return String(v); }
+  }
+  ['log','info','warn','error'].forEach(function(k){
+    var orig = console[k].bind(console);
+    console[k] = function(){
+      orig.apply(null, arguments);
+      out.textContent += Array.prototype.map.call(arguments, fmt).join(' ') + '\n';
+      out.scrollTop = out.scrollHeight;
+    };
+  });
+})();
+</script>
+<script>
+const outer = document.querySelector("#demo-outer");
+const inner = document.querySelector("#demo-inner");
+const out = document.querySelector("#demo-out");
+
+inner.addEventListener("click", (e) => {
+  console.log("1. button listener, target =", e.target.tagName);
+  out.textContent = "Button handler ran.";
+});
+outer.addEventListener("click", (e) => {
+  console.log("2. parent listener (bubbled from)", e.target.tagName);
+});
+document.addEventListener("click", () => {
+  console.log("3. document listener (bubbled all the way up)");
+});
+
+// delegation on a list
+const list = document.querySelector("#demo-list");
+list.addEventListener("click", (e) => {
+  const item = e.target.closest("li");
+  if (!item) return;
+  console.log("delegated click on:", item.textContent);
+});
+</script>
+</head>
+<body>
+<span class="tag">Act 4 · Step 4.13</span>
+
+<h1>Events</h1>
+
+<p class="lede">Make the page respond — and understand bubbling, which explains 80% of event bugs.</p>
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>event.target</code> is the deepest element clicked; <code>event.currentTarget</code> is the element with the listener. They differ when an event bubbles — use <code>currentTarget</code> inside the handler.</li><li>Use <code>event.preventDefault()</code> on <code>submit</code>, on <code>click</code> on links you handle yourself, and on checkbox/radio clicks you want to intercept.</li><li><code>keydown</code> fires for every key; check <code>event.key === "Enter"</code> rather than assuming.</li></ul></div>
+
+
+<div class="demo" id="demo-outer" style="border:1px dashed #c9c9dd;border-radius:10px;padding:14px 16px">
+<h3>Event bubbling</h3>
+<button id="demo-inner" class="rounded border border-gray-300 px-3 py-1.5">Click me</button>
+<p id="demo-out" class="mt-2 text-sm text-gray-600">Watch the console.</p>
+</div>
+
+
+<div class="outlabel">Console output</div>
+
+<pre id="out"></pre>
+
+<div class="challenge"><h3>Challenge — A delegated todo list</h3>
+
+<p>Build a small list where clicking any item toggles a
+"done" class on it — using <strong>event delegation</strong> (one listener on the
+<code>&lt;ul&gt;</code>, not one per item).</p>
+<ol>
+<li>Create the HTML: a <code>&lt;ul&gt;</code> with 4 items and a button "Add item".</li>
+<li>Attach <strong>one</strong> <code>click</code> listener to the <code>&lt;ul&gt;</code>
+that toggles a <code>done</code> class on the clicked item.</li>
+<li>Define <code>.done</code> in a <code>&lt;style&gt;</code> block (e.g. line-through
+and greyed out).</li>
+<li>Make the "Add item" button append a new <code>&lt;li&gt;</code> — and notice that
+<strong>the new item works immediately</strong>, with no extra listener. That's the
+power of delegation. Comment this in your code.</li>
+<li>Bonus: handle clicks on a <em>child element</em> inside the <code>&lt;li&gt;</code>
+(a delete <code>&lt;button&gt;</code>) and use <code>closest()</code> to find the
+right <code>&lt;li&gt;</code>.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li><code>event.target.closest("li")</code> walks up from the clicked element to the nearest matching ancestor — essential when the click lands on a child.</li><li>If <code>closest()</code> returns <code>null</code>, the click was on the <code>&lt;ul&gt;</code> itself. Return early.</li></ul></details>
+
+</div>
+
+<div class="stepnav"><a href="../lesson.html">← Full Act 4 lesson</a><a href="4-14-modules-npm.html">Next step →</a></div>
+</body>
+</html>

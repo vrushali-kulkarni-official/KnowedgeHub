@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5.5 Project 5 — Show / Hide Sidebar — Act 5: Your Five Projects</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+<script>
+(function(){
+  var out = document.getElementById('out');
+  if(!out) return;
+  function fmt(v){
+    if (typeof v === 'string') return v;
+    if (v instanceof Error) return v.name + ': ' + v.message;
+    try { return JSON.stringify(v); } catch(e){ return String(v); }
+  }
+  ['log','info','warn','error'].forEach(function(k){
+    var orig = console[k].bind(console);
+    console[k] = function(){
+      orig.apply(null, arguments);
+      out.textContent += Array.prototype.map.call(arguments, fmt).join(' ') + '\n';
+      out.scrollTop = out.scrollHeight;
+    };
+  });
+})();
+</script>
+<script>
+const sidebar = document.querySelector("#pj5-side");
+const btn = document.querySelector("#pj5-btn");
+
+let open = true;
+
+function render() {
+  sidebar.classList.toggle("closed", !open);
+  sidebar.setAttribute("inert", String(!open));
+  btn.setAttribute("aria-expanded", String(open));
+  btn.textContent = open ? "Hide sidebar" : "Show sidebar";
+}
+
+btn.addEventListener("click", () => {
+  open = !open;
+  render();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "b" && !e.metaKey && !e.ctrlKey && e.target.tagName !== "INPUT") {
+    open = !open;
+    render();
+  }
+});
+
+render();
+</script>
+</head>
+<body>
+<span class="tag">Act 5 · Step 5.5</span>
+
+<h1>Project 5 — Show / Hide Sidebar</h1>
+
+<p class="lede">The most common real UI pattern: a toggle that changes layout — and the accessibility details that make it good.</p>
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>inert</code> on the closed sidebar removes it from the tab order and from screen readers, without removing it from the layout (so the transition still works).</li><li>The <code>transition</code> should be on the <em>sidebar</em>, and the class toggled on it — not on the parent, or you'll animate the wrong element.</li></ul></div>
+
+
+<style>
+.pj5 { display: flex; gap: 10px; align-items: flex-start; }
+.pj5-side { width: 190px; flex: 0 0 auto; background: #f1f1f8; border-radius: 10px;
+  padding: 12px; transition: transform .28s ease, opacity .28s ease; }
+.pj5-side.closed { transform: translateX(-105%); opacity: 0; pointer-events: none; }
+.pj5-side a { display: block; padding: 6px 8px; color: #33334a; text-decoration: none;
+  border-radius: 6px; font-size: .9rem; }
+.pj5-side a:hover { background: #e3e3ef; }
+.pj5-main { flex: 1; }
+.pj5-btn { border: 1px solid #d4d4e0; background: #fff; border-radius: 8px; padding: 7px 14px;
+  cursor: pointer; font-weight: 600; margin-bottom: 10px; }
+</style>
+<div class="pj5">
+  <div class="pj5-side" id="pj5-side">
+    <strong style="display:block;margin-bottom:8px">Dashboard</strong>
+    <a href="#">Overview</a><a href="#">Analytics</a><a href="#">Reports</a><a href="#">Settings</a>
+  </div>
+  <div class="pj5-main">
+    <button class="pj5-btn" id="pj5-btn" aria-expanded="true" aria-controls="pj5-side">Hide sidebar</button>
+    <p style="font-size:.9rem;color:#5b5b74;margin:0">The sidebar animates out, and the button reports its state with <code>aria-expanded</code>.</p>
+  </div>
+</div>
+
+
+<div class="outlabel">Console output</div>
+
+<pre id="out"></pre>
+
+<div class="challenge"><h3>Challenge — Extend it</h3>
+
+<ol>
+<li>Add a keyboard shortcut (<code>[</code> or <code>B</code>) to toggle — done above,
+but make sure it doesn't fire while the user is typing in an input.</li>
+<li>Persist the open/closed state in <code>localStorage</code>, and restore it on
+load.</li>
+<li>On small screens, make the sidebar an <strong>overlay</strong> (position fixed,
+full height) with a dark backdrop behind it that closes the sidebar when clicked.</li>
+<li>Add <code>inert</code> to the main content while the mobile overlay is open, so
+tabbing doesn't wander behind the overlay.</li>
+<li>Add a subtle animation: the sidebar slides, and the main content shifts.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Overlay: <code>position: fixed; inset: 0 auto 0 0; width: 260px; z-index: 40;</code> and the backdrop <code>position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 30;</code></li><li>To close on backdrop click, give the backdrop an id and attach a listener to it.</li></ul></details>
+
+</div>
+
+<div class="stepnav"><a href="../lesson.html">← Full Act 5 lesson</a><a href="../../06-advanced-javascript/lesson.html">Next act →</a></div>
+</body>
+</html>

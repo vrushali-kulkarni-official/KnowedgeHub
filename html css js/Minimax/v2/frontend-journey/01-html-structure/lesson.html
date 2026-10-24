@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Act 1 — HTML — Structure — Frontend Journey</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+
+</head>
+<body>
+<span class="tag">Act 1 of 12</span>
+
+<h1>HTML — Structure</h1>
+
+<p class="lede">HTML is a description of structure. Once this act clicks, the rest of the web makes far more sense.</p>
+
+
+<p>You already know how to program, so HTML is going to feel <em>small</em> — and it
+should. There's no logic in it. No variables, no loops, no functions. It's a static
+description of structure, and your only job is to describe that structure correctly.</p>
+
+<div class="py">
+<p><strong>The one-sentence version:</strong> Python is a program you write; HTML is a
+result you write down.</p>
+<pre class="code"><code># Python — you write instructions, the machine executes them
+def build_page():
+    return "&lt;h1&gt;Hello&lt;/h1&gt;"</code></pre>
+<pre class="code"><code>&lt;!-- HTML — you write the result, the browser reads it --&gt;
+&lt;h1&gt;Hello&lt;/h1&gt;</code></pre>
+</div>
+
+<p>An HTML document is essentially a nested literal you write by hand, which the browser
+interprets and turns into real objects in memory:</p>
+<pre class="code"><code>page = {                     page =
+  "tag": "html",               &lt;html&gt;
+  "children": [                &lt;head&gt;...&lt;/head&gt;
+    {"tag": "head"},            &lt;body&gt;
+    {"tag": "body"},            &lt;/body&gt;
+  ]                          &lt;/html&gt;
+}</code></pre>
+<p>That in-memory tree is the <strong>DOM</strong> (Document Object Model). You met it as a
+word today; in Act 4 you'll be mutating it directly. Today we only write the source.</p>
+
+
+<div class="toc"><strong>In this act</strong><ol><li><a href="#step-1-1-html-describes-it-doesn-t-do">1.1 — HTML Describes, It Doesn't Do</a></li><li><a href="#step-1-2-anatomy-of-a-tag">1.2 — Anatomy of a Tag</a></li><li><a href="#step-1-3-the-document-skeleton">1.3 — The Document Skeleton</a></li><li><a href="#step-1-4-nesting-the-forgiving-parser">1.4 — Nesting &amp; the Forgiving Parser</a></li><li><a href="#step-1-5-the-vocabulary-of-a-page">1.5 — The Vocabulary of a Page</a></li><li><a href="#step-1-6-headings-lists-text-semantics">1.6 — Headings, Lists &amp; Text Semantics</a></li><li><a href="#step-1-7-attributes-are-hooks">1.7 — Attributes Are Hooks</a></li><li><a href="#step-1-8-forms-inputs">1.8 — Forms &amp; Inputs</a></li><li><a href="#step-1-9-images-links-entities">1.9 — Images, Links &amp; Entities</a></li></ol></div>
+
+<h2 id="step-1-1-html-describes-it-doesn-t-do">1.1 — HTML Describes, It Doesn't Do</h2>
+
+<p class="lede">Lock in the mental model: HTML is a static description of structure, not a program.</p>
+
+
+<p>Compare the two languages you already know in your head:</p>
+<table>
+<tr><th></th><th>Python</th><th>HTML</th></tr>
+<tr><td>You write</td><td>instructions</td><td>the finished structure</td></tr>
+<tr><td>Who executes it</td><td>the Python interpreter</td><td>the browser</td></tr>
+<tr><td>Logic</td><td>conditionals, loops, functions</td><td>none whatsoever</td></tr>
+<tr><td>Output</td><td>whatever your program decides</td><td>always the same, for a given file</td></tr>
+</table>
+
+<p>There is no <code>if</code> in HTML. There is no <code>for</code>. If you find yourself
+wanting either, you want JavaScript — and that's fine, that's what it's for. Act 4 gives
+you the language that actually computes.</p>
+
+<h3>The consequence that will save you hours</h3>
+<div class="warn">
+<p><strong>HTML never raises an error.</strong> Python throws <code>NameError</code> on a
+typo. HTML silently "corrects" your mistake and renders something you didn't ask for. It
+will not tell you. It will not even tell the console.</p>
+<p><strong>Your debugging rule, for the rest of your career:</strong> when the browser does
+something you didn't expect, stop staring at your source and open the
+<strong>DOM</strong> in DevTools. The browser may have rewritten your code.</p>
+</div>
+
+<p>This is the single most important habit in this act. HTML is <em>error-tolerant by
+design</em> — the parser makes a best guess and moves on, so that ancient pages from 1997
+still render. It is a wonderful feature for the web and a nightmare for you until you
+learn to read the DOM instead of the source.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>HTML has no execution model, so it has no errors — only consequences.</li><li>The DOM (Elements panel) is the browser's interpretation of your source. When they disagree, the DOM is the truth.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Find the non-HTML thinking</h3>
+
+<p>For each snippet below, say whether it is valid HTML and what the
+browser will actually do:</p>
+<ol>
+<li><code>&lt;h1&gt;Hello</code> (no closing tag)</li>
+<li><code>&lt;h1&gt;Hello&lt;h2&gt;World&lt;/h2&gt;</code></li>
+<li><code>&lt;img src="cat.jpg"&gt;</code></li>
+<li><code>&lt;p&gt;A&lt;div&gt;B&lt;/div&gt;C&lt;/p&gt;</code></li>
+</ol>
+<p>Then verify each answer in DevTools: write them into a page, inspect, and see the
+actual DOM. The browser's behaviour is the answer key — your instinct is not.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The Elements panel shows you the truth. If a tag is missing, the tree will show you what the parser did instead.</li><li>Watch for tags the browser <em>inserts</em> that you never wrote — and tags it <em>moved</em> somewhere else.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/1-1-html-describes-it-doesn-t-do.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-1-2-anatomy-of-a-tag">1.2 — Anatomy of a Tag</h2>
+
+<p class="lede">Know the four parts of every element, and the one exception to the open/close rule.</p>
+
+
+<pre class="code"><code>&lt;a href="https://example.com" class="btn" id="home-link"&gt;Click me&lt;/a&gt;</code></pre>
+<table>
+<tr><th>Part</th><th>What it is</th><th>Python analogy</th></tr>
+<tr><td><code>a</code></td><td>the <strong>tag name</strong> / element type</td><td>a class name</td></tr>
+<tr><td><code>href</code>, <code>class</code>, <code>id</code></td><td><strong>attributes</strong> — key/value pairs</td><td>keyword arguments</td></tr>
+<tr><td><code>"https://example.com"</code></td><td>the <strong>value</strong></td><td>the argument value</td></tr>
+<tr><td><code>Click me</code></td><td>the <strong>content</strong> (a text node)</td><td>—</td></tr>
+<tr><td><code>&lt;/a&gt;</code></td><td>closing tag</td><td>—</td></tr>
+</table>
+
+<p>Almost everything opens and closes. The exception is <strong>void elements</strong>:
+they have no content, so they have no closing tag.</p>
+<pre class="code"><code>&lt;br&gt;   &lt;hr&gt;   &lt;img src="cat.jpg" alt="A cat"&gt;
+&lt;input type="text"&gt;   &lt;meta charset="UTF-8"&gt;   &lt;link rel="stylesheet" href="a.css"&gt;</code></pre>
+
+<p>The full list of void elements is short enough to memorise:
+<code>area</code>, <code>base</code>, <code>br</code>, <code>col</code>,
+<code>embed</code>, <code>hr</code>, <code>img</code>, <code>input</code>,
+<code>link</code>, <code>meta</code>, <code>param</code>, <code>source</code>,
+<code>track</code>, <code>wbr</code>.</p>
+
+<div class="note">
+<p><strong>Why does this matter?</strong> Because it's the one place your XML instincts
+will betray you. Everything else: if you open it, you close it. Write
+<code>&lt;/br&gt;</code> and the browser silently drops the stray close tag.</p>
+</div>
+
+<h3>Attributes are always quoted</h3>
+<p>Always use <code>"double quotes"</code> or <code>'single quotes'</code> around values.
+Unquoted values work in some cases and break in others — quoting is free, so quote
+everything.</p>
+
+
+<h4 class="cap">Attributes with and without values</h4>
+<pre class="code"><code class="lang-html">&amp;lt;input type="text" name="email" placeholder="you@example.com"&amp;gt;
+&amp;lt;input type="checkbox" checked&amp;gt;              &amp;lt;!-- boolean attribute --&amp;gt;
+&amp;lt;button type="submit" disabled&amp;gt;Send&amp;lt;/button&amp;gt;</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>Boolean attributes (<code>checked</code>, <code>disabled</code>, <code>required</code>, <code>hidden</code>) are their own presence — no <code>="true"</code>. Writing <code>checked="false"</code> is still <em>true</em>, because the attribute is present. To turn one off, remove it.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Build a profile card from raw tags</h3>
+
+<p>Without looking at any reference, write the HTML for a small
+profile card containing exactly this content:</p>
+<ul>
+<li>An image (use <code>src="avatar.jpg"</code> and a sensible <code>alt</code>)</li>
+<li>A name in a heading</li>
+<li>A short description in a paragraph</li>
+<li>A horizontal rule</li>
+<li>A link that says "View profile" pointing to <code>#</code></li>
+</ul>
+<p>Now check your work in the Elements panel: does the tree match what you intended,
+exactly? If the browser moved something, find out why.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Start from the outermost element and work inward — same as building nested Python dicts.</li><li>If the <code>&lt;hr&gt;</code> looks wrong, check you didn't write <code>&lt;/hr&gt;</code>.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/1-2-anatomy-of-a-tag.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-1-3-the-document-skeleton">1.3 — The Document Skeleton</h2>
+
+<p class="lede">Know what belongs in &lt;head&gt; vs &lt;body&gt;, and why the three meta tags matter.</p>
+
+
+<pre class="code"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;My Page&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;!-- everything the user actually sees --&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+<ul>
+<li><code>&lt;!DOCTYPE html&gt;</code> — "browser, use modern mode." One line, never
+think about it again. Without it, browsers enter a quirky legacy mode that quietly breaks
+real layout and will cost you an hour of confusion.</li>
+<li><code>lang="en"</code> — the page's language. Screen readers use it to choose a
+voice; browsers use it for translation and hyphenation.</li>
+<li><code>&lt;head&gt;</code> — metadata <em>for the browser</em>, not for the user. The
+single exception: <code>&lt;title&gt;</code> is the browser tab text and the default
+bookmark name, and it's the one <code>&lt;head&gt;</code> content users actually see.</li>
+<li><code>&lt;meta charset="UTF-8"&gt;</code> — must be early, ideally first, so text with
+accents and emoji doesn't become mojibake.</li>
+<li><code>viewport</code> — the most important meta tag on the page. Without it, mobile
+browsers assume a ~980px-wide desktop viewport and zoom out, making everything tiny.
+This one line is the difference between a site that "works on mobile" and one that doesn't.</li>
+<li><code>&lt;body&gt;</code> — everything visible goes here.</li>
+</ul>
+
+<div class="note">
+<p><strong>The mental model:</strong> <code>&lt;head&gt;</code> is the label on the tin;
+<code>&lt;body&gt;</code> is the tin. The browser reads <code>&lt;head&gt;</code> to learn
+<em>how</em> to render the page, then renders <code>&lt;body&gt;</code>.</p>
+</div>
+
+<h3>Where CSS and JavaScript live</h3>
+<pre class="code"><code>&lt;head&gt;
+  &lt;link rel="stylesheet" href="styles.css"&gt;     &lt;!-- CSS: a separate file --&gt;
+  &lt;style&gt; h1 { color: teal; } &lt;/style&gt;        &lt;!-- CSS: inline --&gt;
+  &lt;script src="app.js" defer&gt;&lt;/script&gt;         &lt;!-- JS: a separate file --&gt;
+  &lt;script&gt; console.log("hi"); &lt;/script&gt;        &lt;!-- JS: inline --&gt;
+&lt;/head&gt;</code></pre>
+
+<p>Prefer separate files. Inline <code>&lt;style&gt;</code> and <code>&lt;script&gt;</code>
+blocks can't be cached, can't be reused, and can't be linted. The one common exception
+is a tiny critical snippet that must run before the page paints.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>&lt;title&gt;</code> inside <code>&lt;head&gt;</code> is the browser tab text — and also what shows up in search results and bookmarks.</li><li><code>defer</code> on a <code>&lt;script&gt;</code> means: download it in parallel, but run it after the HTML is parsed. You'll learn why that matters in Act 7.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Three skeletons, one difference</h3>
+
+<ol>
+<li>Write a page with a <code>&lt;title&gt;</code> of "My Portfolio — Ana Silva" and a
+<code>lang</code> of <code>pt-BR</code>. Confirm the tab title changed.</li>
+<li>Delete the <code>viewport</code> meta and note the difference in how the page lays out
+(narrow the browser window to simulate a phone). Put it back.</li>
+<li>Add a <code>&lt;meta name="description" content="..."&gt;</code> with a one-sentence
+description. This is what search engines and social cards show — you'll see it again in
+Act 11.</li>
+<li>Put a <code>&lt;script src="does-not-exist.js"&gt;</code> in the head. Watch the
+Network panel. <strong>What happens, and why doesn't the page break?</strong></li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>A 404 in the Network panel is not a page error — the browser just moves on. That's the same forgiving-parser philosophy as before, applied to resources.</li><li>Missing <code>viewport</code> makes mobile browsers scale the page down, so everything looks tiny and unreadable.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/1-3-the-document-skeleton.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-1-4-nesting-the-forgiving-parser">1.4 — Nesting &amp; the Forgiving Parser</h2>
+
+<p class="lede">Understand how the browser builds the tree, and why your source and the DOM can disagree.</p>
+
+
+<p>Elements nest inside each other, and that nesting defines the relationships in the
+DOM tree. But HTML has strict rules about what may contain what — and when you break them,
+the parser doesn't complain. It <em>fixes</em> your code.</p>
+
+<h3>The two famous cases</h3>
+<pre class="code"><code>&lt;!-- Case 1: nested paragraphs --&gt;
+&lt;p&gt;Outer &lt;p&gt;Inner&lt;/p&gt;&lt;/p&gt;
+
+&lt;!-- Case 2: a &lt;div&gt; inside a &lt;p&gt; --&gt;
+&lt;p&gt;A &lt;div&gt;B&lt;/div&gt; C&lt;/p&gt;</code></pre>
+
+<p>In case 1, the browser sees the second <code>&lt;p&gt;</code> while still inside the
+first, closes the first one automatically, and you get two sibling paragraphs instead of
+nested ones. In case 2, <code>&lt;div&gt;</code> is a block-level element and is not
+allowed inside a paragraph — so the browser closes the <code>&lt;p&gt;</code>, puts the
+<code>&lt;div&gt;</code> outside it, and reopens a new <code>&lt;p&gt;</code> afterwards.</p>
+
+<div class="warn">
+<p><strong>This is why "the code is right but it renders wrong" is so common in
+HTML.</strong> The fix is always the same: look at the DOM, find where the browser
+inserted or moved a tag, and fix <em>that</em> — not the tag you were staring at.</p>
+</div>
+
+<h3>Which elements may contain which</h3>
+<p>The rule of thumb:</p>
+<ul>
+<li><strong>Inline</strong> elements (<code>span</code>, <code>a</code>,
+<code>strong</code>, <code>em</code>, <code>code</code>, <code>img</code>) may go inside
+block elements, and inside other inline elements.</li>
+<li><strong>Block</strong> elements (<code>div</code>, <code>p</code>,
+<code>section</code>, <code>ul</code>, <code>li</code>) may not go inside inline
+elements — the browser will move them out.</li>
+<li>Interactive elements (<code>&lt;a&gt;</code>, <code>&lt;button&gt;</code>) cannot be
+nested inside each other.</li>
+</ul>
+
+<p>You don't need to memorise a table. The parser will tell you — visually, in the
+Elements panel — every time it disagrees with you. Read the DOM and you'll never
+mis-nest again.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>The browser never tells you it changed your code. The Elements panel is the only place the truth is visible.</li><li>Auto-inserted <code>&lt;tbody&gt;</code> (around table rows) and auto-closed <code>&lt;p&gt;</code> are the two you'll hit most.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Break it on purpose</h3>
+
+<p>Write each of these, then inspect the DOM and write down what the
+browser did and <em>why</em>:</p>
+<ol>
+<li><code>&lt;p&gt;One&lt;p&gt;Two&lt;/p&gt;&lt;/p&gt;</code></li>
+<li><code>&lt;ul&gt;&lt;li&gt;A&lt;li&gt;B&lt;/ul&gt;</code></li>
+<li><code>&lt;div&gt;&lt;span&gt;text&lt;/div&gt;</code></li>
+<li><code>&lt;strong&gt;bold &lt;p&gt;not bold?&lt;/p&gt;&lt;/strong&gt;</code></li>
+<li>A <code>&lt;table&gt;</code> with <code>&lt;tr&gt;</code> and <code>&lt;td&gt;</code> but
+<strong>no</strong> <code>&lt;tbody&gt;</code></li>
+</ol>
+<p>For each: did the DOM match your source? If not, what did the browser add, remove, or
+move?</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Case 4: <code>&lt;strong&gt;</code> is inline, so a block <code>&lt;p&gt;</code> inside it gets ejected.</li><li>Case 5: the browser inserts <code>&lt;tbody&gt;</code> for you. It's implied by the spec, and every modern browser does it.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/1-4-nesting-the-forgiving-parser.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-1-5-the-vocabulary-of-a-page">1.5 — The Vocabulary of a Page</h2>
+
+<p class="lede">Learn the semantic elements, and the one rule that keeps HTML clean forever.</p>
+
+
+<p>HTML gives you a set of elements that each <em>mean</em> something specific. Choosing
+the right one is most of what "writing good HTML" means.</p>
+
+<table>
+<tr><th>Element</th><th>Means</th></tr>
+<tr><td><code>&lt;header&gt;</code></td><td>introductory content of a page or section</td></tr>
+<tr><td><code>&lt;nav&gt;</code></td><td>major navigation links</td></tr>
+<tr><td><code>&lt;main&gt;</code></td><td>the one unique content of this page</td></tr>
+<tr><td><code>&lt;section&gt;</code></td><td>a thematic grouping, usually with a heading</td></tr>
+<tr><td><code>&lt;article&gt;</code></td><td>a self-contained piece of content (a blog post)</td></tr>
+<tr><td><code>&lt;aside&gt;</code></td><td>tangentially related content (a sidebar)</td></tr>
+<tr><td><code>&lt;footer&gt;</code></td><td>footer info for a page or section</td></tr>
+<tr><td><code>&lt;figure&gt;</code>/<code>&lt;figcaption&gt;</code></td><td>self-contained media with a caption</td></tr>
+</table>
+
+<h3>The rule that trips up every programmer</h3>
+<div class="note">
+<p><strong>Choose the element by meaning, never by how you want it to look.</strong></p>
+<p>Want smaller text? Don't reach for <code>&lt;small&gt;</code> — that means legal fine
+print. Want a heading? Use <code>&lt;h3&gt;</code> and make it big with CSS. Want a
+clickable thing that goes somewhere? Use <code>&lt;a&gt;</code>, not
+<code>&lt;div&gt;</code> with a click handler.</p>
+<p>CSS controls appearance. HTML controls meaning. Keeping those two jobs separate is
+what makes a codebase survive being handed to another person.</p>
+</div>
+
+<p>Why bother, if it "looks the same"? Three reasons, all of them real:</p>
+<ol>
+<li><strong>Accessibility.</strong> A <code>&lt;nav&gt;</code> becomes a landmark a
+screen-reader user can jump to; a <code>&lt;div class="nav"&gt;</code> is invisible to
+them. <code>&lt;button&gt;</code> is focusable and announces itself as a button;
+<code>&lt;div onclick&gt;</code> is a div that mysteriously does something.</li>
+<li><strong>SEO.</strong> Search engines weight semantic structure heavily.</li>
+<li><strong>Maintainability.</strong> <code>main &gt; section &gt; article</code> is a
+selector that keeps working. <code>.div-2</code> is a naming convention that dies at the
+first redesign.</li>
+</ol>
+
+
+<h4 class="cap">Bad vs good — same pixels, different meaning</h4>
+<pre class="code"><code class="lang-html">&amp;lt;!-- Bad: meaning is lost --&amp;gt;
+&amp;lt;div class="header"&amp;gt;
+  &amp;lt;div class="nav"&amp;gt;&amp;lt;div class="link"&amp;gt;Home&amp;lt;/div&amp;gt;&amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+&amp;lt;div class="content"&amp;gt;
+  &amp;lt;div class="post"&amp;gt;&amp;lt;div class="title"&amp;gt;Hello&amp;lt;/div&amp;gt;&amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+
+&amp;lt;!-- Good: meaning is in the markup --&amp;gt;
+&amp;lt;header&amp;gt;
+  &amp;lt;nav&amp;gt;&amp;lt;a href="/"&amp;gt;Home&amp;lt;/a&amp;gt;&amp;lt;/nav&amp;gt;
+&amp;lt;/header&amp;gt;
+&amp;lt;main&amp;gt;
+  &amp;lt;article&amp;gt;&amp;lt;h1&amp;gt;Hello&amp;lt;/h1&amp;gt;&amp;lt;/article&amp;gt;
+&amp;lt;/main&amp;gt;</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>A semantic element gives you free browser styling (default margins, list bullets, font sizes). You can override all of it — but you get a sane starting point for free.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Semantics-only rewrite</h3>
+
+<p>Here's a page written as generic divs. Rewrite it using only semantic
+elements — <strong>and no <code>class</code> attributes at all</strong>:</p>
+<pre class="code"><code>&lt;div class="site-header"&gt;
+  &lt;div class="logo"&gt;Acme&lt;/div&gt;
+  &lt;div class="menu"&gt;
+    &lt;div class="item"&gt;Products&lt;/div&gt;
+    &lt;div class="item"&gt;Pricing&lt;/div&gt;
+    &lt;div class="item"&gt;Contact&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="hero"&gt;
+  &lt;div class="headline"&gt;Ship faster&lt;/div&gt;
+  &lt;div class="sub"&gt;Build, test, deploy.&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="page-body"&gt;
+  &lt;div class="post"&gt;
+    &lt;div class="post-title"&gt;Why we rewrote our API&lt;/div&gt;
+    &lt;div class="post-body"&gt;...&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="site-footer"&gt;© 2026 Acme&lt;/div&gt;</code></pre>
+<p>Then answer: which of the original divs did <em>not</em> have a semantic equivalent, and
+what did you use?</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The logo is a link back home — that makes it an <code>&lt;a&gt;</code>.</li><li>The last div is genuinely a footer. The others map to <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;h1&gt;</code>, <code>&lt;p&gt;</code>.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/1-5-the-vocabulary-of-a-page.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-1-6-headings-lists-text-semantics">1.6 — Headings, Lists &amp; Text Semantics</h2>
+
+<p class="lede">Use the text-level elements correctly, and keep your heading outline valid.</p>
+
+
+<h3>Headings</h3>
+<p>One <code>&lt;h1&gt;</code> per page — the page's own title. Then <code>&lt;h2&gt;</code>
+for top-level sections, <code>&lt;h3&gt;</code> inside them, and so on. Don't skip
+levels.</p>
+<p>Why? Screen-reader users navigate documents by heading outline, like a table of
+contents. Jumping from <code>h2</code> to <code>h4</code> breaks their mental model of
+the page's structure. And no, "I want it to look smaller" is not a reason to change the
+level — that's what CSS is for.</p>
+
+<h3>Lists</h3>
+<pre class="code"><code>&lt;ul&gt;              &lt;!-- unordered: bullets --&gt;
+  &lt;li&gt;First&lt;/li&gt;
+  &lt;li&gt;Second&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;ol&gt;              &lt;!-- ordered: numbers --&gt;
+  &lt;li&gt;Step one&lt;/li&gt;
+  &lt;li&gt;Step two&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;ol type="A"&gt;      &lt;!-- A, B, C --&gt;
+&lt;ol start="5"&gt;     &lt;!-- starts at 5 --&gt;</code></pre>
+
+<p>Every <code>&lt;li&gt;</code> must be inside a <code>&lt;ul&gt;</code> or
+<code>&lt;ol&gt;</code>. A stray <code>&lt;li&gt;</code> gets wrapped in an implicit
+<code>&lt;ul&gt;</code> by the browser.</p>
+
+<h3>Text-level semantics</h3>
+<table>
+<tr><th>Element</th><th>Means</th><th>Not</th></tr>
+<tr><td><code>&lt;strong&gt;</code></td><td>important</td><td>"make it bold"</td></tr>
+<tr><td><code>&lt;em&gt;</code></td><td>emphasis</td><td>"make it italic"</td></tr>
+<tr><td><code>&lt;code&gt;</code></td><td>a piece of code</td><td>"use a monospace font"</td></tr>
+<tr><td><code>&lt;mark&gt;</code></td><td>text relevant to the current context</td><td>"highlight it"</td></tr>
+<tr><td><code>&lt;small&gt;</code></td><td>side comments / legal fine print</td><td>"make it tiny"</td></tr>
+<tr><td><code>&lt;abbr&gt;</code></td><td>an abbreviation, with a <code>title</code></td><td>—</td></tr>
+<tr><td><code>&lt;blockquote&gt;</code></td><td>a quotation</td><td>"indent it"</td></tr>
+<tr><td><code>&lt;time&gt;</code></td><td>a machine-readable date</td><td>—</td></tr>
+</table>
+
+<div class="note">
+<p><strong>The pattern:</strong> every one of these has a default appearance that happens
+to be reasonable, but the <em>meaning</em> is the point. <code>&lt;em&gt;</code> inside a
+sentence is stressed. <code>&lt;strong&gt;</code> is important. If you find yourself
+wanting italics for style, use CSS.</p>
+</div>
+
+<p>Two more you will use constantly: <code>&lt;span&gt;</code> (generic inline container)
+and <code>&lt;div&gt;</code> (generic block container). These are the escape hatches when
+nothing semantic fits — and "nothing semantic fits" is much rarer than people think.
+Reach for <code>&lt;div&gt;</code> as a last resort, not a first one.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>&lt;code&gt;</code> and <code>&lt;pre&gt;</code> are two different things: <code>&lt;code&gt;</code> styles a run of code inline; <code>&lt;pre&gt;</code> preserves whitespace and line breaks (and combines with <code>&lt;code&gt;</code> for a code block).</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Fix the outline</h3>
+
+<p>Here is a document with a broken heading outline and
+mis-used text elements:</p>
+<pre class="code"><code>&lt;h1&gt;Blog&lt;/h1&gt;
+&lt;h4&gt;Latest post&lt;/h4&gt;
+&lt;p&gt;Published &lt;em&gt;today&lt;/em&gt; by &lt;strong&gt;Ana&lt;/strong&gt;&lt;/p&gt;
+&lt;h2&gt;Latest post&lt;/h2&gt;
+&lt;p&gt;Read the &lt;span style="font-weight:bold"&gt;full article&lt;/span&gt; for details.&lt;/p&gt;
+&lt;h3&gt;More posts&lt;/h3&gt;</code></pre>
+<ol>
+<li>Rewrite it with a valid heading outline (one h1, then descend one level at a time).</li>
+<li>Replace every appearance-driven element with a meaning-driven one.</li>
+<li>Turn the final list of "more posts" into a real <code>&lt;ul&gt;</code>.</li>
+<li>Add a <code>&lt;time&gt;</code> element for "today" with a proper
+<code>datetime</code> attribute.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>A heading level should reflect the document's outline, not the font size. Both "Latest post" headings are the same kind of thing, so they should be the same level.</li><li><code>&lt;time datetime="2026-10-22"&gt;today&lt;/time&gt;</code> — the attribute holds the machine-readable value, the text holds the human-readable one.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/1-6-headings-lists-text-semantics.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-1-7-attributes-are-hooks">1.7 — Attributes Are Hooks</h2>
+
+<p class="lede">Understand id, class and data-* as the interface that CSS and JavaScript will grab onto.</p>
+
+
+<p>This is where HTML stops being "just markup" and becomes the API that the rest of the
+frontend attaches to.</p>
+
+<table>
+<tr><th>Attribute</th><th>Rules</th><th>Analogy</th><th>Used by</th></tr>
+<tr><td><code>id</code></td><td>unique per page</td><td>primary key</td><td>CSS <code>#id</code>, JS <code>getElementById</code></td></tr>
+<tr><td><code>class</code></td><td>reusable, many per element, space-separated</td><td>a category / tag</td><td>CSS <code>.class</code>, JS <code>querySelectorAll</code></td></tr>
+<tr><td><code>data-*</code></td><td>anything you invent</td><td>extra record fields</td><td>JS via <code>el.dataset</code></td></tr>
+</table>
+
+<pre class="code"><code>&lt;button class="btn primary" data-count="42" id="add-btn"&gt;Add&lt;/button&gt;</code></pre>
+
+<p>Read it as: "a button, category <code>btn</code>, also <code>primary</code>, carrying
+a custom field <code>count = 42</code>, with the unique id <code>add-btn</code>."</p>
+
+<div class="py">
+<p><strong>Python brain:</strong> this is a database record. <code>id</code> is the primary
+key — unique, one per table. <code>class</code> is a many-to-many tag. <code>data-*</code>
+is a free-form column you invented for this table. In JavaScript, that button becomes an
+object with <code>el.id === "add-btn"</code>,
+<code>el.classList.contains("primary") === true</code>, and
+<code>el.dataset.count === "42"</code>.</p>
+<p>Note the string: <code>data-*</code> values are <em>always</em> strings, because HTML
+attributes are text. You convert them yourself — <code>Number(el.dataset.count)</code>.</p>
+</div>
+
+<h3>Why this is the single most important idea in Act 1</h3>
+<p>You are not writing markup "for the browser". You are writing markup that
+<strong>your own CSS and your own JavaScript will target later</strong>. Every framework
+you use tomorrow — React, Next.js, shadcn — is built on exactly this: your components
+emit HTML, and they find each other via ids, classes and data attributes.</p>
+
+<p>Give things <strong>semantic, stable names</strong>:
+<code>id="checkout-form"</code> beats <code>id="div1"</code>. Six months from now,
+<code>.search-bar</code> still means something; <code>.box</code> does not.</p>
+
+<h3>Other attributes you'll meet constantly</h3>
+<ul>
+<li><code>href</code> on <code>&lt;a&gt;</code> — the URL. <code>href="#"</code> is a
+placeholder that jumps to the top of the page.</li>
+<li><code>src</code> on <code>&lt;img&gt;</code>, <code>&lt;script&gt;</code>,
+<code>&lt;iframe&gt;</code> — the resource URL.</li>
+<li><code>alt</code> on <code>&lt;img&gt;</code> — the description (Act 1, Step 1.8).</li>
+<li><code>type</code> on <code>&lt;input&gt;</code> and <code>&lt;button&gt;</code> — the
+behaviour variant. On <code>&lt;button&gt;</code> the default is <code>submit</code>,
+which surprises people constantly.</li>
+<li><code>target</code> on <code>&lt;a&gt;</code> — <code>_blank</code> opens a new tab.</li>
+<li><code>rel</code> — relationship hints, including the security-critical
+<code>noopener</code>.</li>
+</ul>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>class values are space-separated: <code>class="btn primary"</code> is TWO classes, not one class with a space in it.</li><li>A <code>data-*</code> attribute name must be lowercased and hyphenated in HTML: <code>data-user-id</code> becomes <code>el.dataset.userId</code> in JS (camelCase automatically).</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Name things like you'll find them in six months</h3>
+
+<p>Below is a page written with meaningless names. Rewrite the
+attributes so that:</p>
+<ul>
+<li>every <code>id</code> is unique and describes <em>what the thing is</em></li>
+<li>every <code>class</code> describes a <em>role or a style</em>, and can be reused</li>
+<li>at least one element carries a <code>data-*</code> attribute holding a piece of data
+that JavaScript would need (an id, a price, a status)</li>
+</ul>
+<pre class="code"><code>&lt;div class="a" id="x1"&gt;
+  &lt;div class="b" id="x2"&gt;Buy Now&lt;/div&gt;
+  &lt;div class="c"&gt;$49.00&lt;/div&gt;
+  &lt;div class="d" id="x3"&gt;Add to cart&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<p>Then explain in one sentence each: which is the <code>id</code> a JavaScript
+developer would look up, and why is the price a <code>data-*</code> rather than an
+<code>id</code>?</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>One element, one id. If you need to identify two different product cards, that's a <code>data-*</code> (like <code>data-product-id="123"</code>), not two ids.</li><li>Classes are for reuse: two buttons that look the same share <code>class="btn"</code> even if their ids differ.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/1-7-attributes-are-hooks.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-1-8-forms-inputs">1.8 — Forms &amp; Inputs</h2>
+
+<p class="lede">Learn the form vocabulary — this is the part that directly feeds your API, form-submit and file-upload work later.</p>
+
+
+<p>Forms are the single most important interactive element on the web, and they're the
+bridge between HTML and everything you'll build in Act 6: reading input values, submitting
+data, uploading files. So this step matters more than it looks.</p>
+
+<h3>The anatomy</h3>
+<pre class="code"><code>&lt;form action="/subscribe" method="post"&gt;
+  &lt;label for="email"&gt;Email address&lt;/label&gt;
+  &lt;input type="email" id="email" name="email" placeholder="you@example.com" required&gt;
+
+  &lt;label for="plan"&gt;Plan&lt;/label&gt;
+  &lt;select id="plan" name="plan"&gt;
+    &lt;option value="free"&gt;Free&lt;/option&gt;
+    &lt;option value="pro" selected&gt;Pro&lt;/option&gt;
+  &lt;/select&gt;
+
+  &lt;label for="bio"&gt;Short bio&lt;/label&gt;
+  &lt;textarea id="bio" name="bio" rows="4"&gt;&lt;/textarea&gt;
+
+  &lt;label&gt;
+    &lt;input type="checkbox" name="newsletter" value="yes"&gt;
+    Send me the newsletter
+  &lt;/label&gt;
+
+  &lt;button type="submit"&gt;Subscribe&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+<h3>Four rules that will save you</h3>
+<ol>
+<li><strong>Every input needs a <code>label</code> with a matching <code>for</code>.</strong>
+Clicking the label focuses the input, screen readers announce the label, and browsers
+validate correctly. Without it, users get an unlabelled box. This is the #1 accessibility
+bug in real code.</li>
+<li><strong><code>name</code> is what gets submitted.</strong> <code>id</code> is what
+CSS and JS use. They are different attributes serving different masters — a subtle point
+that trips everyone up once. An input with no <code>name</code> is not submitted at all.</li>
+<li><strong>Use the right <code>type</code>.</strong> <code>type="email"</code> gives
+mobile keyboards and built-in validation; <code>type="number"</code>, <code>type="date"</code>,
+<code>type="url"</code>, <code>type="search"</code> each do the obvious thing on mobile.
+Use <code>type="text"</code> only when nothing else fits.</li>
+<li><strong><code>&lt;button&gt;</code> defaults to <code>type="submit"</code>.</strong>
+If your button isn't meant to submit the form, write
+<code>type="button"</code>. A "Cancel" button without it will submit the form — one of
+those bugs you'll meet in week two of any job.</li>
+</ol>
+
+<div class="warn">
+<p><strong>Security note, early.</strong> A <code>&lt;form&gt;</code> submits its values
+to <code>action</code> as <code>application/x-www-form-urlencoded</code> by default. If
+you ever put user input into that URL, understand that it lands in browser history, proxy
+logs and server logs. Modern apps almost always intercept the submit with JavaScript and
+use <code>fetch()</code> instead — Act 6, Step 6.4.</p>
+</div>
+
+
+<h4 class="cap">The input types you will actually use</h4>
+<pre class="code"><code class="lang-html">&amp;lt;input type="text"&amp;gt;
+&amp;lt;input type="email"&amp;gt;
+&amp;lt;input type="password"&amp;gt;
+&amp;lt;input type="number" min="0" max="100" step="1"&amp;gt;
+&amp;lt;input type="date"&amp;gt;
+&amp;lt;input type="url"&amp;gt;
+&amp;lt;input type="tel"&amp;gt;
+&amp;lt;input type="search"&amp;gt;
+&amp;lt;input type="checkbox"&amp;gt;
+&amp;lt;input type="radio"&amp;gt;
+&amp;lt;input type="file" accept="image/*" multiple&amp;gt;
+&amp;lt;input type="hidden" name="csrf_token" value="abc123"&amp;gt;
+&amp;lt;input type="range" min="0" max="100"&amp;gt;
+&amp;lt;input type="color"&amp;gt;</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>A <code>&lt;label&gt;</code> can wrap its input instead of using <code>for</code> — both work, but <code>for</code>/<code>id</code> is easier to reuse.</li><li><code>required</code>, <code>min</code>, <code>max</code>, <code>pattern</code>, <code>step</code> give you browser-native validation for free. You can style it with <code>:invalid</code> and <code>:user-invalid</code>.</li><li><code>placeholder</code> is a hint, not a label. It disappears the moment the user types — never use it as the only label.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A signup form, done right</h3>
+
+<p>Build a signup form with these requirements, using <strong>no
+<code>class</code> attributes</strong> (you haven't learned CSS yet, so semantics and
+attributes are all you need):</p>
+<ul>
+<li>Name — text input, required</li>
+<li>Email — email input, required</li>
+<li>Password — password input, required, <code>minlength="8"</code></li>
+<li>Country — a select with 3 options, one preselected</li>
+<li>A "newsletter" checkbox, unchecked by default</li>
+<li>A submit button labelled "Create account" and a second button that must
+<strong>not</strong> submit the form</li>
+<li>Every input has a proper <code>&lt;label&gt;</code></li>
+</ul>
+<p>Extra credit: add a hidden input called <code>signup_source</code> with the value
+<code>landing-page</code>, and explain what it's for.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The second button needs <code>type="button"</code> explicitly.</li><li>The hidden input is for data your JavaScript or server needs but the user doesn't have to see — the same trick a real app uses for a CSRF token.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/1-8-forms-inputs.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-1-9-images-links-entities">1.9 — Images, Links &amp; Entities</h2>
+
+<p class="lede">Write accessible images and links, and handle special characters correctly.</p>
+
+
+<h3>Images</h3>
+<pre class="code"><code>&lt;img src="cat.jpg" alt="A cat asleep on a keyboard" width="300" height="200"&gt;</code></pre>
+<ul>
+<li><code>alt</code> is not decoration. If the image fails to load, or a screen reader
+reads the page, that text is all the user gets. Describe the <em>content and purpose</em>
+— "A cat asleep on a keyboard", not "cat image" or "image1".</li>
+<li>For a purely decorative image, <code>alt=""</code> is <em>correct</em> — screen readers
+will skip it entirely. <code>alt="decorative"</code> is worse than nothing.</li>
+<li>Always set <code>width</code> and <code>height</code>. The browser needs them to
+reserve space before the image loads, which stops your page from jumping around. This is
+one of the cheapest real performance wins there is.</li>
+<li><code>loading="lazy"</code> defers loading off-screen images. One attribute, real
+speedup on long pages.</li>
+</ul>
+
+<h3>Links</h3>
+<pre class="code"><code>&lt;a href="https://example.com" target="_blank" rel="noopener"&gt;Example&lt;/a&gt;</code></pre>
+<p><code>rel="noopener"</code> is a security detail, and it's a good early taste of Act
+8: a page opened in a new tab can otherwise reach back into the original tab's
+<code>window</code> object. Add it to every <code>target="_blank"</code> link, every
+time.</p>
+<p>Use <code>&lt;button&gt;</code> for actions and <code>&lt;a&gt;</code> for navigation.
+A button that looks like a link is fine; a link that does something other than navigate
+is a bug waiting to happen (middle-click, "open in new tab", and keyboard users all
+break).</p>
+
+<h3>Entities</h3>
+<p>Three characters need escaping in HTML text:</p>
+<table>
+<tr><th>Character</th><th>Entity</th><th>Why</th></tr>
+<tr><td><code>&amp;</code></td><td><code>&amp;amp;</code></td><td>starts a character reference</td></tr>
+<tr><td><code>&lt;</code></td><td><code>&amp;lt;</code></td><td>starts a tag</td></tr>
+<tr><td><code>&gt;</code></td><td><code>&amp;gt;</code></td><td>finishes a tag</td></tr>
+</table>
+<p>There are also named entities for common characters: <code>&amp;nbsp;</code> (a
+non-breaking space), <code>&amp;copy;</code> (©), <code>&amp;hellip;</code> (…),
+<code>&amp;mdash;</code> (—), <code>&amp;rarr;</code> (→).</p>
+
+<div class="note">
+<p><strong>Where escaping matters most:</strong> when you generate HTML from JavaScript.
+If you ever build markup with <code>innerHTML</code> and interpolate user input into it,
+you have created an XSS vulnerability. Act 8 Step 8.4 covers exactly this. The safe habit:
+use <code>textContent</code> whenever you're inserting <em>data</em> rather than
+<em>markup</em>.</p>
+</div>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>An <code>&lt;img&gt;</code> is a void element — no closing tag.</li><li><code>src</code> can be relative (<code>cat.jpg</code>), absolute (<code>/assets/cat.jpg</code>), or a full URL. Relative paths are resolved against the <em>page's</em> URL, not the CSS file's.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Accessible media page</h3>
+
+<p>Build a short article page:</p>
+<ol>
+<li>One <code>&lt;figure&gt;</code> containing an <code>&lt;img&gt;</code> and a
+<code>&lt;figcaption&gt;</code></li>
+<li>The image needs a meaningful <code>alt</code>, plus explicit <code>width</code> and
+<code>height</code> attributes</li>
+<li>One link to an external site with <code>target="_blank"</code> and
+<code>rel="noopener"</code></li>
+<li>One link with <code>href="#"</code> as a placeholder</li>
+<li>A paragraph containing <code>&amp;</code>, <code>&lt;</code> and <code>&gt;</code> as
+real characters (not as <code>&amp;amp;</code>)</li>
+</ol>
+<p>Then verify: does the <code>alt</code> read naturally when spoken aloud? (Screen
+readers sometimes say "image of" for you — if yours does, don't start the alt with
+"image of".)</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li><code>&lt;figure&gt;</code> is the container; <code>&lt;figcaption&gt;</code> goes inside it and is automatically associated with the image.</li><li>The browser converts <code>&amp;amp;</code> to <code>&amp;</code> in the rendered page. If you want a literal ampersand character on screen, write <code>&amp;amp;</code> in the source.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/1-9-images-links-entities.html">▶ Open the runnable file for this step</a></p>
+
+<hr>
+
+<div class="ok"><strong>Act 1 checkpoint</strong>
+<p>You can now describe any page's structure correctly. Before Act 2, be able to answer:</p>
+<ul>
+<li>What's the difference between <code>id</code> and <code>class</code>, and which
+one does JavaScript use to find a single element?</li>
+<li>Why does <code>&lt;p&gt;One&lt;p&gt;Two&lt;/p&gt;</code> produce two paragraphs?</li>
+<li>Which attribute makes a form field get submitted?</li>
+</ul>
+</div>
+
+<div class="stepnav"><a href="../00-setup-orientation/lesson.html">← Act 0</a><a href="../02-css-presentation/lesson.html">Act 2 →</a></div>
+</body>
+</html>

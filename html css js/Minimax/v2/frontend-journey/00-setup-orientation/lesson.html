@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Act 0 — Setup &amp; Orientation — Frontend Journey</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+
+</head>
+<body>
+<span class="tag">Act 0 of 12</span>
+
+<h1>Setup &amp; Orientation</h1>
+
+<p class="lede">Everything you need, nothing you don't. Fifteen minutes, once.</p>
+
+
+<p>You already know how to program. What you're missing isn't a compiler or a package
+manager — it's <em>the environment</em> and <em>the mental model of the browser</em>.
+So Act 0 is short on purpose: one step, one habit.</p>
+
+<div class="note">
+<p><strong>The one habit that matters:</strong> keep DevTools open in a side panel,
+permanently, from now on. Frontend development is a feedback loop of
+<em>change → see → inspect → change</em>. DevTools is the second half of that loop.</p>
+</div>
+
+
+<div class="toc"><strong>In this act</strong><ol><li><a href="#step-0-1-your-toolkit">0.1 — Your Toolkit</a></li></ol></div>
+
+<h2 id="step-0-1-your-toolkit">0.1 — Your Toolkit</h2>
+
+<p class="lede">Get a working editor + browser + DevTools loop, and understand the four DevTools panels you'll actually use.</p>
+
+
+<p>You need exactly three things:</p>
+<ol>
+<li><strong>An editor.</strong> VS Code is the free standard. Nothing in this course is
+VS Code specific, so if you already use something else, keep it. Two extensions worth
+having: <em>Live Server</em> (right-click → "Open with Live Server" to serve your files
+over http instead of <code>file://</code>) and <em>Prettier</em> (auto-formats your HTML
+so you never fight indentation).</li>
+<li><strong>A browser.</strong> Chrome or Edge, because DevTools comes built in.
+<code>F12</code> on Windows/Linux, <code>⌥⌘I</code> on Mac.</li>
+<li><strong>Nothing else.</strong> No npm, no bundler, no server. For the first several
+acts you open a <code>.html</code> file and it runs. That is not a simplification — it is
+how the web actually works, and understanding that is part of the course.</li>
+</ol>
+
+<h3>The four panels</h3>
+<table>
+<tr><th>Panel</th><th>What it answers</th></tr>
+<tr><td><strong>Elements</strong></td><td>"What is the DOM <em>right now</em>?" — the live tree your HTML became, and what CSS is applied to the selected node.</td></tr>
+<tr><td><strong>Console</strong></td><td>"What is my JavaScript saying?" — errors, logs, and a live JavaScript REPL you can type into.</td></tr>
+<tr><td><strong>Network</strong></td><td>"What went over the wire?" — every request, its status, headers, body, and timing.</td></tr>
+<tr><td><strong>Application</strong></td><td>"What is stored on this machine?" — cookies, localStorage, IndexedDB, service workers.</td></tr>
+</table>
+
+<p>You'll spend most of your time in <strong>Elements</strong> and <strong>Console</strong>.
+The other two come into their own in Acts 8 and 9.</p>
+
+<div class="warn">
+<p><strong>A trap to avoid:</strong> opening the file via <code>file://</code> and then
+wondering why <code>fetch()</code> refuses to work, or why modules won't load. Browsers
+apply extra security rules to local files. When a lesson needs a server, it says so and
+tells you how to start one.</p>
+</div>
+
+
+<h4 class="cap">The course you will build</h4>
+<pre class="code"><code class="lang-text">frontend-journey/
+  00-setup/            &lt;- you are here
+  01-html/             &lt;- Act 1
+  02-css/              &lt;- Act 2
+  03-tailwind/         &lt;- Act 3
+  04-javascript/       &lt;- Act 4  (the big one)
+  05-projects/         &lt;- Act 5
+  06-advanced-js/      &lt;- Act 6
+  07-browser/          &lt;- Act 7
+  08-networking/       &lt;- Act 8
+  09-modern-apis/      &lt;- Act 9
+  10-backend/          &lt;- Act 10
+  11-frameworks/       &lt;- Act 11</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>DevTools' Elements panel shows the DOM <em>after</em> the browser has parsed it — which is not always identical to your source file.</li><li>The Console doubles as a REPL: you can type JavaScript there and evaluate it instantly against the current page.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Get the loop working</h3>
+
+<ol>
+<li>Open this file in Chrome/Edge with <code>F12</code> open on the right side.</li>
+<li>In the Console, run <code>document.querySelectorAll('p').length</code> — what does it
+tell you, and why might it differ from the number of <code>&lt;p&gt;</code> tags in the
+source file?</li>
+<li>Right-click a paragraph → <em>Inspect</em>. In the Elements tree, use the small
+<code>&lt;/&gt;</code> icon to expand a node and see its children.</li>
+<li>Create a new file <code>scratch.html</code> next to this one with a
+<code>&lt;h1&gt;</code> and two <code>&lt;p&gt;</code> tags, open it, and repeat the
+exercise. Now you can build your own feedback loop.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li><code>document.querySelectorAll</code> returns a <em>live</em> collection of every element matching the selector in the current DOM.</li><li>If the counts differ, the browser probably added or removed an element while parsing — which is exactly what Act 1 Step 1.4 is about.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/0-1-your-toolkit.html">▶ Open the runnable file for this step</a></p>
+
+<hr>
+
+<div class="ok"><strong>Act 0 checkpoint</strong>
+<p>You're set up. Nothing in this course will ask you to install anything else until
+Act 4 Step 13, where npm finally becomes unavoidable — and we'll do it together, once,
+with a clear reason.</p>
+</div>
+
+<div class="stepnav"><a href="../01-html-structure/lesson.html">Act 1 →</a></div>
+</body>
+</html>

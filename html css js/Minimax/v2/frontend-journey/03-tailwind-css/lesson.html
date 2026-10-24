@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Act 3 — Tailwind CSS — Frontend Journey</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+
+</head>
+<body>
+<span class="tag">Act 3 of 12</span>
+
+<h1>Tailwind CSS</h1>
+
+<p class="lede">The same layout knowledge, expressed as small composable utility classes.</p>
+
+
+<p>Everything in Act 2 still applies — the box model, the cascade, flexbox, grid. Tailwind
+doesn't replace CSS knowledge; it replaces <em>writing</em> CSS.</p>
+
+<p>The shift: instead of inventing a class name and writing a rule for it, you compose
+small single-purpose utilities directly onto the element.</p>
+
+<pre class="code"><code>&lt;!-- CSS --&gt;
+.card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+}
+&lt;div class="card"&gt;...&lt;/div&gt;
+
+&lt;!-- Tailwind --&gt;
+&lt;div class="flex items-center gap-3 p-4 rounded-lg bg-white border border-gray-200"&gt;...&lt;/div&gt;</code></pre>
+
+<div class="note">
+<p><strong>What this buys you:</strong> you never leave your HTML, you never invent
+class names, you never write a selector, and you can see exactly what's applied by
+reading the class list. What it costs you: long class lists, and you need to know the
+scale (which is what this act teaches).</p>
+</div>
+
+
+<div class="toc"><strong>In this act</strong><ol><li><a href="#step-3-1-the-utility-first-shift">3.1 — The Utility-First Shift</a></li><li><a href="#step-3-2-reading-the-scales">3.2 — Reading the Scales</a></li><li><a href="#step-3-3-layout-with-utilities">3.3 — Layout with Utilities</a></li><li><a href="#step-3-4-variants">3.4 — Variants</a></li><li><a href="#step-3-5-dark-mode">3.5 — Dark Mode</a></li><li><a href="#step-3-6-customising-extracting">3.6 — Customising &amp; Extracting</a></li></ol></div>
+
+<h2 id="step-3-1-the-utility-first-shift">3.1 — The Utility-First Shift</h2>
+
+<p class="lede">Get past the 'this is just inline styles' objection and understand the real trade-off.</p>
+
+
+<p>Your first reaction will be: "these class names are absurd —
+<code>flex items-center gap-3 p-4 rounded-lg</code>." That's a fair reaction. The
+counter-arguments, honestly stated:</p>
+
+<table>
+<tr><th>Traditional CSS</th><th>Utility-first</th></tr>
+<tr><td>Class names describe <em>appearance</em> (<code>.red-button</code>) or <em>purpose</em> (<code>.cta</code>) — often both, inconsistently</td><td>Class names describe <em>what they do</em>, so they're self-documenting</td></tr>
+<tr><td>You must decide the name before you know the styles</td><td>Styles are visible in the markup — you decide the name after</td></tr>
+<tr><td>Unused CSS accumulates forever</td><td>Only the utilities you use end up in the output</td></tr>
+<tr><td>Debugging means hunting a stylesheet</td><td>Debugging means reading the class list</td></tr>
+<tr><td>Changing a shared button style means editing CSS</td><td>Changing it means editing every markup usage — <strong>this is the real cost</strong></td></tr>
+</table>
+
+<h3>When to break out</h3>
+<p>Tailwind is not for everything. You'll extract a component when:</p>
+<ul>
+<li>the same long class list appears <strong>three or more times</strong> (the rule of
+three — below that, duplication is cheaper than abstraction),</li>
+<li>or the styles need pseudo-selectors, keyframes, or complex nesting that utilities
+can't express,</li>
+<li>or it's a real design-system component (a button, a dialog) that should have a
+single API.</li>
+</ul>
+
+<div class="note">
+<p>That's exactly what <code>shadcn/ui</code> does tomorrow: real components, but copied
+into your project as source code that you own and can edit — built with Tailwind
+utilities. Nothing in Act 2 or Act 3 is wasted; it's the foundation you customise.</p>
+</div>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>Tailwind classes are just CSS. `flex` is `display:flex`, `p-4` is `padding:1rem`, `text-center` is `text-align:center`. Every single one.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Spot the CSS behind the classes</h3>
+
+<p>Without looking anything up, write the plain CSS that
+these Tailwind classes produce:</p>
+<ol>
+<li><code>flex items-center gap-3 p-4</code></li>
+<li><code>text-sm text-gray-600</code></li>
+<li><code>w-full max-w-md mx-auto</code></li>
+<li><code>grid grid-cols-3 gap-2</code></li>
+<li><code>absolute top-0 right-0 z-10</code></li>
+</ol>
+<p>Then build the same card in plain CSS and compare how much code you wrote.
+Which did you enjoy more?</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The spacing scale: `p-1` = 0.25rem, `p-2` = 0.5rem, `p-3` = 0.75rem, `p-4` = 1rem. It doubles: 1, 2, 4, 8, 16, 32, 64.</li><li>The colour scale: 50 is lightest, 500 is the base, 900 is nearly black.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/3-1-the-utility-first-shift.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-3-2-reading-the-scales">3.2 — Reading the Scales</h2>
+
+<p class="lede">Stop memorising class names individually — learn the scales and the names derive themselves.</p>
+
+
+<h3>Spacing — the number <em>is</em> the size</h3>
+<table>
+<tr><th>Class</th><th>Value</th></tr>
+<tr><td><code>p-1</code> / <code>m-1</code></td><td>0.25rem (4px)</td></tr>
+<tr><td><code>p-2</code></td><td>0.5rem (8px)</td></tr>
+<tr><td><code>p-3</code></td><td>0.75rem (12px)</td></tr>
+<tr><td><code>p-4</code></td><td>1rem (16px)</td></tr>
+<tr><td><code>p-6</code></td><td>1.5rem (24px)</td></tr>
+<tr><td><code>p-8</code></td><td>2rem (32px)</td></tr>
+<tr><td><code>p-12</code></td><td>3rem (48px)</td></tr>
+</table>
+<p>Note the jumps: the scale isn't every integer. It roughly doubles. So
+<code>p-2</code> → 8px, <code>p-3</code> → 12px, <code>p-4</code> → 16px,
+<code>p-5</code> → 20px, <code>p-6</code> → 24px. The gap between
+<code>p-4</code> and <code>p-5</code> is real, and the jump to <code>p-8</code> is
+bigger. This is a <em>design system</em> — the numbers are meant to be a small, curated
+set, not every possible pixel.</p>
+
+<p>The same numbers apply to width, height, gap, margin, padding, and (with a different
+prefix) inset. <code>w-4</code> = width 1rem. <code>gap-4</code> = gap 1rem.</p>
+
+<h3>Colours</h3>
+<p><code>{colour}-{shade}</code>, where shade runs 50 (lightest) → 900 (darkest).</p>
+<pre class="code"><code>bg-slate-50    text-slate-900
+bg-indigo-500  text-indigo-600
+text-red-500   border-emerald-200
+</code></pre>
+
+<p>Colours you will use constantly: <code>slate</code> (neutral greys),
+<code>gray</code>, <code>zinc</code>, <code>indigo</code>, <code>blue</code>,
+<code>green</code>/<code>emerald</code>, <code>red</code>/<code>rose</code>,
+<code>amber</code>, <code>yellow</code>. The default palette is intentionally neutral —
+brand colours are added by you, in the config.</p>
+
+<h3>Typography</h3>
+<pre class="code"><code>text-xs  text-sm  text-base  text-lg  text-xl
+text-2xl text-3xl text-4xl text-5xl
+font-normal  font-medium  font-semibold  font-bold
+tracking-tight  tracking-wide  tracking-widest
+leading-none  leading-tight  leading-relaxed
+underline  line-through  uppercase  lowercase
+</code></pre>
+
+<h3>Everything else</h3>
+<pre class="code"><code>rounded-sm  rounded  rounded-lg  rounded-xl  rounded-full  rounded-none
+border  border-2  border-t  border-b  divide-y
+shadow-sm  shadow  shadow-lg  shadow-none
+opacity-0  opacity-50  opacity-100
+z-0  z-10  z-50
+hidden  block  inline  inline-block  flex  grid
+overflow-hidden  overflow-auto
+cursor-pointer  select-none
+transition  duration-200  ease-in-out
+</code></pre>
+
+<div class="note">
+<p><strong>The meta-skill:</strong> you don't memorise these. You learn the
+<em>pattern</em> — <code>text-</code> for size, <code>font-</code> for weight,
+<code>bg-</code> for background, <code>border-</code> for border,
+<code>p-/m-</code> for spacing, <code>w-/h-</code> for size, <code>flex/grid</code> for
+display, <code>justify-/items-</code> for alignment. Then autocomplete in your editor
+does the rest. Every good editor has Tailwind IntelliSense.</p>
+</div>
+
+
+<h4 class="cap">Arbitrary values — when the scale isn't enough</h4>
+<pre class="code"><code class="lang-html">&amp;lt;div class="w-[137px]"&amp;gt;&amp;lt;/div&amp;gt;              &amp;lt;!-- exact pixels --&amp;gt;
+&amp;lt;div class="bg-[#ff00aa]"&amp;gt;&amp;lt;/div&amp;gt;            &amp;lt;!-- exact colour --&amp;gt;
+&amp;lt;div class="top-[calc(100%-2rem)]"&amp;gt;&amp;lt;/div&amp;gt;   &amp;lt;!-- calc() --&amp;gt;</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>In Tailwind v3+ the space is <code>top-[calc(100%-2rem)]</code>. In v4 the syntax changed to <code>top-[calc(100%-2rem)]</code> with underscores for spaces: <code>top-[calc(100%_-_2rem)]</code>.</li><li>Arbitrary values are an escape hatch, not a default. If you find yourself writing <code>p-[13px]</code> a lot, the scale is wrong for your design — configure a custom one instead.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Rebuild a card from the scale</h3>
+
+<p>Using only Tailwind utilities (no custom CSS), build a
+pricing card with:</p>
+<ul>
+<li>white background, a 1px border in a light grey, rounded corners, a soft shadow</li>
+<li>padding that steps down to 3 on mobile and 8 on desktop</li>
+<li>a plan name in small uppercase tracking-wide text</li>
+<li>a price in <code>text-4xl font-bold</code> with a small "/month" suffix</li>
+<li>a full-width primary button (indigo background, white text, rounded)</li>
+<li>a list of features with a green check before each</li>
+</ul>
+<p>Then, without changing the design, change the whole card to a dark theme by editing
+only the colour classes. (You'll automate this in Step 3.5.)</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Responsive padding: `p-3 md:p-8` — the prefix goes before the utility, and the unprefixed one is the mobile default.</li><li>The checkmark can just be the character ✓ in a <code>&lt;span class="text-emerald-500"&gt;</code>.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/3-2-reading-the-scales.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-3-3-layout-with-utilities">3.3 — Layout with Utilities</h2>
+
+<p class="lede">Translate Act 2's flexbox and grid knowledge into class lists.</p>
+
+
+<p>This is the payoff act. Everything from Act 2 Step 2.6 and 2.7 has a Tailwind
+equivalent:</p>
+
+<pre class="code"><code>/* flexbox */
+display: flex        ->  flex
+flex-direction: row  ->  flex-row        |  column -> flex-col
+justify-content      ->  justify-start | center | between | around | evenly
+align-items          ->  items-start | center | end | stretch
+gap: 12px           ->  gap-3
+flex: 1             ->  flex-1
+flex-wrap: wrap     ->  flex-wrap
+
+/* grid */
+display: grid        ->  grid
+grid-template-columns: repeat(3, 1fr)  ->  grid-cols-3
+grid-template-columns: 200px 1fr       ->  grid-cols-[200px_1fr]
+grid-template-rows: auto 1fr         ->  grid-rows-[auto_1fr]
+gap: 16px           ->  gap-4
+
+/* sizing */
+width: 50%          ->  w-1/2
+width: 100%         ->  w-full
+max-width: 640px    ->  max-w-xl
+height: 100vh       ->  h-screen
+aspect-ratio: 1     ->  aspect-square
+</code></pre>
+
+<h3>The <code>flex-1</code> and <code>min-w-0</code> pair</h3>
+<p>Recall the Act 2 trap: flex items default to <code>min-width: auto</code>, so a long
+unbreakable word stops them shrinking. The fix is <code>min-w-0</code>. You'll write
+this constantly:</p>
+<pre class="code"><code>&lt;div class="flex gap-4"&gt;
+  &lt;div class="min-w-0 flex-1"&gt;...&lt;/div&gt;
+  &lt;button class="shrink-0"&gt;Save&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+
+<p><code>shrink-0</code> does the mirror-image job: stop this item from shrinking.</p>
+
+<h3>Centering</h3>
+<pre class="code"><code>&lt;!-- centre a single element, both axes --&gt;
+&lt;div class="min-h-screen grid place-items-center"&gt;...&lt;/div&gt;
+
+&lt;!-- centre a row, push the ends apart --&gt;
+&lt;div class="flex items-center justify-between"&gt;...&lt;/div&gt;
+
+&lt;!-- centre text --&gt;
+&lt;p class="text-center"&gt;...&lt;/p&gt;</code></pre>
+
+<div class="note">
+<p><strong>Pattern worth memorising:</strong> <code>flex items-center justify-between</code>
+is the single most common layout in real dashboards — label on the left, action on the
+right. And <code>grid place-items-center</code> is the shortest "centre everything" in
+CSS.</p>
+</div>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>Tailwind's <code>gap-3</code> is 0.75rem = 12px, while <code>gap-4</code> is 1rem = 16px. Always map class numbers to the Act 2 scale — the spacing number is the CSS number divided by 4 (except 0 and fractions).</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Rebuild your Act 2 layouts</h3>
+
+<p>Take the navbar and the dashboard you built in Act 2
+(pure CSS) and rebuild both in Tailwind:</p>
+<ol>
+<li>Navbar: logo left, links centre, button right — with the responsive column
+collapse on mobile.</li>
+<li>Dashboard: the <code>grid-template-areas</code> layout from Act 2 Step 2.7.</li>
+</ol>
+<p>For the dashboard, compare the two approaches: CSS grid areas (named) vs Tailwind
+(<code>grid-cols-[240px_1fr]</code> + <code>col-start-</code>/<code>row-start-</code>).
+Which do you prefer, and why?</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Tailwind v3 has arbitrary grid templates: `grid-cols-[240px_1fr_240px]`.</li><li>For the responsive navbar, use `flex-col md:flex-row` plus `md:hidden` on a mobile menu button.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/3-3-layout-with-utilities.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-3-4-variants">3.4 — Variants</h2>
+
+<p class="lede">Master the prefix syntax — responsive, state, group, peer.</p>
+
+
+<p>A <strong>variant</strong> is a prefix that changes when the utility applies.</p>
+
+<h3>Responsive variants</h3>
+<pre class="code"><code>flex-col md:flex-row        /* column on mobile, row from 768px up */
+p-3 md:p-8 lg:p-12
+hidden md:block
+text-sm md:text-base lg:text-lg
+grid-cols-1 sm:grid-cols-2 lg:grid-cols-4</code></pre>
+
+<p>Tailwind's breakpoints: <code>sm</code> 640px, <code>md</code> 768px, <code>lg</code>
+1024px, <code>xl</code> 1280px, <code>2xl</code> 1536px. Mobile-first, same as Act 2.</p>
+
+<h3>State variants</h3>
+<pre class="code"><code>hover:bg-indigo-500
+focus:ring-2 focus:ring-indigo-500 focus:outline-none
+active:scale-95
+disabled:opacity-50
+group-hover:text-white
+peer-invalid:text-red-500
+</code></pre>
+
+<p>The important ones for quality work:</p>
+<ul>
+<li><code>focus-visible:</code> — shows the focus ring for keyboard users but not mouse
+users. <strong>Always use it instead of <code>focus:</code> for buttons</strong> —
+otherwise clicking a button leaves an ugly ring behind. This is an accessibility
+detail that separates good work from great work.</li>
+<li><code>group</code> / <code>group-hover:</code> — style a parent when a <em>child</em>
+is hovered. The parent gets <code>group</code>, the child gets
+<code>group-hover:*</code>.</li>
+<li><code>peer</code> / <code>peer-invalid:</code> — style a sibling based on a
+<em>preceding sibling's</em> state. Perfect for form validation: the input gets
+<code>peer</code>, and an error message gets <code>peer-invalid:text-red-500</code>.</li>
+</ul>
+
+<div class="note">
+<p><strong>Order matters in the class list.</strong> Tailwind generates CSS in a fixed
+order, not in the order you write them. When two utilities conflict, the one defined
+later in Tailwind's output wins — not the one later in your class attribute. (In
+Tailwind v4, conflicting utilities are resolved by source order in your class list
+instead. Either way: don't rely on it — use variants to disambiguate.)</p>
+</div>
+
+
+<h4 class="cap">A group-hover card</h4>
+<pre class="code"><code class="lang-html">&amp;lt;div class="group relative overflow-hidden rounded-xl"&amp;gt;
+  &amp;lt;img src="/photo.jpg" class="h-48 w-full object-cover transition duration-300 group-hover:scale-105" /&amp;gt;
+  &amp;lt;div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent
+              opacity-0 transition group-hover:opacity-100"&amp;gt;
+    &amp;lt;p class="absolute bottom-4 left-4 text-white font-semibold"&amp;gt;Read more&amp;lt;/p&amp;gt;
+  &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>The <code>group</code> class must be on the <em>parent</em>; <code>group-hover:</code> goes on the child that should react.</li><li>Add <code>transition</code> to the parent and <code>duration-300</code> to control the timing of the state change.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A product card with real states</h3>
+
+<p>Build a product card with all of these states:</p>
+<ul>
+<li><strong>Hover:</strong> the image scales up slightly, and a "View" label fades in</li>
+<li><strong>Focus-visible:</strong> a visible ring on the card link (keyboard only)</li>
+<li><strong>Responsive:</strong> full-width on mobile, a 2-up grid from <code>sm</code>, a 3-up from <code>lg</code></li>
+<li><strong>Form validation:</strong> a price input with a red error message that only
+appears when the value is invalid</li>
+</ul>
+<p>Then tab through your page and check: does every interactive element show a clear
+focus ring? Does the mouse-click ring disappear?</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>For the card hover, put `group` on the card and `group-hover:scale-105` on the image.</li><li>The error message needs `hidden` by default and `peer-invalid:block` to appear.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/3-4-variants.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-3-5-dark-mode">3.5 — Dark Mode</h2>
+
+<p class="lede">Build dark mode with CSS variables so it doesn't require duplicating every class.</p>
+
+
+<p>There are two ways to do dark mode in Tailwind, and the difference matters.</p>
+
+<h3>Approach A — duplicate every class (the naive way)</h3>
+<pre class="code"><code>&lt;div class="bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100"&gt;...&lt;/div&gt;</code></pre>
+
+<p>This works, but every element needs both variants, and it's easy to forget one. It
+also can't be a "toggle" that affects third-party content.</p>
+
+<h3>Approach B — CSS variables (the right way)</h3>
+<p>Define semantic tokens once, and let dark mode redefine the tokens:</p>
+
+<pre class="code"><code>:root {
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+}
+.dark {
+  --background: 222 47% 11%;
+  --foreground: 210 40% 98%;
+}
+body { background: hsl(var(--background)); color: hsl(var(--foreground)); }</code></pre>
+
+<p>Then every element uses the <em>semantic</em> token, and the whole theme flips from
+one class on a root element. This is exactly how shadcn/ui does it — and it's why
+shadcn's <code>bg-background</code> works in dark mode without a single
+<code>dark:</code> variant on the element.</p>
+
+<h3>Configuring the strategy</h3>
+<pre class="code"><code>// tailwind.config.js
+module.exports = {
+  darkMode: 'class',   // instead of the default 'media'
+}</code></pre>
+
+<p>With <code>darkMode: 'class'</code>, dark mode is active when an ancestor has the
+<code>dark</code> class. With the default <code>'media'</code>, it follows the OS setting
+and you can't toggle it manually.</p>
+
+<div class="note">
+<p><strong>Two real gotchas:</strong></p>
+<p>1. <strong>Flashing white.</strong> On a dark-mode site, the browser may paint a
+white page before your JS adds the <code>dark</code> class. The fix is a tiny inline
+script in <code>&lt;head&gt;</code> that sets the class before first paint (read the
+stored preference and apply it immediately).</p>
+<p>2. <strong>Images and logos.</strong> Dark mode doesn't invert your PNGs. You need
+explicit handling — a <code>dark:</code> variant on the image, or CSS
+<code>filter: invert()</code> for icons.</p>
+</div>
+
+
+<h4 class="cap">The anti-flash snippet (goes in &lt;head&gt;, before any stylesheet)</h4>
+<pre class="code"><code class="lang-html">&amp;lt;script&amp;gt;
+  if (localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) &amp;amp;&amp;amp; matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.classList.add('dark');
+  }
+&amp;lt;/script&amp;gt;</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>Act 5's dark-mode project does exactly this — it's the perfect place to apply everything from Acts 3 and 4 together.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A theme that persists</h3>
+
+<p>Build a proper theme switcher:</p>
+<ol>
+<li>A button that toggles dark mode.</li>
+<li>The choice <strong>persists across reloads</strong> — that means
+<code>localStorage</code> (Act 4 Step 4.9 will show you the API).</li>
+<li>On first visit, respect the OS setting via
+<code>matchMedia('(prefers-color-scheme: dark)')</code>.</li>
+<li>Add the anti-flash snippet to the <code>&lt;head&gt;</code> so the page never flashes
+white.</li>
+<li>Use the CSS-variable approach (Approach B) so you only write
+<code>bg-background</code> and <code>text-foreground</code> once.</li>
+</ol>
+<p>Bonus: add a "system" option that follows the OS and updates live when the OS
+changes.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>`localStorage.setItem('theme','dark')` and `localStorage.getItem('theme')` — you'll use these in the Act 5 dark-mode project too.</li><li>The anti-flash script must run in <code>&lt;head&gt;</code> BEFORE the stylesheet, so the class is set before the first paint.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/3-5-dark-mode.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-3-6-customising-extracting">3.6 — Customising &amp; Extracting</h2>
+
+<p class="lede">Make Tailwind yours — custom colours, fonts, and a rule for when to break out of utilities.</p>
+
+
+<h3>The config file</h3>
+<pre class="code"><code>// tailwind.config.js
+module.exports = {
+  content: ['./src/**/*.{html,js,jsx,ts,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          50: '#eef2ff',  100: '#e0e7ff',  500: '#6366f1',  900: '#312e81',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+      spacing: { 18: '4.5rem' },
+    },
+  },
+}</code></pre>
+
+<p>After that, <code>bg-brand-500</code> and <code>text-brand-900</code> work exactly
+like the built-in colours. <code>extend</code> adds to the defaults;
+<code>theme: { colors: {...} }</code> (without <code>extend</code>) <em>replaces</em>
+them.</p>
+
+<div class="warn">
+<p><strong>The <code>content</code> array is critical.</strong> Tailwind scans your files
+to find which classes you actually used, and only generates those. If a class isn't in
+your <code>content</code> globs, it simply won't exist in the output. This is why
+dynamically constructed class names don't work:</p>
+<pre class="code"><code>// BROKEN — Tailwind can't see this class name
+const cls = `bg-${color}-500`;
+// BROKEN — same reason
+const cls = color === 'red' ? 'text-red-500' : 'text-blue-500';
+// WORKS — both class names appear literally in the source
+const cls = color === 'red' ? 'text-red-500' : 'text-blue-500';
+</code></pre>
+<p>That third one is the fix, and it's the same trick used in every design system.</p>
+</div>
+
+<h3>When to extract a component</h3>
+<p>Use <code>@apply</code> to name a repeated set of utilities:</p>
+<pre class="code"><code>@layer components {
+  .btn-primary {
+    @apply rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white
+           hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-300;
+  }
+}</code></pre>
+<p>Then <code>class="btn-primary"</code> in your markup.</p>
+
+<div class="note">
+<p><strong>When to extract:</strong> the same list appears three or more times, and the
+list is long enough to hurt. <strong>When not:</strong> for one-off styles, for anything
+you need to tweak in different places, or for a "component" that's just one or two
+utilities — the abstraction costs more than it saves.</p>
+<p>And a big one: <strong>components with behaviour (a dropdown, a modal, a combobox)
+don't belong in Tailwind at all.</strong> That's what a component library like
+shadcn/ui or Radix is for. shadcn gives you the <em>structure and behaviour</em> as
+copy-paste React code, styled with Tailwind utilities. That's the Day-2 shape of
+things, and it all comes from what you've learned here.</p>
+</div>
+
+
+<h4 class="cap">@apply in practice</h4>
+<pre class="code"><code class="lang-css">@layer components {
+  .card {
+    @apply rounded-xl border border-gray-200 bg-white p-6 shadow-sm;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg
+           px-4 py-2 text-sm font-medium transition;
+  }
+  .btn-primary { @apply bg-indigo-600 text-white hover:bg-indigo-500; }
+  .btn-ghost   { @apply text-gray-700 hover:bg-gray-100; }
+}</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>In Tailwind v4 there's no <code>tailwind.config.js</code> by default — you configure with a CSS-first <code>@theme</code> block in your stylesheet. The v3 config shown here is still the mental model, and most tutorials use it.</li><li><code>@apply</code> is convenient but has a downside: it hides the styles from the HTML. When you need to override one property, you're back to specificity fights.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A theme + a component</h3>
+
+<ol>
+<li>Add a custom <code>brand</code> colour ramp to the Tailwind config (at least
+shades 100, 500, 900) and use it for a button.</li>
+<li>Extract a <code>.btn</code> component with <code>@apply</code>, with a
+<code>.btn-primary</code> variant.</li>
+<li>Add a <code>spacing</code> extension for a size you actually use (e.g. 18).</li>
+<li><strong>The important one:</strong> create a case where a dynamically-built class
+name fails, and fix it using the literal-class-name technique. Explain in two sentences
+why the broken version fails.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Tailwind only generates CSS for class names it can find as literal strings in your source files. A string built at runtime never appears literally, so it's never generated.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/3-6-customising-extracting.html">▶ Open the runnable file for this step</a></p>
+
+<hr>
+
+<div class="ok"><strong>Act 3 checkpoint</strong>
+<p>You can now write real interfaces in Tailwind, customise the design tokens, and
+handle dark mode properly.</p>
+<p>Next: <strong>JavaScript</strong> — the language you've never seen. It's the biggest
+act in the course, and everything after it depends on it. We'll go from
+<code>console.log("hi")</code> to a complete mental model of the language.</p>
+</div>
+
+<div class="stepnav"><a href="../02-css-presentation/lesson.html">← Act 2</a><a href="../04-javascript-the-language/lesson.html">Act 4 →</a></div>
+</body>
+</html>

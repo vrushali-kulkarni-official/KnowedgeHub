@@ -1,0 +1,17 @@
+{
+  "name": "frontend-journey-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Act 10 — a tiny backend so the front end makes sense",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "optionalDependencies": {
+    "ws": "^8.17.0"
+  }
+}

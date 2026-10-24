@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8.4 XSS &amp; Content Security Policy — Act 8: Networking, Storage &amp; Security</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+<script>
+(function(){
+  var out = document.getElementById('out');
+  if(!out) return;
+  function fmt(v){
+    if (typeof v === 'string') return v;
+    if (v instanceof Error) return v.name + ': ' + v.message;
+    try { return JSON.stringify(v); } catch(e){ return String(v); }
+  }
+  ['log','info','warn','error'].forEach(function(k){
+    var orig = console[k].bind(console);
+    console[k] = function(){
+      orig.apply(null, arguments);
+      out.textContent += Array.prototype.map.call(arguments, fmt).join(' ') + '\n';
+      out.scrollTop = out.scrollHeight;
+    };
+  });
+})();
+</script>
+<script>
+// A safe rendering function
+function renderSafe(el, text) {
+  el.textContent = text;             // text - never executed
+}
+
+function renderUnsafe(el, html) {
+  el.innerHTML = html;                // markup - CAN be executed
+}
+
+const box = document.querySelector("#demo-box");
+const input = document.querySelector("#demo-input");
+
+if (box && input) {
+  input.addEventListener("input", () => {
+    renderSafe(box, input.value);
+    console.log("safe render OK. innerHTML would have been:", input.value);
+  });
+
+  // Try the unsafe one yourself - uncomment and paste:
+  // renderUnsafe(box, '<img src=x onerror="console.log(\'XSS!\')">');
+}
+</script>
+</head>
+<body>
+<span class="tag">Act 8 · Step 8.4</span>
+
+<h1>XSS &amp; Content Security Policy</h1>
+
+<p class="lede">Recognise the three kinds of cross-site scripting and defend against them.</p>
+
+<div class="notice"><h3>What to notice</h3><ul><li>React escapes <code>{"..."}</code> by default, so setting <code>innerHTML</code>-like behaviour requires <code>dangerouslySetInnerHTML</code>. That name is a warning, not a convenience.</li><li>A CSP violation shows up in the Console as "Refused to execute inline script". That's the CSP working.</li></ul></div>
+
+
+<input id="demo-input" placeholder="Type anything, then paste a script tag"
+       class="border border-gray-300 rounded px-2 py-1.5 w-full max-w-sm">
+<div id="demo-box" class="mt-2 p-3 rounded border border-gray-200 min-h-[40px]"></div>
+
+
+<div class="outlabel">Console output</div>
+
+<pre id="out"></pre>
+
+<div class="challenge"><h3>Challenge — Prove the difference</h3>
+
+<ol>
+<li>Use the input above to paste
+<code>&lt;img src=x onerror="console.log('XSS!')"&gt;</code>. With the safe renderer,
+nothing happens. Now call the unsafe renderer on the same input. <strong>What
+happens?</strong></li>
+<li>Add a CSP to the page via a <code>&lt;meta http-equiv="Content-Security-Policy"&gt;</code>
+tag with <code>script-src 'self'</code> and try again. <strong>What does the Console
+say now?</strong></li>
+<li>Write a <code>renderUserList</code> function that takes an array of
+<code>{ name, bio }</code> and renders them safely. Then find the <em>one</em> place
+where you'd need <code>innerHTML</code> and explain what you'd do instead.</li>
+<li>Explain, in two sentences, why <code>textContent</code> is safe and
+<code>innerHTML</code> is not — in terms of what the browser does with the string.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>An <code>onerror</code> handler fires when the image fails to load — it's a reliable way to execute JS without a <code>&lt;script&gt;</code> tag.</li><li>The CSP message names the exact directive that blocked it.</li></ul></details>
+
+</div>
+
+<div class="stepnav"><a href="../lesson.html">← Full Act 8 lesson</a><a href="8-5-csrf-samesite-tokens.html">Next step →</a></div>
+</body>
+</html>

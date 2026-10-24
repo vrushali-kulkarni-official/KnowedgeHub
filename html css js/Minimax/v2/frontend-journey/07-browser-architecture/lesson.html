@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Act 7 — Browser Architecture — Frontend Journey</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+
+</head>
+<body>
+<span class="tag">Act 7 of 12</span>
+
+<h1>Browser Architecture</h1>
+
+<p class="lede">What the browser is actually doing, from the moment you hit Enter to the moment pixels appear.</p>
+
+
+<p>You've written HTML, CSS and JavaScript. Now let's look at the machine that runs
+them. This act is the "why" behind a surprising number of rules you already follow —
+why <code>defer</code> exists, why <code>transform</code> is fast, why images need
+dimensions, and why a long function freezes the page.</p>
+
+<div class="note">
+<p><strong>How to study this act:</strong> open DevTools → Performance, record, and
+reload the page. You'll watch the entire pipeline happen in real time. This act reads
+much better with that panel open.</p>
+</div>
+
+
+<div class="toc"><strong>In this act</strong><ol><li><a href="#step-7-1-from-bytes-to-a-render-tree">7.1 — From Bytes to a Render Tree</a></li><li><a href="#step-7-2-layout-paint-compositing">7.2 — Layout, Paint &amp; Compositing</a></li><li><a href="#step-7-3-the-critical-rendering-path">7.3 — The Critical Rendering Path</a></li><li><a href="#step-7-4-rendering-tasks-responsiveness">7.4 — Rendering, Tasks &amp; Responsiveness</a></li></ol></div>
+
+<h2 id="step-7-1-from-bytes-to-a-render-tree">7.1 — From Bytes to a Render Tree</h2>
+
+<p class="lede">Understand the pipeline: HTML → DOM, CSS → CSSOM, DOM + CSSOM → Render Tree.</p>
+
+
+<h3>Step by step</h3>
+<ol>
+<li><strong>Parse HTML → DOM.</strong> The browser reads bytes, decodes them, and
+builds a tree of nodes. It doesn't wait for the whole file — it renders progressively
+as content arrives. (This is why content flashes in as it loads.)</li>
+<li><strong>Parse CSS → CSSOM.</strong> A separate tree of style rules, and a
+computation of which rules apply to which nodes. CSS is <strong>render-blocking</strong>
+by default: the browser won't paint until the CSSOM is ready, because painting
+unstyled content then restyling causes a flash.</li>
+<li><strong>Combine them → Render Tree.</strong> The DOM tree filtered to only
+<em>visible</em> nodes, each with its computed style attached. (Elements with
+<code>display: none</code> are excluded. Elements with <code>visibility: hidden</code>
+are included — they're painted as transparent, so they still occupy space.)</li>
+<li><strong>Layout → Paint → Composite.</strong> Next step.</li>
+</ol>
+
+<pre class="code"><code>HTML bytes  ──parse──&gt;  DOM ──┐
+                                    ├──combine──&gt;  Render Tree ──&gt; Layout ──&gt; Paint ──&gt; Composite
+CSS bytes  ──parse──&gt;  CSSOM ─┘</code></pre>
+
+<div class="warn">
+<p><strong>The key insight:</strong> <strong>DOM + CSSOM = Render Tree</strong>.
+JavaScript is not in this pipeline. Which is why a <code>&lt;script&gt;</code> in the
+<code>&lt;head&gt;</code> without <code>defer</code> stops the parser completely — the
+DOM can't be built past that point, so nothing can render.</p>
+</div>
+
+<h3>Why <code>&lt;style&gt;</code> blocks in the head are bad</h3>
+<p>Each <code>&lt;style&gt;</code> block is parsed synchronously and blocks rendering.
+Ten of them = ten render-blocking pauses. One external stylesheet = one request, one
+pause, and it's cacheable.</p>
+
+<h3>Where JavaScript fits</h3>
+<p>JavaScript can also <strong>block the parser</strong>. A classic
+<code>&lt;script&gt;</code> in the <code>&lt;head&gt;</code> means: stop, download,
+execute, then continue parsing. During that time, nothing renders.</p>
+
+<table>
+<tr><th>Attribute</th><th>Download</th><th>Execute</th><th>Use for</th></tr>
+<tr><td>none</td><td>blocks parser</td><td>immediately, before parsing continues</td><td>nothing, really</td></tr>
+<tr><td><code>defer</code></td><td>parallel</td><td>after the DOM is parsed</td><td><strong>almost always</strong></td></tr>
+<tr><td><code>async</code></td><td>parallel</td><td>as soon as it arrives (order unpredictable)</td><td>independent scripts (analytics)</td></tr>
+<tr><td><code>type="module"</code></td><td>parallel</td><td>after parsing (implicitly deferred)</td><td>all modern code</td></tr>
+</table>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>Open DevTools → Elements and note that the DOM is built live as HTML streams in. Pause the network throttling in the Network panel to watch it happen.</li><li>In the Performance panel, the top track shows exactly this: parse HTML, parse CSS, then the long purple &quot;Layout &amp; Paint&quot; bars.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Watch the pipeline</h3>
+
+<ol>
+<li>Create a page with a large <code>&lt;style&gt;</code> block, a large
+<code>&lt;script&gt;</code> in the head (no <code>defer</code>), and a lot of content.</li>
+<li>Open DevTools → Network → enable throttling (Slow 4G). Reload.</li>
+<li>Record a performance profile. Find: the HTML parse, the CSS parse, the script
+execution, and the first paint. <strong>In what order did they happen?</strong></li>
+<li>Move the script to the end of <code>&lt;body&gt;</code> and re-measure. Then add
+<code>defer</code> in the head. <strong>Which version paints first?</strong></li>
+<li>Move the <code>&lt;style&gt;</code> into an external file and re-measure.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The Performance panel's paint events are the green flags. Hovering one shows the exact moment pixels appeared.</li><li>Network throttling is the key — without it, everything is too fast to see.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/7-1-from-bytes-to-a-render-tree.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-7-2-layout-paint-compositing">7.2 — Layout, Paint &amp; Compositing</h2>
+
+<p class="lede">Know the three rendering stages and which of your CSS choices make each one expensive.</p>
+
+
+<h3>Layout (reflow)</h3>
+<p>The browser calculates the exact <strong>position and size</strong> of every box in
+the render tree. This is geometry — expensive, and triggered by changes to
+width/height/margin/padding/font-size/position.</p>
+<p>It's <strong>usually global</strong>: change one element's size and the browser
+recalculates the layout for everything that might be affected. (Modern browsers
+optimise this, but the mental model is right.)</p>
+
+<h3>Paint</h3>
+<p>The browser fills in the pixels — drawing text, colours, borders, shadows, images.
+It produces a list of draw commands. Triggered by changes to <code>color</code>,
+<code>background</code>, <code>box-shadow</code>, <code>border-radius</code>, etc.</p>
+
+<h3>Compositing</h3>
+<p>The browser assembles the painted layers into the final image on screen. If a layer
+can be handled by the GPU, moving it is nearly free.</p>
+
+<pre class="code"><code>change width      -> layout  -> paint -> composite   (slow)
+change color      ->          paint -> composite   (medium)
+change transform  ->                   composite   (fast, GPU)</code></pre>
+
+<div class="note">
+<p><strong>This is the payoff of Act 2 Step 2.10.</strong> Animating
+<code>transform</code> and <code>opacity</code> skips layout and paint entirely — the
+compositor just re-positions an existing layer. That's why they're the only two
+properties you should animate in hot paths.</p>
+</div>
+
+<h3>Layers</h3>
+<p>The browser promotes elements to their own compositing layer when it needs to:
+elements with <code>transform</code>, <code>opacity &lt; 1</code>,
+<code>position: fixed</code>, <code>will-change</code>, <code>filter</code>,
+<code>backdrop-filter</code>, and video/canvas.</p>
+<p>Layers are <strong>not free</strong> — each one consumes memory (a full bitmap of
+the layer). <code>will-change: transform</code> on 500 elements can genuinely hurt
+performance. Use it sparingly, on elements you're about to animate.</p>
+
+<h3>Layout thrashing</h3>
+<pre class="code"><code>// BAD - read then write, in a loop. Each iteration forces a synchronous layout.
+elements.forEach(el =&gt; {
+  const h = el.offsetHeight;      // READ  -&gt; forces layout
+  el.style.height = h * 2 + "px";  // WRITE -&gt; invalidates it again
+});
+
+// GOOD - batch all reads, then all writes.
+const heights = elements.map(el =&gt; el.offsetHeight);   // all reads
+elements.forEach((el, i) =&gt; { el.style.height = heights[i] * 2 + "px"; });  // all writes
+</code></pre>
+
+<p>This is the single most common cause of "my animation is janky". The Performance
+panel shows it as repeated purple "Layout" bars inside a long task.</p>
+
+<h3>Composite-only properties</h3>
+<pre class="code"><code>transform: translate / scale / rotate   ✅ GPU
+opacity                                  ✅ GPU
+filter, backdrop-filter                  ✅ GPU
+will-change: transform                   ⚠️  use sparingly
+width, height, top, left, margin         ❌ forces layout
+</code></pre>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>In the Performance panel, purple bars = Layout, green bars = Paint, light blue = Composite. If your animation produces purple bars, you're animating the wrong property.</li><li>DevTools → Rendering → "Paint flashing" makes the browser flash the screen every time it repaints — an amazing way to see what's expensive.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Find the thrashing</h3>
+
+<p>Write two versions of an animation that moves 200
+elements' heights:</p>
+<ol>
+<li>A <strong>bad</strong> version: read and write inside the loop.</li>
+<li>A <strong>good</strong> version: batch reads, then batch writes.</li>
+</ol>
+<p>Measure both with <code>performance.now()</code>, then record both in the
+Performance panel. <strong>What do the traces look like?</strong></p>
+<p>Then, third version: animate with <code>transform: translateY()</code> instead of
+<code>height</code>, and compare the paint behaviour.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>In the Performance panel, look for a series of thin purple bars with gaps — that's layout thrashing, and it looks like a sawtooth.</li><li>The composite-only version should show almost no purple or green at all — just a light blue composite bar.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/7-2-layout-paint-compositing.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-7-3-the-critical-rendering-path">7.3 — The Critical Rendering Path</h2>
+
+<p class="lede">Learn the checklist for making a page appear fast — the highest-leverage frontend skill.</p>
+
+
+<p>The <strong>critical rendering path</strong> is the sequence of steps the browser
+takes to go from "HTML arrives" to "first pixels on screen":</p>
+
+<pre class="code"><code>HTML  -> parse -> DOM ─┐
+                        ├-> Render Tree -> Layout -> Paint -> Composite -> PIXELS
+CSS   -> parse -> CSSOM ┘
+JS    -> execute -> (may block) -> style recalc -> layout -> paint</code></pre>
+
+<p>The goal of optimisation: <strong>get the first meaningful pixels on screen as fast
+as possible</strong>, then let the rest arrive progressively.</p>
+
+<h3>The optimisation checklist</h3>
+<ol>
+<li><strong>Minimise the critical chain.</strong> Every resource in the chain delays
+first paint. HTML → CSS → JS → fonts → images.</li>
+<li><strong>Defer JavaScript.</strong> <code>defer</code> or <code>type="module"</code>.
+Never a blocking script in the head.</li>
+<li><strong>Inline critical CSS.</strong> Put the CSS needed for the first screen
+directly in a <code>&lt;style&gt;</code> in the head, and load the rest asynchronously:
+<pre class="code"><code>&lt;link rel="preload" href="styles.css" as="style" onload="this.rel='stylesheet'"&gt;
+&lt;noscript&gt;&lt;link rel="stylesheet" href="styles.css"&gt;&lt;/noscript&gt;</code></pre></li>
+<li><strong>Preload key resources.</strong> <code>&lt;link rel="preload" as="font"
+crossorigin href="..."&gt;</code> — fonts are a classic hidden dependency, because
+CSS discovers them late.</li>
+<li><strong>Don't block on fonts.</strong> <code>font-display: swap</code> shows a
+fallback immediately instead of invisible text. (Or use <code>optional</code> and
+preload.)</li>
+<li><strong>Optimise images.</strong> Modern formats (WebP/AVIF), correct dimensions
+(zero CLS), <code>loading="lazy"</code> below the fold, <code>srcset</code> for
+responsive sizes.</li>
+<li><strong>Split CSS.</strong> Critical CSS inline, rest deferred. Modern build
+tools do this automatically.</li>
+<li><strong>Reduce server round trips.</strong> HTTP/2 or HTTP/3 multiplexes requests
+over one connection. Fewer, smaller files beat many small ones.</li>
+</ol>
+
+<h3>What the browser downloads, and when</h3>
+<p>Open the Network panel, sort by "Waterfall" view, and you'll see the dependency
+chain. Typical shape:</p>
+<pre class="code"><code>HTML (0ms)  ──┬─> CSS (50ms) ──> render-blocking
+               ├─> font (80ms) ──> blocks text paint
+               ├─> image (120ms) ──> discovered late
+               └─> JS (60ms, deferred) ──> after first paint ✓</code></pre>
+
+<h3>Preload, prefetch, preconnect</h3>
+<table>
+<tr><th>Tag</th><th>Means</th><th>Use for</th></tr>
+<tr><td><code>preload</code></td><td>"I need this <em>now</em>"</td><td>the font, the critical image</td></tr>
+<tr><td><code>prefetch</code></td><td>"I might need this soon"</td><td>the next page's assets</td></tr>
+<tr><td><code>preconnect</code></td><td>"start the connection early"</td><td>an API on another domain</td></tr>
+<tr><td><code>dns-prefetch</code></td><td>"resolve the DNS early"</td><td>cheap version of preconnect</td></tr>
+</table>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>The Network panel's Waterfall view is the single best way to understand page performance. Open it on any real site and look at the shape of the bars.</li><li><code>font-display: swap</code> is set on the <code>@font-face</code> rule, not on the <code>&lt;link&gt;</code> tag.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Optimise a real page</h3>
+
+<p>Take any page you like (or build a simple one) and
+run the checklist against it:</p>
+<ol>
+<li>Record a baseline performance profile in the Performance panel. Note LCP (the
+largest contentful paint marker) and the total blocking time.</li>
+<li>Add <code>defer</code> to every script. Re-measure.</li>
+<li>Add explicit <code>width</code> and <code>height</code> to every image. Re-measure
+CLS.</li>
+<li>Add <code>font-display: swap</code> to any web font (or remove the font).</li>
+<li>Add a <code>preload</code> for the largest above-the-fold image.</li>
+<li>Run Lighthouse before and after. <strong>Which metric improved most, and
+why?</strong></li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Lighthouse's "Largest Contentful Paint" and "Total Blocking Time" numbers are the two to watch. The Performance panel shows LCP markers on the timeline.</li><li>Lighthouse is in DevTools → Lighthouse tab. Run it against the <code>file://</code> page or a local server.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/7-3-the-critical-rendering-path.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-7-4-rendering-tasks-responsiveness">7.4 — Rendering, Tasks &amp; Responsiveness</h2>
+
+<p class="lede">Connect the event loop to what the user actually sees, and understand INP.</p>
+
+
+<p>Remember the event loop (Act 4 Step 4.17). Here's the browser's version, with
+rendering folded in:</p>
+
+<pre class="code"><code>  ┌─ pick a task (macrotask): timer, event, I/O
+  │    run it on the call stack
+  │    if it takes &gt; 50ms -> it's a LONG TASK (bad for INP)
+  ├─ drain the microtask queue (promises)
+  ├─ if the frame is due: RENDER (style -> layout -> paint -> composite)
+  └─ repeat</code></pre>
+
+<div class="note">
+<p><strong>The browser renders between tasks, not during them.</strong> That's why a
+synchronous loop of 500ms means 500ms of nothing happening on screen — no scroll, no
+click response, no animation frame.</p>
+</div>
+
+<h3>Long tasks and INP</h3>
+<p>A <strong>long task</strong> is any main-thread task taking more than 50ms. While
+it runs, the browser can't respond to input, and the frame can't be painted.</p>
+<p><strong>INP</strong> (Interaction to Next Paint) measures the delay between a user
+interaction and the next frame that reflects it. INP is essentially "how long did the
+user wait after clicking?"</p>
+
+<table>
+<tr><th>User does</th><th>Good</th><th>Bad</th></tr>
+<tr><td>Clicks a button</td><td>handler is fast, React re-renders in one frame</td><td>handler does a 300ms calculation first</td></tr>
+<tr><td>Types in a field</td><td>state update is cheap</td><td>each keystroke re-renders 5,000 rows</td></tr>
+<tr><td>Scrolls</td><td>transform-only animation</td><td>scroll handler queries layout each event</td></tr>
+</table>
+
+<h3>Breaking up long tasks</h3>
+<pre class="code"><code>// Instead of one long task:
+items.forEach(item =&gt; process(item));
+
+// Yield between chunks:
+async function processAll(items) {
+  for (let i = 0; i &lt; items.length; i++) {
+    process(items[i]);
+    if (i % 100 === 0) await new Promise(r =&gt; setTimeout(r, 0));
+  }
+}
+</code></pre>
+
+<p>Each <code>await</code> yields to the event loop, letting the browser paint and
+process input between chunks. This is called <strong>yielding</strong>, and it's how
+you keep a long job responsive without a worker.</p>
+
+<h3>The frame budget</h3>
+<p>At 60fps, you have <strong>16.7ms per frame</strong>. A frame that takes longer
+means dropped frames. At 120Hz, 8.3ms.</p>
+<p>Spend it: ~5ms scripting, ~5ms style/layout/paint, ~5ms idle buffer. If you're
+consistently over, you have a jank problem — and the Performance panel will show you
+exactly which part is over budget.</p>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>The Performance panel flags long tasks with a red triangle in the top-right corner of the main-thread track. Hover it to see how long it was and which script caused it.</li><li>Chrome's "Rendering" panel has a "Frames Per Second" meter in the corner of the viewport when you enable it — watch it while you interact with your app.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Make a janky thing smooth</h3>
+
+<ol>
+<li>Build a page with 1,000 rows and a button that sorts them on click (a real
+O(n log n) sort on 1,000 items is enough to feel slow).</li>
+<li>Record a Performance profile while clicking it. <strong>Where's the long task?</strong></li>
+<li>Break the sort into chunks with <code>await</code> between them, yielding every
+100 items.</li>
+<li>Re-measure. <strong>Did the total time change? Did responsiveness change?</strong>
+(This is the point: total time may be the same or slightly worse, but the page stays
+responsive.)</li>
+<li>Now move the sort into a Web Worker (Act 6 Step 6.6) and compare all three.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The Performance panel's "Interactions" track shows INP — click the flag markers to see the delay for each interaction.</li><li>Yielding with <code>await new Promise(r =&gt; setTimeout(r, 0))</code> works, but <code>scheduler.yield()</code> (Chrome only) is more explicit.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/7-4-rendering-tasks-responsiveness.html">▶ Open the runnable file for this step</a></p>
+
+<hr>
+
+<div class="ok"><strong>Act 7 checkpoint</strong>
+<p>You now understand what the browser does with your code, and <em>why</em> the
+performance advice in Acts 2 and 6 works.</p>
+</div>
+
+<div class="stepnav"><a href="../06-advanced-javascript/lesson.html">← Act 6</a><a href="../08-networking-storage-security/lesson.html">Act 8 →</a></div>
+</body>
+</html>

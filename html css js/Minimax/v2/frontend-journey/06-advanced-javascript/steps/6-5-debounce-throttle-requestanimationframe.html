@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6.5 Debounce, Throttle &amp; requestAnimationFrame — Act 6: Advanced JavaScript</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+<script>
+(function(){
+  var out = document.getElementById('out');
+  if(!out) return;
+  function fmt(v){
+    if (typeof v === 'string') return v;
+    if (v instanceof Error) return v.name + ': ' + v.message;
+    try { return JSON.stringify(v); } catch(e){ return String(v); }
+  }
+  ['log','info','warn','error'].forEach(function(k){
+    var orig = console[k].bind(console);
+    console[k] = function(){
+      orig.apply(null, arguments);
+      out.textContent += Array.prototype.map.call(arguments, fmt).join(' ') + '\n';
+      out.scrollTop = out.scrollHeight;
+    };
+  });
+})();
+</script>
+<script>
+function debounce(fn, delay) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+const log = debounce((text) => console.log("search fired for:", text), 300);
+console.log("typing...");
+log("a"); log("ab"); log("abc");
+console.log("(only the last one should fire, ~300ms later)");
+
+// rAF demo
+let frames = 0;
+function tick() {
+  frames++;
+  if (frames < 60) requestAnimationFrame(tick);
+  else console.log("rAF ran", frames, "frames");
+}
+requestAnimationFrame(tick);
+</script>
+</head>
+<body>
+<span class="tag">Act 6 · Step 6.5</span>
+
+<h1>Debounce, Throttle &amp; requestAnimationFrame</h1>
+
+<p class="lede">Keep the UI responsive when the user does things too fast.</p>
+
+<div class="notice"><h3>What to notice</h3><ul><li>The <code>this</code> inside a debounced/throttled function is lost unless you use <code>fn.apply(this, args)</code>. That's exactly what <code>apply</code> is for — this is a legitimate use of it.</li><li><code>requestIdleCallback</code> isn't supported in Safari (as of writing). Feature-detect with <code>if ('requestIdleCallback' in window)</code> and fall back to <code>setTimeout(fn, 1)</code>.</li></ul></div>
+
+<div class="outlabel">Console output</div>
+
+<pre id="out"></pre>
+
+<div class="challenge"><h3>Challenge — Make it feel instant</h3>
+
+<ol>
+<li>Build a search box that only queries after the user stops typing for 400ms. Log
+every call so you can prove it works.</li>
+<li>Add a debounced <code>window</code> <code>resize</code> handler that logs the new
+width — and show the difference with and without debouncing (scroll a
+<code>resize</code> by dragging the window).</li>
+<li>Implement <code>throttle</code> and use it on a <code>scroll</code> listener that
+updates a "scroll position" readout.</li>
+<li>Rewrite the scroll readout using <code>requestAnimationFrame</code> instead — and
+explain why rAF is smoother here.</li>
+<li>Bonus: use <code>requestIdleCallback</code> to precompute a list of 10,000
+squares while the user is idle, and measure how long it takes.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>For the resize test, use the browser's device toolbar (Ctrl+Shift+M) and rotate it — that fires many resize events quickly.</li><li>A rAF-based scroll handler typically stores the latest scroll value and only re-renders on the next frame: <code>let ticking = false;</code></li></ul></details>
+
+</div>
+
+<div class="stepnav"><a href="../lesson.html">← Full Act 6 lesson</a><a href="6-6-web-workers.html">Next step →</a></div>
+</body>
+</html>

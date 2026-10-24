@@ -1,0 +1,2158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Act 4 — JavaScript — The Language — Frontend Journey</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+
+</head>
+<body>
+<span class="tag">Act 4 of 12</span>
+
+<h1>JavaScript — The Language</h1>
+
+<p class="lede">You have never seen this language. So we build it from nothing: one idea at a time, each one mapped onto Python.</p>
+
+
+<p>Everything so far was declarative markup and styling. From here on, you're writing
+code that <em>computes</em>. This is the act that matters most, because React,
+Next.js and shadcn are all just JavaScript with extra syntax.</p>
+
+<div class="py">
+<p><strong>You are not starting from zero.</strong> You already know variables, types,
+conditionals, loops, functions, objects, classes, and modules. JavaScript is a
+<em>different dialect</em> of the same ideas, with different spelling and — crucially —
+a handful of genuinely different mental models. This act is about the differences.</p>
+</div>
+
+<h3>The four Python → JavaScript translations that will carry you the whole way</h3>
+<table>
+<tr><th>Python</th><th>JavaScript</th><th>The difference that bites</th></tr>
+<tr><td><code>None</code></td><td><code>null</code> and <code>undefined</code></td><td>JS has <em>two</em> "nothing" values, and they behave differently</td></tr>
+<tr><td><code>==</code></td><td><code>===</code></td><td>JS has a <em>loose</em> <code>==</code> that coerces types. Always use <code>===</code></td></tr>
+<tr><td><code>def</code></td><td><code>function</code> / arrow</td><td>JS functions are values you can pass around, and they remember where they were born</td></tr>
+<tr><td><code>self</code></td><td><code>this</code></td><td>JS's <code>this</code> is decided by <em>how it's called</em>, not by where it's defined</td></tr>
+</table>
+
+
+<div class="toc"><strong>In this act</strong><ol><li><a href="#step-4-1-how-javascript-runs">4.1 — How JavaScript Runs</a></li><li><a href="#step-4-2-values-variables">4.2 — Values &amp; Variables</a></li><li><a href="#step-4-3-types-code-typeof-code">4.3 — Types &amp; &lt;code&gt;typeof&lt;/code&gt;</a></li><li><a href="#step-4-4-strings-template-literals">4.4 — Strings &amp; Template Literals</a></li><li><a href="#step-4-5-truthiness-coercion-code-code-code-code">4.5 — Truthiness, Coercion, &lt;code&gt;??&lt;/code&gt; &amp; &lt;code&gt;?.&lt;/code&gt;</a></li><li><a href="#step-4-6-arrays">4.6 — Arrays</a></li><li><a href="#step-4-7-objects">4.7 — Objects</a></li><li><a href="#step-4-8-destructuring-spread-rest">4.8 — Destructuring, Spread &amp; Rest</a></li><li><a href="#step-4-9-functions">4.9 — Functions</a></li><li><a href="#step-4-10-scope-hoisting-closures">4.10 — Scope, Hoisting &amp; Closures</a></li><li><a href="#step-4-11-control-flow-loops">4.11 — Control Flow &amp; Loops</a></li><li><a href="#step-4-12-the-dom">4.12 — The DOM</a></li><li><a href="#step-4-13-events">4.13 — Events</a></li><li><a href="#step-4-14-modules-npm">4.14 — Modules &amp; npm</a></li><li><a href="#step-4-15-errors-try-catch-throw">4.15 — Errors: try / catch / throw</a></li><li><a href="#step-4-16-classes-prototypes-code-this-code">4.16 — Classes, Prototypes &amp; &lt;code&gt;this&lt;/code&gt;</a></li><li><a href="#step-4-17-the-event-loop">4.17 — The Event Loop</a></li></ol></div>
+
+<h2 id="step-4-1-how-javascript-runs">4.1 — How JavaScript Runs</h2>
+
+<p class="lede">Understand that JS is a language that needs a host, and that the browser is that host.</p>
+
+
+<p>Python runs because you have a Python interpreter on your machine. JavaScript has
+no such thing by itself — it's a language that needs a <strong>host environment</strong>
+that gives it capabilities. The browser is one host. Node.js is another.</p>
+
+<p>That's why "JavaScript" and "the DOM" are often confused. The DOM is not part of the
+JavaScript <em>language</em> — it's a set of APIs the browser host provides. The
+language itself is just values, functions and control flow.</p>
+
+<h3>Three ways to get JS into a page</h3>
+<pre class="code"><code>&lt;!-- 1. External file (use this) --&gt;
+&lt;script src="app.js"&gt;&lt;/script&gt;
+
+&lt;!-- 2. Inline block --&gt;
+&lt;script&gt;
+  console.log("hi");
+&lt;/script&gt;
+
+&lt;!-- 3. Module (Act 4 Step 4.14) --&gt;
+&lt;script type="module" src="app.js"&gt;&lt;/script&gt;</code></pre>
+
+<div class="note">
+<p><strong>Where you put the <code>&lt;script&gt;</code> tag matters</strong> (and this is
+not a nitpick — it's Act 7's core lesson):</p>
+<ul>
+<li>In <code>&lt;head&gt;</code>, without <code>defer</code> or <code>async</code>: the
+browser pauses, downloads the script, runs it, <em>then</em> continues parsing the HTML.
+Your script can't find elements that don't exist yet.</li>
+<li>At the end of <code>&lt;body&gt;</code>: HTML is already parsed, so the script can
+find elements. This works but blocks rendering while it downloads.</li>
+<li>With <code>defer</code>: the browser downloads the script <em>in parallel</em> with
+the HTML, then runs it after parsing finishes. Best of both worlds. Use this.</li>
+<li>With <code>async</code>: download in parallel, run as soon as it's ready — order is
+not guaranteed. Only for independent scripts.</li>
+</ul>
+</div>
+
+<h3>Your first statements</h3>
+<pre class="code"><code>console.log("Hello, world!");
+console.log(42, "items", true, null, undefined);
+console.log("I can do math:", 2 + 2 * 2);</code></pre>
+
+<ul>
+<li><strong>Statements</strong> end with <code>;</code>. (ASI — automatic semicolon
+insertion — means you can omit them, and the language guesses. Write them anyway.)</li>
+<li><strong>Whitespace doesn't matter</strong> for parsing, but use it for humans. JS
+uses <code>{}</code> for blocks, not indentation — indentation is purely for readability.
+You'll still indent, because humans.</li>
+<li><strong>Comments:</strong> <code>//</code> for one line, <code>/* ... */</code> for
+many. Same as Python's <code>#</code> and <code>&quot;&quot;&quot;...&quot;&quot;&quot;</code>.</li>
+<li><code>console.log</code> is a browser API (part of the DevTools), not part of the
+language. It exists in Node too.</li>
+</ul>
+
+<div class="py">
+<p><strong>Python brain:</strong> <code>console.log</code> is <code>print()</code>, except
+it prints a <em>live object</em> — you can expand it and inspect it later, and it shows
+you the value <em>at the time you logged it</em>, which is a debugging superpower Python
+doesn't have.</p>
+</div>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>The browser Console is a JavaScript REPL. Type an expression and it evaluates immediately. This is your Python REPL, and it's how you learn the language fast.</li><li>Errors show up in the Console with a stack trace and a clickable file:line. Click it and it jumps to the source.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Your first script</h3>
+
+<p>Create a file <code>hello.html</code> with a script that:</p>
+<ol>
+<li>logs your name, your age, and whether you're a student (use
+<code>console.log</code> with multiple arguments)</li>
+<li>logs the result of a small calculation</li>
+<li>logs the value of a variable declared with <code>const</code>, then
+<em>reassigns</em> it and logs again (watch the error in the Console when you try to
+reassign a <code>const</code> — that's a feature, not a bug)</li>
+<li>logs something using a <code>//</code> comment and a <code>/* */</code> comment</li>
+</ol>
+<p>Put the script at the end of <code>&lt;body&gt;</code> first, then move it to
+<code>&lt;head&gt;</code> and add <code>defer</code>. Notice anything?</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The error message for reassigning a <code>const</code> is <code>TypeError: Assignment to constant variable.</code> — that error IS the lesson.</li><li>Press F12 and use the Console tab to run one-liners before you write the file. Experiment there; it's faster.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-1-how-javascript-runs.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-2-values-variables">4.2 — Values &amp; Variables</h2>
+
+<p class="lede">Learn &lt;code&gt;let&lt;/code&gt;, &lt;code&gt;const&lt;/code&gt;, &lt;code&gt;var&lt;/code&gt; — and why one of them is basically banned.</p>
+
+
+<h3>Declaring a variable</h3>
+<pre class="code"><code>let age = 25;          // can be reassigned
+const name = "Ana";       // cannot be reassigned
+var legacy = "avoid me";  // old, has bugs — don't use</code></pre>
+
+<p>Three keywords, one difference in intent, two differences in behaviour.</p>
+
+<table>
+<tr><th></th><th>Scope</th><th>Hoisting</th><th>Reassignable</th></tr>
+<tr><td><code>var</code></td><td>function</td><td>hoisted as <code>undefined</code></td><td>yes</td></tr>
+<tr><td><code>let</code></td><td>block</td><td>hoisted, but <strong>TDZ</strong></td><td>yes</td></tr>
+<tr><td><code>const</code></td><td>block</td><td>hoisted, but <strong>TDZ</strong></td><td><strong>no</strong></td></tr>
+</table>
+
+<div class="note">
+<p><strong>Use <code>const</code> by default, <code>let</code> when you must
+reassign.</strong> This is the universal modern convention. <code>const</code> isn't
+about immutability of the value — a <code>const</code> array can still be
+<code>push</code>ed to. It means the <em>binding</em> (the name → value link) can't be
+pointed somewhere else.</p>
+</div>
+
+<h3>What <code>const</code> actually does</h3>
+<pre class="code"><code>const user = { name: "Ana" };
+user.name = "Maria";     // FINE — the object changed
+user = { name: "Maria" }; // ERROR — the binding can't be repointed
+
+const list = [];
+list.push(1);      // FINE
+list = [2, 3];     // ERROR</code></pre>
+
+<div class="py">
+<p><strong>Python brain:</strong> <code>const</code> is like a name you can't rebind. In
+Python you can always do <code>x = 5</code> again; in JS, <code>const</code> is a
+promise to yourself that you won't. It also gives the runtime real optimisation
+opportunities, and it makes code far easier to read: when you see <code>const</code>,
+you know the reference never changes.</p>
+</div>
+
+<h3>Why <code>var</code> is banned</h3>
+<p>Two classic bugs, both of which <code>let</code>/<code>const</code> fix:</p>
+<pre class="code"><code>// Bug 1: var is function-scoped, so the loop variable is shared
+for (var i = 0; i &lt; 3; i++) {
+  setTimeout(() =&gt; console.log(i), 0);   // 3, 3, 3  (not 0, 1, 2!)
+}
+for (let i = 0; i &lt; 3; i++) {
+  setTimeout(() =&gt; console.log(i), 0);   // 0, 1, 2  ✅
+}
+
+// Bug 2: var is hoisted, so it silently exists before its declaration
+console.log(x);   // undefined — no error!
+var x = 5;
+</code></pre>
+
+<p>Rule: <strong>never use <code>var</code></strong>. If you see it in a tutorial, it's
+old code.</p>
+
+<h3>Assignment vs declaration</h3>
+<p>Python makes you choose: <code>x = 5</code> (assign) or <code>x: int = 5</code>
+(declare with type). JavaScript has no separate declaration syntax —
+<code>x = 5</code> just creates the variable if it doesn't exist. The keywords are what
+make it a <em>declaration</em>.</p>
+
+<h3>Semicolons and ASI</h3>
+<p>JS inserts semicolons for you at line breaks in most cases — but not all, and the
+cases where it guesses wrong are legendary. Always write semicolons. It's free.</p>
+
+
+<h4 class="cap">The full lifecycle of a binding</h4>
+<pre class="code"><code class="lang-js">let counter = 0;        // declaration + initialisation
+counter = counter + 1;  // reassignment
+counter += 1;           // compound assignment (same as Python's +=)
+
+// const can't be reassigned:
+// counter = 99;        // TypeError</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>JavaScript has no separate "undeclared" error at runtime by default — assigning to an undeclared variable in sloppy mode creates a global. In modules and strict mode it throws a <code>ReferenceError</code>. Always declare your variables.</li><li><code>let a = 1, b = 2;</code> declares two variables in one statement — but one statement per line reads better.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — const, let, var</h3>
+
+<p>Write a script that demonstrates each of these and
+<strong>predicts the output before you run it</strong>:</p>
+<ol>
+<li><code>console.log(a); let a = 1;</code> — what happens, and why?</li>
+<li><code>var b = 1; console.log(b); let b = 2;</code> — what happens, and why?</li>
+<li><code>{ let x = 1; } console.log(x);</code> — what happens?</li>
+<li><code>{ var y = 1; } console.log(y);</code> — what happens, and why is it different
+from #3?</li>
+<li>Show that <code>const arr = [1]; arr.push(2)</code> works but
+<code>arr = [3]</code> doesn't.</li>
+</ol>
+<p>Then explain #1 and #4 in your own words. This is the "temporal dead zone" and
+"function scope vs block scope", and you should be able to explain both in a sentence
+each.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>#1 throws <code>ReferenceError: Cannot access 'a' before initialization</code>. <code>let</code> is hoisted but not initialised — using it before its declaration is a ReferenceError, not <code>undefined</code>.</li><li>#2 throws a <code>SyntaxError</code> — you can't have two <code>let b</code> in the same scope. Try <code>var b = 1; var b = 2;</code> instead.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-2-values-variables.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-3-types-code-typeof-code">4.3 — Types &amp; &lt;code&gt;typeof&lt;/code&gt;</h2>
+
+<p class="lede">Know every type JavaScript has, and that only one of them is really dynamic.</p>
+
+
+<p>JavaScript has <strong>seven</strong> types. You should know all of them by name
+even though you'll use four daily.</p>
+
+<table>
+<tr><th>Type</th><th><code>typeof</code></th><th>Example</th></tr>
+<tr><td>number</td><td><code>"number"</code></td><td><code>42</code>, <code>3.14</code>, <code>NaN</code>, <code>Infinity</code></td></tr>
+<tr><td>string</td><td><code>"string"</code></td><td><code>"hi"</code>, <code>'hi'</code>, <code>`hi`</code></td></tr>
+<tr><td>boolean</td><td><code>"boolean"</code></td><td><code>true</code>, <code>false</code></td></tr>
+<tr><td><code>undefined</code></td><td><code>"undefined"</code></td><td>never assigned</td></tr>
+<tr><td><code>null</code></td><td><code>"object"</code> <span class="tag">!</span></td><td>deliberately "nothing"</td></tr>
+<tr><td>object</td><td><code>"object"</code></td><td><code>{}</code>, <code>[]</code>, <code>null</code>, functions</td></tr>
+<tr><td>symbol</td><td><code>"symbol"</code></td><td>unique hidden key</td></tr>
+<tr><td>bigint</td><td><code>"bigint"</code></td><td><code>9007199254740993n</code></td></tr>
+</table>
+
+<div class="warn">
+<p><strong>Two legendary quirks, both of which you'll meet in interviews and in
+real bugs:</strong></p>
+<p>1. <code>typeof null === "object"</code>. This is a 1995 implementation bug that was
+never fixed because changing it would break the web. The only way to check for null is
+<code>x === null</code>.</p>
+<p>2. <code>NaN !== NaN</code>. <code>NaN</code> means "not a number", and by
+specification it is not equal to anything, including itself. Test with
+<code>Number.isNaN(x)</code>.</p>
+</div>
+
+<h3>There are no integers and no separate float type</h3>
+<p>Just <code>number</code>, which is an IEEE-754 double. <code>0.1 + 0.2</code> is
+<code>0.30000000000000004</code> — same problem Python has, same reason. For money,
+never use floats.</p>
+
+<h3><code>null</code> vs <code>undefined</code> — the distinction that matters</h3>
+<pre class="code"><code>let a;                  // undefined — never assigned
+let b = null;           // null — deliberately empty
+
+let obj = {};
+obj.missing;            // undefined — the key isn't there
+obj.present = null;     // null — the key IS there, and its value is empty</code></pre>
+
+<div class="py">
+<p><strong>Python brain:</strong> <code>undefined</code> ≈ "this key doesn't exist" or
+"this function returned nothing". <code>null</code> ≈ <code>None</code>. The rule of
+thumb: if <em>you</em> set it to nothing, use <code>null</code>; if nothing set it,
+it's <code>undefined</code>.</p>
+</div>
+
+<h3>JavaScript is dynamically typed, but strongly typed at runtime</h3>
+<p>Unlike Python, you don't declare types. But types still exist and are checked at
+runtime — so the failure mode is different, not absent.</p>
+<pre class="code"><code>let x = 5;
+x = "hello";    // perfectly legal — the variable's type changed
+x.foo();        // TypeError: x.foo is not a function  ← caught at RUNTIME, not compile time</code></pre>
+
+<p>TypeScript (which you'll meet right after this course) exists to catch that class of
+bug <em>before</em> it runs. That's the entire reason it exists.</p>
+
+
+<h4 class="cap">typeof results</h4>
+<pre class="code"><code class="lang-js">console.log(typeof 42);            // "number"
+console.log(typeof "hi");          // "string"
+console.log(typeof true);          // "boolean"
+console.log(typeof undefined);     // "undefined"
+console.log(typeof null);          // "object"  &lt;- the famous bug
+console.log(typeof {});            // "object"
+console.log(typeof []);            // "object"  &lt;- arrays are objects!
+console.log(typeof function(){});  // "function"
+console.log(typeof Symbol("x"));   // "symbol"
+console.log(typeof 10n);           // "bigint"</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>typeof</code> on an undeclared variable returns <code>"undefined"</code> instead of throwing — that's a deliberate feature, used to check whether a global exists.</li><li>Arrays report <code>typeof === "object"</code>. To test for an array specifically, use <code>Array.isArray(x)</code>.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Predict the type</h3>
+
+<p>Write down the <code>typeof</code> of each of these
+<strong>before</strong> running them:</p>
+<ol>
+<li><code>42</code></li>
+<li><code>"42"</code></li>
+<li><code>42n</code></li>
+<li><code>null</code></li>
+<li><code>[]</code></li>
+<li><code>new Date()</code></li>
+<li><code>(() =&gt; {})</code></li>
+<li><code>Symbol("id")</code></li>
+<li><code>NaN</code></li>
+<li><code>document.querySelector("p")</code> (in the browser)</li>
+</ol>
+<p>Then run them and check. For any that surprised you, use
+<code>Object.prototype.toString.call(x)</code> to see the precise internal type.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Dates and arrays are both objects. <code>Object.prototype.toString.call([])</code> gives <code>"[object Array]"</code>.</li><li>A DOM element is an object, not a string — a very common assumption to unlearn.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-3-types-code-typeof-code.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-4-strings-template-literals">4.4 — Strings &amp; Template Literals</h2>
+
+<p class="lede">Handle text properly, including the quoting rules that trip up Python programmers.</p>
+
+
+<h3>Three kinds of quotes</h3>
+<pre class="code"><code>const a = "double quotes";
+const b = 'single quotes';
+const c = `backticks`;</code></pre>
+
+<p>The first two are equivalent — pick one and be consistent. The third is different:
+<strong>backticks are template literals</strong>, and they do two things the others
+can't:</p>
+
+<pre class="code"><code>const name = "Ana";
+const age = 30;
+
+// Concatenation (works, but ugly)
+const msg1 = "Hello " + name + ", you are " + age;
+
+// Template literal (interpolation)
+const msg2 = `Hello ${name}, you are ${age}`;</code></pre>
+
+<p>Inside <code>${ }</code> you can put <em>any expression</em>, including function
+calls and ternaries. This is the single most useful string feature in JS.</p>
+
+<div class="py">
+<p><strong>Python brain:</strong> template literals are f-strings on steroids.
+<code>f"Hello {name}"</code> ≈ <code>`Hello ${name}`</code>. The difference: JS
+interpolates automatically without the <code>f</code> prefix, and it works for
+multi-line strings too.</p>
+</div>
+
+<h3>Multi-line strings</h3>
+<pre class="code"><code>// Regular quotes: newlines are NOT allowed
+const bad = "line one
+line two";     // SyntaxError
+
+// Backticks: newlines are fine
+const good = `line one
+line two`;</code></pre>
+
+<p>Python's triple-quoted strings have the same property — but JS backticks also do
+interpolation, so you don't need <code>&quot;&quot;&quot;</code> and <code>f&quot;&quot;</code> separately.</p>
+
+<h3>Useful string methods</h3>
+<pre class="code"><code>const s = "Hello World";
+
+s.length            // 11
+s.toUpperCase()     // "HELLO WORLD"  (returns a NEW string)
+s.toLowerCase()
+s.indexOf("World")  // 6   (-1 if not found)
+s.slice(0, 5)       // "Hello"
+s.slice(-5)         // "World"   (negative = from the end)
+s.replace("World", "JS")
+s.split(" ")        // ["Hello", "World"]
+s.trim()            // remove leading/trailing whitespace
+s.includes("World") // true
+s.startsWith("Hell")
+s.padStart(10, "0") // "00HelloWorld"  (great for IDs / time formatting)
+`s`.repeat(3)       // "sss"
+</code></pre>
+
+<p>Almost every string method <strong>returns a new string</strong> — strings are
+immutable in JavaScript, exactly like in Python. <code>let</code> vs <code>const</code>
+for strings: use <code>const</code>, since the string itself never changes; you
+reassign the variable instead.</p>
+
+<h3>Template literals with expressions</h3>
+<pre class="code"><code>const items = 3, price = 9.99, tax = 0.18;
+const total = items * price * (1 + tax);
+console.log(`Total: $${total.toFixed(2)}`);   // Total: $35.37
+console.log(`${items > 2 ? "many" : "few"} items`);</code></pre>
+
+<div class="note">
+<p><strong>Careful with <code>${</code>:</strong> inside a template literal, a literal
+<code>${</code> needs a backslash: <code>\${</code>. This bites when you're embedding
+code examples in a template string.</p>
+</div>
+
+
+<h4 class="cap">String methods, the ones you will actually use</h4>
+<pre class="code"><code class="lang-js">const email = "  Ana.Silva@Example.COM  ";
+const clean = email.trim().toLowerCase();
+console.log(clean);                       // ana.silva@example.com
+console.log(clean.includes("@"));         // true
+console.log(clean.split("@"));             // ["ana.silva", "example.com"]
+
+const id = "42";
+console.log(id.padStart(6, "0"));          // 000042
+console.log(Number(id) + 1);              // 43</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>toFixed(2)</code> rounds to 2 decimal places and returns a <em>string</em>. <code>Number(x)</code> converts a numeric string back to a number.</li><li><code>.length</code> is a property (no parentheses); <code>.trim()</code> is a method (with parentheses). This distinction is worth internalising — you'll meet it everywhere.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A URL builder with template literals</h3>
+
+<p>Write a function that builds a URL:</p>
+<pre class="code"><code>buildUrl("https://api.example.com", "/users", { page: 2, limit: 10 })
+// -> "https://api.example.com/users?page=2&amp;limit=10"</code></pre>
+<p>Requirements:</p>
+<ul>
+<li>Use a template literal for the base + path.</li>
+<li>Build the query string with <code>Object.keys()</code> and
+<code>encodeURIComponent()</code>.</li>
+<li>Handle the case where the params object is empty (no <code>?</code> at the end).</li>
+<li>Log a couple of examples.</li>
+</ul>
+<p>Then, as a bonus, <code>encodeURIComponent</code> a search term with a space and an
+ampersand in it and explain why you need it.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li><code>Object.keys(params)</code> gives you an array of key names; <code>params[key]</code> gives the value.</li><li>A space in a URL must be <code>%20</code> — without encoding you'd break the URL. <code>encodeURIComponent("a b")</code> gives <code>"a%20b"</code>.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-4-strings-template-literals.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-5-truthiness-coercion-code-code-code-code">4.5 — Truthiness, Coercion, &lt;code&gt;??&lt;/code&gt; &amp; &lt;code&gt;?.&lt;/code&gt;</h2>
+
+<p class="lede">Understand how JavaScript decides if something is 'true' — and stop being surprised by it.</p>
+
+
+<h3>Falsy values</h3>
+<p>Exactly eight values are falsy. Everything else — including <code>[]</code>,
+<code>{}</code>, <code>"0"</code> and <code>"false"</code> — is <strong>truthy</strong>.</p>
+<pre class="code"><code>false
+0
+-0
+0n
+NaN
+""        // empty string
+undefined
+null</code></pre>
+
+<div class="warn">
+<p><strong>The two that bite hardest:</strong> <code>[]</code> and <code>{}</code> are
+truthy, because they exist. <code>"0"</code> is truthy, because it's a non-empty
+string. And <code>0</code> is falsy, so <code>if (items.length)</code> fails when you
+have zero items — but <code>if (items)</code> fails when you have an <em>empty
+array</em>, which is a bug waiting to happen.</p>
+</div>
+
+<pre class="code"><code>if (items) { }        // wrong: [] is truthy!
+if (items.length) { }  // right: 0 is falsy</code></pre>
+
+<h3>Coercion</h3>
+<p>JavaScript will convert types when it needs to. Usually this is convenient
+(<code>"5" * 2 === 10</code>), and occasionally catastrophic.</p>
+<pre class="code"><code>"5" + 5    // "55"   <-- + prefers concatenation
+"5" - 5    // 0      <-- - prefers numbers
+"5" * "2"  // 10
+"" + 1     // "1"
+1 + null  // 1
+[] + []   // ""     <-- both become ""
+[] + {}   // "[object Object]"</code></pre>
+
+<h3><code>==</code> vs <code>===</code></h3>
+<table>
+<tr><th></th><th>Behaviour</th></tr>
+<tr><td><code>==</code> (loose)</td><td>compares after converting types</td></tr>
+<tr><td><code>===</code> (strict)</td><td>compares type AND value — no conversion</td></tr>
+</table>
+
+<pre class="code"><code>1 == "1"    // true   (loose: string converted to number)
+1 === "1"   // false  (strict: different types)
+0 == ""     // true   (both falsy -> both become 0)
+0 === ""    // false
+null == undefined   // true
+null === undefined  // false</code></pre>
+
+<div class="note">
+<p><strong>Always use <code>===</code> and <code>!==</code>.</strong> The only
+exception most style guides allow is <code>x == null</code>, which is a deliberate way
+to check for "null or undefined" in one go.</p>
+</div>
+
+<h3>The two modern operators</h3>
+<p><strong>Nullish coalescing <code>??</code></strong> — return the right side only if
+the left is <code>null</code> or <code>undefined</code>:</p>
+<pre class="code"><code>const input = "0";
+input || "default"   // "default"  <-- BUG: "0" is truthy-ish but falsy? no, it's truthy...
+                      // Actually "" || "default" -> "default"  (empty string is falsy)
+0 || 10             // 10        (0 is falsy, so you get 10 - often NOT what you want)
+0 ?? 10             // 0         (0 is not null/undefined, so it's kept)  ✅
+"" ?? 10            // ""        ✅
+null ?? 10          // 10        ✅
+</code></pre>
+
+<p><strong>Optional chaining <code>?.</code></strong> — stop the chain if something is
+null or undefined:</p>
+<pre class="code"><code>const user = { profile: { name: "Ana" } };
+user.profile.name            // "Ana"
+user.address?.city           // undefined (no error - address doesn't exist)
+user.address?.city ?? "N/A"  // "N/A"
+user.profile.name.toUpperCase()  // "ANA"
+// user.profile.nickname.length  <-- TypeError without ?.
+user.profile.nickname?.length    // undefined, no error
+</code></pre>
+
+<div class="py">
+<p><strong>Python brain:</strong> <code>??</code> is roughly
+<code>x if x is not None else default</code> (but it also catches "missing", which
+Python's <code>get()</code> handles too). <code>?.</code> is like Python's
+<code>getattr(obj, "x", None)</code> chain, or safer navigation in other languages.
+Both are enormous quality-of-life improvements over Python's
+<code>if obj and obj.attr</code> chains.</p>
+</div>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>||</code> returns the left value if it's truthy, else the right — it returns the <em>value</em>, not a boolean. That's why <code>"" || "x"</code> gives <code>"x"</code> and not <code>true</code>.</li><li><code>??</code> only checks null/undefined. <code>||</code> checks all falsy values. That's the whole difference.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Fix the buggy code</h3>
+
+<p>Each of these has a bug. Fix them and say what the bug
+<em>was</em>:</p>
+<pre class="code"><code>// 1
+const items = [];
+if (items) { console.log("we have items"); }
+
+// 2
+const page = 0;
+const shown = page || 10;
+console.log(shown);   // want 0, got 10
+
+// 3
+if (user.profile.name == "Ana") { /* ... */ }   // want a strict check
+
+// 4
+const total = cart.items.length + (cart.discount ? cart.discount : 0);
+console.log(total);   // crashes when cart.discount is undefined
+</code></pre>
+<p>Then write a <code>getDisplayName(user)</code> function that safely reads
+<code>user.profile.name</code> and falls back to <code>"Anonymous"</code>, without
+throwing on any shape of input — including <code>undefined</code>.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>#2: <code>??</code> not <code>||</code> — you want to keep a legitimate 0.</li><li>#4: the ternary checks <em>truthiness</em>, so <code>0</code> as a discount also becomes 0, but <code>undefined</code> is fine too... the real bug is that the ternary only handles falsy — use <code>??</code> and <code>?.</code> together.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-5-truthiness-coercion-code-code-code-code.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-6-arrays">4.6 — Arrays</h2>
+
+<p class="lede">Master the workhorse data structure — and the methods that replace most of your Python loops.</p>
+
+
+<p>JS arrays are like Python lists, with two differences: they can hold mixed types,
+and they're actually objects (so <code>typeof</code> says <code>"object"</code>).</p>
+
+<pre class="code"><code>const nums = [1, 2, 3];
+const mixed = [1, "two", true, null, { a: 1 }];   // allowed (but usually a bad idea)
+
+nums[0]        // 1
+nums.length    // 3
+nums.at(-1)    // 3  (modern; Python's negative indexing)
+nums.push(4)   // add to end, returns new length
+nums.pop()     // remove from end, returns the element
+nums.shift()   // remove from front
+nums.unshift(0)// add to front
+nums.includes(2)
+nums.indexOf(9)  // -1 if not found
+nums.slice(1)    // new array (doesn't mutate!)
+nums.reverse()   // MUTATES
+nums.sort()      // MUTATES
+</code></pre>
+
+<div class="note">
+<p><strong>The one rule to memorise:</strong> methods that <em>mutate</em> vs methods
+that <em>return a new array</em>. <code>push</code>, <code>pop</code>,
+<code>splice</code>, <code>sort</code>, <code>reverse</code> mutate. <code>map</code>,
+<code>filter</code>, <code>slice</code>, <code>concat</code>, <code>flat</code> don't.
+This is exactly like Python, where <code>.sort()</code> and <code>.append()</code>
+mutate but <code>sorted()</code> and slicing don't.</p>
+</div>
+
+<h3>The iteration methods — this is where JS earns its keep</h3>
+<pre class="code"><code>const nums = [1, 2, 3, 4, 5];
+
+nums.forEach(n =&gt; console.log(n));            // just iterate (no return)
+nums.map(n =&gt; n * 2);                         // [2,4,6,8,10]  new array
+nums.filter(n =&gt; n &gt; 2);                    // [3,4,5]        new array
+nums.find(n =&gt; n &gt; 3);                      // 4             first match
+nums.findIndex(n =&gt; n &gt; 3);                  // 3             index of first match
+nums.some(n =&gt; n &gt; 4);                      // true          at least one
+nums.every(n =&gt; n &gt; 0);                     // true          all of them
+nums.reduce((sum, n) =&gt; sum + n, 0);          // 15            one value
+nums.includes(3);
+</code></pre>
+
+<table>
+<tr><th>Method</th><th>Returns</th><th>Python equivalent</th></tr>
+<tr><td><code>map</code></td><td>new array, same length</td><td><code>[f(x) for x in xs]</code></td></tr>
+<tr><td><code>filter</code></td><td>new array, subset</td><td><code>[x for x in xs if p(x)]</code></td></tr>
+<tr><td><code>find</code></td><td>first matching element</td><td><code>next(x for x in xs if p(x))</code></td></tr>
+<tr><td><code>some</code> / <code>every</code></td><td>boolean</td><td><code>any</code> / <code>all</code></td></tr>
+<tr><td><code>reduce</code></td><td>one accumulated value</td><td><code>functools.reduce</code></td></tr>
+<tr><td><code>forEach</code></td><td><code>undefined</code></td><td><code>for x in xs: f(x)</code></td></tr>
+</table>
+
+<h3><code>reduce</code> deserves a moment</h3>
+<pre class="code"><code>const total = nums.reduce((sum, n) =&gt; sum + n, 0);
+//              ^ accumulator   ^ current value
+//                                ^ initial value (required for numbers!)
+</code></pre>
+
+<p>Without the initial value, <code>reduce</code> uses the first element as the
+accumulator — which is why <code>reduce</code> on an empty array without an initial
+value throws, and why <code>reduce</code> with <code>+</code> on strings surprises
+people. <strong>Always pass the initial value.</strong></p>
+
+<h3>Chaining</h3>
+<pre class="code"><code>const result = users
+  .filter(u =&gt; u.active)
+  .map(u =&gt; u.name.toUpperCase())
+  .sort()
+  .slice(0, 5);</code></pre>
+
+<p>This chain is the most common JavaScript pattern in existence, and you'll write it
+in every project.</p>
+
+
+<h4 class="cap">The pipeline pattern</h4>
+<pre class="code"><code class="lang-js">const users = [
+  { name: "ana",   active: true,  score: 82 },
+  { name: "bruno", active: false, score: 91 },
+  { name: "carla", active: true,  score: 97 },
+];
+
+const top = users
+  .filter(u =&amp;gt; u.active)
+  .map(u =&amp;gt; u.name)
+  .sort();
+
+console.log(top);                                  // ["ana", "carla"]
+console.log(users.reduce((s, u) =&amp;gt; s + u.score, 0));</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>Arrow functions get a shorthand: <code>n =&gt; n * 2</code>. If the body is a single expression, the <code>return</code> is implied. If it's a block, you need an explicit <code>return</code>.</li><li><code>for...of</code> iterates <em>values</em> (like Python's <code>for x in list</code>), while <code>for...in</code> iterates <em>keys/indices</em> (like iterating a dict).</li></ul></div>
+
+<div class="challenge"><h3>Challenge — An analytics pipeline</h3>
+
+<p>Given an array of orders:</p>
+<pre class="code"><code>[
+  { id: 1, customer: "Ana",   total: 120, status: "paid" },
+  { id: 2, customer: "Bruno", total: 80,  status: "pending" },
+  { id: 3, customer: "Carla", total: 200, status: "paid" },
+  { id: 4, customer: "Ana",   total: 60,  status: "paid" },
+]</code></pre>
+<p>Write, using the array methods (no <code>for</code> loops):</p>
+<ol>
+<li>the total revenue from <code>paid</code> orders only</li>
+<li>the number of orders per customer, as an object like
+<code>{ Ana: 2, Bruno: 1, Carla: 1 }</code></li>
+<li>the single largest paid order</li>
+<li>the list of unique customer names</li>
+<li>the revenue sorted from highest to lowest</li>
+</ol>
+<p>Then rewrite #1 with a <code>for...of</code> loop and compare which you find
+clearer.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>For #2, <code>reduce</code> into an object: <code>orders.reduce((acc, o) =&gt; { acc[o.customer] = (acc[o.customer] || 0) + 1; return acc; }, {})</code></li><li>For #4, <code>[...new Set(names)]</code> — but note <code>new Set()</code> is the JS equivalent of Python's <code>set()</code>.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-6-arrays.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-7-objects">4.7 — Objects</h2>
+
+<p class="lede">Understand JS objects as dictionaries, and the reference semantics that surprise everyone.</p>
+
+
+<p>A JS object is roughly a Python dict — but it's also the foundation of the whole
+language. Functions, arrays and dates are all objects.</p>
+
+<pre class="code"><code>const user = {
+  name: "Ana",
+  age: 30,
+  isActive: true,
+  greet() { return `Hi, ${this.name}`; },   // method shorthand
+  "weird key": 1,
+};</code></pre>
+
+<h3>Accessing</h3>
+<pre class="code"><code>user.name          // dot notation
+user["name"]        // bracket notation
+user["weird key"]   // required for keys with spaces/special chars
+user.missing        // undefined (not an error!)
+user.missing?.deep  // undefined
+</code></pre>
+
+<p>Reading a missing property is <strong>never</strong> an error in JS — it gives
+<code>undefined</code>. That's a big deal: it means "does this key exist?" is
+<code>"name" in user</code> or <code>user.name !== undefined</code>.</p>
+
+<h3>Built-in object methods</h3>
+<pre class="code"><code>Object.keys(user)      // ["name", "age", ...]
+Object.values(user)    // ["Ana", 30, ...]
+Object.entries(user)   // [["name","Ana"], ["age",30], ...]
+
+user.hasOwnProperty("name")   // true (older style)
+Object.hasOwn(user, "name")   // true (modern)
+"name" in user                // true (also checks the prototype chain!)
+</code></pre>
+
+<div class="py">
+<p><strong>Python brain:</strong> <code>Object.keys(d)</code> ≈ <code>d.keys()</code>,
+<code>Object.values(d)</code> ≈ <code>d.values()</code>,
+<code>Object.entries(d)</code> ≈ <code>d.items()</code>. And
+<code>user.get("name")</code> in Python ≈ <code>user.name</code> in JS (both give
+<code>None</code>/<code>undefined</code> for a missing key) — except JS doesn't have
+<code>get</code>, you just use the dot.</p>
+</div>
+
+<h3>Reference semantics — the thing that bites</h3>
+<pre class="code"><code>const a = { x: 1 };
+const b = a;         // b points to the SAME object
+b.x = 2;
+console.log(a.x);    // 2  <-- a changed too!
+
+const c = { x: 1 };
+const d = { ...c };  // shallow copy
+d.x = 2;
+console.log(c.x);    // 1  <-- independent
+</code></pre>
+
+<p>Objects are passed <strong>by reference</strong> (technically: the reference is
+passed by value, which is the same practical thing). When you pass an object to a
+function and the function mutates it, the caller sees the change.</p>
+
+<div class="warn">
+<p><strong>Shallow copy means shallow.</strong> <code>{ ...obj }</code> copies the
+top level only. If <code>obj.nested</code> is an object, both copies point to the
+<em>same</em> nested object. For a deep copy you need
+<code>structuredClone(obj)</code> (modern) or
+<code>JSON.parse(JSON.stringify(obj))</code> (loses Dates, Maps, functions).</p>
+</div>
+
+<h3>Freezing</h3>
+<pre class="code"><code>const config = Object.freeze({ mode: "dark" });
+config.mode = "light";   // silently fails (or throws in strict mode)</code></pre>
+
+<h3>Arrays are objects</h3>
+<pre class="code"><code>const arr = [1, 2, 3];
+arr.length          // 3
+arr[0]              // 1
+arr.map(x =&gt; x * 2)
+Object.keys(arr)    // ["0", "1", "2"]  <- string keys!</code></pre>
+
+
+<h4 class="cap">Object essentials</h4>
+<pre class="code"><code class="lang-js">const user = { name: "Ana", age: 30, tags: ["a", "b"] };
+
+console.log(Object.keys(user));
+console.log(Object.entries(user));
+console.log("name" in user);
+console.log(user.missing);                 // undefined, no error
+
+const copy = { ...user };                  // shallow
+copy.name = "Bruno";
+console.log(user.name, copy.name);         // Ana Bruno
+
+const deep = structuredClone(user);
+deep.tags.push("c");
+console.log(user.tags.length, deep.tags.length);  // 2 3</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>The <code>in</code> operator checks the prototype chain too. <code>"toString" in user</code> is <code>true</code>! Use <code>Object.hasOwn(user, "toString")</code> for a strict own-property check.</li><li><code>delete obj.key</code> removes a property. You can't delete a variable declared with <code>const</code>.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Fix the aliasing bug</h3>
+
+<p>There's a classic bug pattern here:</p>
+<pre class="code"><code>function addItem(list, item) {
+  list.push(item);
+  return list;
+}
+
+const cart = [];
+const saved = cart;          // meant to be a snapshot
+addItem(cart, "apple");
+console.log(saved);          // ["apple"]  <-- BUG: saved changed too!
+</code></pre>
+<ol>
+<li>Explain why <code>saved</code> changed.</li>
+<li>Fix it with a spread copy.</li>
+<li>Now the harder version: <code>cart</code> contains objects
+(<code>[{ id: 1, qty: 2 }]</code>). Does your spread fix still work? Why or why not?
+Write a test that proves it.</li>
+<li>Write a <code>deepClone</code> helper using
+<code>structuredClone</code> and note one thing it can't clone (hint: functions).</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Spread copies the top level only — the array is new, but the objects inside it are still shared references.</li><li><code>structuredClone</code> throws on functions and on DOM nodes. It's a browser API, not a language feature.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-7-objects.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-8-destructuring-spread-rest">4.8 — Destructuring, Spread &amp; Rest</h2>
+
+<p class="lede">Learn the three ES6 features you will use in literally every modern file.</p>
+
+
+<h3>Destructuring — pull apart objects and arrays</h3>
+<pre class="code"><code>const user = { name: "Ana", age: 30, city: "Lisbon" };
+
+// Object destructuring
+const { name, age } = user;
+const { name: userName } = user;          // rename
+const { name = "Anonymous" } = {};        // default
+const { address: { street } = {} } = user; // nested, with a safe default
+
+// Array destructuring
+const [first, second, ...rest] = [10, 20, 30, 40];
+// first=10, second=20, rest=[30,40]
+</code></pre>
+
+<p>Note the last one: destructuring a property of <code>undefined</code> throws
+(<em>TypeError: Cannot destructure property 'x' of undefined</em>). That's why the
+<code>= {}</code> default is so common — and why
+<code>const { data } = response</code> is safer as
+<code>const { data } = response ?? {}</code>.</p>
+
+<h3>Rest vs spread — same <code>...</code>, opposite meaning</h3>
+<table>
+<tr><th></th><th>Where</th><th>Meaning</th></tr>
+<tr><td>Spread</td><td><em>producing</em> a value: <code>...</code>right</td><td>expand an array/object into elements</td></tr>
+<tr><td>Rest</td><td><em>collecting</em>: <code>...</code>left</td><td>gather the remaining items into an array/object</td></tr>
+</table>
+
+<pre class="code"><code>// Spread: expand
+const a = [1, 2];
+const b = [...a, 3, 4];            // [1,2,3,4]
+const merged = { ...obj1, ...obj2 };
+
+// Rest: collect
+function sum(...nums) { return nums.reduce((a, b) =&gt; a + b, 0); }
+sum(1, 2, 3);                       // 6
+const { password, ...safeUser } = user;   // omit a key
+</code></pre>
+
+<div class="note">
+<p><strong>The <code>...rest</code> pattern for omitting keys is a security
+primitive</strong>, not just a convenience. When you send a user object to the client,
+spreading it and dropping <code>password</code> is how you avoid leaking it. You will
+see this pattern everywhere in real code.</p>
+</div>
+
+<h3>Optional chaining and nullish coalescing, together</h3>
+<pre class="code"><code>const city = user?.address?.city ?? "Unknown";
+const items = cart?.items?.length ?? 0;</code></pre>
+
+<p>Read it as: "go as deep as safely possible, then fall back." This pattern replaces
+almost every defensive <code>if (x &amp;&amp; x.y &amp;&amp; x.y.z)</code> chain in Python
+codebases.</p>
+
+<div class="py">
+<p><strong>Python brain:</strong> destructuring is Python's tuple unpacking
+(<code>a, b = pair</code>), but for <em>dicts</em> too, and with a JS-only shorthand
+(<code>{name} = obj</code> is shorthand for <code>{name: name} = obj</code>). Rest and
+spread are Python's <code>*args</code>/<code>**kwargs</code> and
+<code>[*a, *b]</code>/<code>{**a, **b}</code> — same idea, different syntax.</p>
+</div>
+
+
+<h4 class="cap">The three features in one example</h4>
+<pre class="code"><code class="lang-js">const user = { name: "Ana", age: 30, address: { city: "Lisbon" } };
+
+const { name, age } = user;
+const { name: alias, age = 18 } = user;
+console.log(name, alias, age);
+
+const [first, ...others] = [1, 2, 3, 4];
+console.log(first, others);
+
+const merged = { ...user, active: true };
+console.log(merged.active);
+
+const { address, ...withoutAddress } = user;
+console.log("still has address?", "address" in withoutAddress);</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>Destructuring declarations need the <code>const</code>/<code>let</code> keyword: <code>const { name } = user;</code> — not <code>{ name } = user;</code> (that's a syntax error; you need parentheses in a different context).</li><li>The <code>= {}</code> default in destructuring only applies when the value is <code>undefined</code> — not for <code>null</code>. <code>const { a } = null</code> still throws.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Reshape some data</h3>
+
+<p>Given:</p>
+<pre class="code"><code>const apiResponse = {
+  data: { id: 7, user: { name: "Ana", email: "a@b.c" }, meta: { page: 1 } },
+  error: null,
+};</code></pre>
+<ol>
+<li>Destructure <code>data.user.name</code> in one statement, safely — it must not throw
+even if <code>data</code> is missing.</li>
+<li>Get <code>meta.page</code> with a fallback of 1.</li>
+<li>Write a function that takes an object and returns a new object <em>without</em> the
+<code>error</code> and <code>data.meta</code> keys.</li>
+<li>Write a function that takes <code>({ a, b, ...rest })</code> and logs the rest as
+JSON.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Safe destructuring: <code>const { data = {} } = apiResponse ?? {}</code> then <code>const { user = {} } = data</code> then <code>const { name } = user</code>. Each level needs its own default.</li><li>To remove a nested key, you can't destructure it out of a nested object in one go — you need to rebuild that object.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-8-destructuring-spread-rest.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-9-functions">4.9 — Functions</h2>
+
+<p class="lede">Write functions in all three JS forms and know exactly when to use each.</p>
+
+
+<h3>Three forms</h3>
+<pre class="code"><code>// 1. Declaration — hoisted, can be called before its definition
+function add(a, b) {
+  return a + b;
+}
+
+// 2. Expression — assigned to a variable, NOT hoisted
+const add = function (a, b) {
+  return a + b;
+};
+
+// 3. Arrow — expression or block body, NOT hoisted
+const add = (a, b) =&gt; {
+  return a + b;
+};
+const add = (a, b) =&gt; a + b;   // implicit return
+</code></pre>
+
+<div class="py">
+<p><strong>Python brain:</strong> form 1 is <code>def</code>. Forms 2 and 3 are
+<code>add = lambda a, b: a + b</code> — but the arrow version can take a
+<em>block</em> body with multiple statements, which Python's <code>lambda</code>
+can't. So the arrow function is more like a small <code>def</code> than a
+<code>lambda</code>.</p>
+</div>
+
+<h3>Parameters</h3>
+<pre class="code"><code>function greet(name = "friend", greeting = "Hello") {
+  return `${greeting}, ${name}!`;
+}
+
+function sum(...numbers) {          // rest parameter
+  return numbers.reduce((a, b) =&gt; a + b, 0);
+}
+
+function logAll(label, ...items) {  // rest must be LAST
+  console.log(label, items);
+}
+</code></pre>
+
+<h3>Arrow functions vs regular functions — the one real difference</h3>
+<p>Both are functions. But arrow functions have <strong>no own
+<code>this</code></strong> — they inherit it from the surrounding scope. Regular
+functions get <code>this</code> from <em>how they're called</em>.</p>
+
+<pre class="code"><code>const obj = {
+  name: "Ana",
+  regular: function () { return this.name; },   // "Ana"  (this = obj)
+  arrow: () =&gt; this.name,                     // undefined (this = module scope)
+  method() { return this.name; },               // "Ana"  (shorthand = regular)
+};</code></pre>
+
+<div class="note">
+<p><strong>Practical rule:</strong></p>
+<ul>
+<li>Use an <strong>arrow function</strong> for callbacks (<code>map</code>,
+<code>filter</code>, event handlers) and for short function bodies. It's also
+impossible to accidentally break <code>this</code>, which is why it's the community
+default.</li>
+<li>Use a <strong>regular function</strong> (or method shorthand) when you need
+<code>this</code> to refer to the object the method was called on — object methods,
+constructors, and anything using <code>arguments</code>.</li>
+</ul>
+<p>Also: arrow functions can't be used as constructors (<code>new</code>) and have no
+<code>prototype</code>. Details you'll meet in Act 4 Step 4.16.</p>
+</div>
+
+<h3>IIFE — Immediately Invoked Function Expression</h3>
+<pre class="code"><code>(function () {
+  const privateData = "nobody else can see this";
+  console.log(privateData);
+})();</code></pre>
+
+<p>Historically used to create a private scope. Still used for UMD modules and
+"module pattern". Arrow version: <code>(() =&gt; { ... })();</code></p>
+
+<h3>Arguments vs rest</h3>
+<p>Regular functions have an <code>arguments</code> object (array-like, not a real
+array). Arrow functions don't. If you want a real array in a regular function, use rest
+parameters instead.</p>
+
+
+<h4 class="cap">The same function, three ways</h4>
+<pre class="code"><code class="lang-js">function addDecl(a, b) { return a + b; }
+const addExpr = function (a, b) { return a + b; };
+const addArrow = (a, b) =&gt; a + b;
+
+console.log(addDecl(1, 2), addExpr(3, 4), addArrow(5, 6));
+
+const obj = {
+  name: "Ana",
+  regular() { return this.name; },
+  arrow: () =&gt; (typeof this === "undefined" ? "no this" : "module this"),
+};
+console.log(obj.regular());
+console.log(obj.arrow());</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>A function without an explicit <code>return</code> returns <code>undefined</code> — not <code>null</code>, not an empty object.</li><li>Arrow functions have no <code>arguments</code>, no <code>prototype</code>, and can't be <code>new</code>'d. They're not a drop-in replacement for regular functions in every position.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Write it three ways, then break it on purpose</h3>
+
+<ol>
+<li>Write <code>formatUser(name, age)</code> returning <code>"Ana (30)"</code>, as:
+a declaration, an expression, and an arrow function.</li>
+<li>Write a function with a default parameter, a rest parameter, and a call that
+spreads an array into it: <code>logAll("x", ...[1,2,3])</code>.</li>
+<li>Create an object with a method that returns <code>this.name</code>. Then:
+detach the method into a variable and call it. <strong>What happens, and why?</strong></li>
+<li>Fix the detached call by using an arrow function instead. <strong>Why does the
+arrow version behave differently?</strong></li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The detached call fails because <code>this</code> depends on the call site — called as a bare function, <code>this</code> is <code>undefined</code> in strict mode.</li><li>An arrow function defined inside a method captures the method's <code>this</code>, so it survives detaching.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-9-functions.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-10-scope-hoisting-closures">4.10 — Scope, Hoisting &amp; Closures</h2>
+
+<p class="lede">Understand where variables live, and why a function can remember them forever.</p>
+
+
+<h3>Three kinds of scope</h3>
+<ul>
+<li><strong>Global</strong> — everything outside any function.</li>
+<li><strong>Function</strong> — created by a function body. <code>var</code> lives here.</li>
+<li><strong>Block</strong> — created by <code>{}</code> (if, for, a bare block).
+<code>let</code> and <code>const</code> live here.</li>
+</ul>
+
+<p>Lexical scoping: an inner scope can read outer variables, but not vice versa.</p>
+
+<pre class="code"><code>const outer = "global";
+
+function demo() {
+  const inner = "function scope";
+  console.log(inner);   // ✅
+  if (true) {
+    const block = "block scope";
+    console.log(block); // ✅
+    console.log(inner); // ✅ — inner is visible from the block
+  }
+  console.log(block);    // ❌ ReferenceError
+}
+console.log(inner);      // ❌ ReferenceError
+</code></pre>
+
+<h3>Hoisting and the temporal dead zone</h3>
+<p>Both <code>var</code> and <code>let</code>/<code>const</code> are "hoisted" — the
+declaration is moved to the top of its scope. But:</p>
+<table>
+<tr><th></th><th>Before the declaration</th></tr>
+<tr><td><code>var x = 1</code></td><td><code>x</code> is <code>undefined</code> (no error)</td></tr>
+<tr><td><code>let x = 1</code></td><td><strong>ReferenceError</strong> — the TDZ</td></tr>
+</table>
+
+<p>The "temporal dead zone" is the window between entering the scope and the
+declaration. It exists so that <code>let</code> behaves predictably instead of
+silently giving you <code>undefined</code>.</p>
+
+<div class="py">
+<p><strong>Python brain:</strong> Python resolves names at call time, so a function
+body can reference a variable defined later at module level, as long as it exists by the
+time the function is <em>called</em>. JS resolves names too, but the TDZ turns
+"use-before-declaration" into an error rather than <code>undefined</code>. Same
+underlying idea, stricter contract.</p>
+</div>
+
+<h3>Closures — the idea that makes JavaScript powerful</h3>
+<p>A closure is a function that remembers the variables from the scope where it was
+<em>created</em>, even after that scope has finished executing.</p>
+
+<pre class="code"><code>function makeCounter() {
+  let count = 0;                 // lives in the closure
+  return function increment() {
+    count += 1;
+    return count;
+  };
+}
+
+const counter = makeCounter();
+counter();   // 1
+counter();   // 2
+counter();   // 3
+
+const other = makeCounter();    // a completely separate count
+other();     // 1
+</code></pre>
+
+<div class="note">
+<p><strong>Each call to <code>makeCounter()</code> creates a fresh
+<code>count</code>.</strong> That's the whole point — <code>counter</code> and
+<code>other</code> don't share anything. This is how you create private state in
+JavaScript, and it's the foundation of: module patterns, function factories, event
+handlers, React hooks, and every debounce implementation you'll ever write.</p>
+</div>
+
+<p>Python has closures too, so you already have the intuition:</p>
+<pre class="code"><code># Python
+def make_counter():
+    count = 0
+    def increment():
+        nonlocal count
+        count += 1
+        return count
+    return increment</code></pre>
+
+<p>Same idea. JavaScript's version is more often used with arrow functions and is
+usually written on one line.</p>
+
+
+<h4 class="cap">A closure creating private state</h4>
+<pre class="code"><code class="lang-js">function makeCounter() {
+  let count = 0;
+  return () =&gt; {
+    count += 1;
+    return count;
+  };
+}
+
+const counter = makeCounter();
+const other = makeCounter();
+console.log(counter(), counter(), counter());  // 1 2 3
+console.log(other());                          // 1 - separate state</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>The classic loop-closure bug: <code>for (let i = 0; i < 3; i++) setTimeout(() => console.log(i))</code> prints 0, 1, 2 — because <code>let</code> creates a <em>new binding per iteration</em>. With <code>var</code> it prints 3, 3, 3. This is a per-iteration binding, which is one of the best parts of <code>let</code>.</li><li>Closures keep their outer variables alive in memory. That's useful (memoization) and it's also how you accidentally create a memory leak (a listener that can never be removed).</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Build something with private state</h3>
+
+<ol>
+<li>Write <code>makeBank()</code> that returns an object with
+<code>deposit(n)</code>, <code>withdraw(n)</code> and <code>balance()</code> methods,
+where the balance is a private closure variable that cannot be modified from outside.</li>
+<li>Prove it's private: try <code>bank.balance = 100</code> and show that
+<code>bank.balance()</code> is unaffected.</li>
+<li>Add validation: <code>withdraw</code> more than the balance should not change
+anything (and should return <code>false</code>).</li>
+<li>Now the classic interview question: write a function that returns a function that
+returns a <em>unique</em> id each time it's called. Then create two separate
+generators and show they don't collide.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The bank is one closure variable plus a returned object of functions. The functions can all see the same <code>balance</code>.</li><li>The unique-id generator is the same pattern: <code>let id = 0; return () =&gt; ++id;</code> — and two calls to the factory create two independent counters.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-10-scope-hoisting-closures.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-11-control-flow-loops">4.11 — Control Flow &amp; Loops</h2>
+
+<p class="lede">Cover the syntax differences from Python, plus the loop methods that avoid most manual loops.</p>
+
+
+<h3>Conditionals — nearly identical to Python</h3>
+<pre class="code"><code>if (x &gt; 0) {
+  console.log("positive");
+} else if (x === 0) {
+  console.log("zero");
+} else {
+  console.log("negative");
+}
+
+const label = x &gt; 0 ? "positive" : "not positive";   // ternary
+</code></pre>
+
+<p>The differences: JS uses <code>===</code> not <code>==</code> (see Step 4.5), and
+the ternary is <code>condition ? a : b</code> (same as Python). JS has no
+<code>elif</code> — it's <code>else if</code>.</p>
+
+<h3><code>switch</code></h3>
+<pre class="code"><code>switch (action) {
+  case "add":
+    addItem();
+    break;                      // without break, it FALLS THROUGH
+  case "remove":
+    removeItem();
+    break;
+  default:
+    console.log("unknown action");
+}</code></pre>
+
+<p><code>break</code> is optional in Python but <em>mandatory</em> in JS (fall-through is
+a feature there). The last case often doesn't need one.</p>
+
+<h3>Loops</h3>
+<pre class="code"><code>// classic for
+for (let i = 0; i &lt; 5; i++) { console.log(i); }
+
+// for...of — iterates VALUES (like Python's for x in list)
+for (const item of items) { console.log(item); }
+
+// for...in — iterates KEYS (like iterating a dict)
+for (const key in obj) { console.log(key, obj[key]); }
+
+// while / do...while
+let n = 0;
+while (n &lt; 3) { n++; }
+do { n--; } while (n &gt; 0);
+</code></pre>
+
+<div class="py">
+<p><strong>Python brain:</strong> <code>for (const item of items)</code> is Python's
+<code>for item in items</code>. <code>for (const key in obj)</code> is Python's
+<code>for key in obj.keys()</code> — and it's the JS equivalent of iterating a dict.
+Note that <code>for...in</code> also walks the prototype chain, so
+<code>Object.keys(obj)</code> is usually safer.</p>
+</div>
+
+<h3>Breaking out</h3>
+<pre class="code"><code>outer:
+for (let i = 0; i &lt; 3; i++) {
+  for (let j = 0; j &lt; 3; j++) {
+    if (j === 1) continue outer;   // labelled continue
+    if (i === 2) break outer;       // labelled break
+  }
+}</code></pre>
+
+<p>JS has <strong>labels</strong> — Python doesn't. They let you break out of
+nested loops. Rarely needed, but good to know.</p>
+
+<h3>Prefer the array methods</h3>
+<p>Most <code>for</code> loops in modern JS exist to build a new array. Use
+<code>map</code>/<code>filter</code>/<code>forEach</code> instead:</p>
+<pre class="code"><code>// imperative
+const names = [];
+for (const u of users) {
+  if (u.active) names.push(u.name);
+}
+
+// declarative
+const names = users.filter(u =&gt; u.active).map(u =&gt; u.name);
+</code></pre>
+
+<div class="note">
+<p><strong>Use <code>for...of</code> when you need the index, need to
+<code>break</code> out, or are iterating something that isn't an array (a string, a
+<code>Map</code>, a generator).</strong> Use <code>forEach</code> when you just want to
+run something for each item. Use <code>map</code>/<code>filter</code> when you want a
+new array.</p>
+</div>
+
+
+<div class="notice"><h3>What to notice</h3><ul><li>There's no <code>++</code> on a string in a meaningful sense, and no <code>+=</code> on numbers with a string — <code>"a" + 1</code> is <code>"a1"</code>.</li><li><code>for...of</code> works on anything iterable: arrays, strings, <code>Map</code>, <code>Set</code>, generators. <code>for...in</code> works on any object (keys as strings).</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Same logic, both styles</h3>
+
+<p>Write each of these <strong>twice</strong> — once with a
+<code>for</code> loop and once with the array-method pipeline:</p>
+<ol>
+<li>From an array of numbers, produce the squares of the even ones.</li>
+<li>From an array of objects, produce a list of names of those with a score above 70,
+sorted alphabetically.</li>
+<li>From an array of strings, produce the total character count.</li>
+<li>Find the first object whose <code>id</code> matches a given value — return
+<code>undefined</code> if none exists.</li>
+</ol>
+<p>Then decide: for each one, which version would you actually write? There's no
+"right" answer, but be able to justify it.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>#3 has no direct array method — <code>reduce</code> is the tool.</li><li>#4 is <code>find</code>. It returns <code>undefined</code> if nothing matches, which is exactly the Python <code>None</code> behaviour you want.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-11-control-flow-loops.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-12-the-dom">4.12 — The DOM</h2>
+
+<p class="lede">Read and change any page from JavaScript — the core skill of the whole front end.</p>
+
+
+<p>The DOM is the browser's live object tree. JavaScript's job on the web is almost
+always: <strong>find elements, read from them, change them, and react to events</strong>.</p>
+
+<h3>Finding elements</h3>
+<pre class="code"><code>document.getElementById("email")        // one element by id  (fastest)
+document.querySelector(".card")          // FIRST match of any CSS selector
+document.querySelectorAll(".card")       // ALL matches -> NodeList
+document.querySelector("form input[type=email]")
+document.querySelector("[data-count]")
+</code></pre>
+
+<p><code>querySelector</code> and <code>querySelectorAll</code> take <strong>any CSS
+selector</strong> — everything from Act 2 applies. This is the single most important
+connection between your CSS knowledge and your JavaScript knowledge.</p>
+
+<div class="py">
+<p><strong>Python brain:</strong> <code>document.querySelectorAll(".card")</code> is
+like a database query — it returns a live list of matching nodes. And
+<code>querySelector</code> returning <code>null</code> (not <code>undefined</code>) is
+a JS quirk worth knowing: <code>el.querySelector(...).textContent</code> throws if
+nothing matched, but <code>el.querySelector(...)?.textContent</code> doesn't.</p>
+</div>
+
+<h3>Reading and writing</h3>
+<pre class="code"><code>const el = document.querySelector("#name");
+
+el.textContent            // READ: the text, as plain text
+el.textContent = "New"    // WRITE: replaces all children with a text node
+
+el.innerHTML             // READ/WRITE: raw HTML string  ⚠️
+el.value                 // READ: the value of an input
+el.classList.add("active")
+el.classList.toggle("active")
+el.setAttribute("data-x", "1")
+el.getAttribute("data-x")
+el.disabled = true
+el.href = "/new"
+</code></pre>
+
+<div class="warn">
+<p><strong><code>textContent</code> vs <code>innerHTML</code> is the most important
+security decision in front-end development.</strong></p>
+<p><code>textContent</code> inserts text — the browser escapes it, so
+<code>&lt;b&gt;</code> shows up as literal text. <code>innerHTML</code> <em>parses
+and executes</em> the string as HTML.</p>
+<pre class="code"><code>el.textContent = userInput;              // ✅ safe
+el.innerHTML = userInput;                // ❌ XSS vulnerability
+
+el.textContent = "&lt;b&gt;Hi&lt;/b&gt;";      // shows: &lt;b&gt;Hi&lt;/b&gt;
+el.innerHTML = "&lt;b&gt;Hi&lt;/b&gt;";          // shows: Hi (bold)</code></pre>
+<p><strong>Rule: use <code>innerHTML</code> only with strings you wrote yourself.
+For anything from a user or an API, use <code>textContent</code>.</strong> Act 8
+Step 8.4 is entirely about this.</p>
+</div>
+
+<h3>Creating and removing</h3>
+<pre class="code"><code>const li = document.createElement("li");
+li.textContent = "New item";
+li.className = "list-item";
+list.appendChild(li);
+
+li.remove();                        // modern
+list.replaceChild(newLi, oldLi);
+</code></pre>
+
+<h3>The render pattern you'll use forever</h3>
+<pre class="code"><code>function render(items) {
+  const list = document.querySelector("#list");
+  list.textContent = "";                 // clear
+  for (const item of items) {
+    const li = document.createElement("li");
+    li.textContent = item.name;
+    list.appendChild(li);
+  }
+}
+</code></pre>
+
+<p>Clear-then-rebuild is simple and correct. (It's also what React automates for you —
+remember this pattern when you get there.)</p>
+
+
+<h4 class="cap">Find, read, write</h4>
+<pre class="code"><code class="lang-js">const box = document.querySelector("#demo-box");
+console.log("textContent:", box.textContent);
+console.log("innerHTML  :", box.innerHTML);
+box.textContent = "Replaced with plain text";
+console.log("after:", box.textContent);</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>textContent</code> reads the <em>text</em> of an element and all its descendants; <code>innerHTML</code> reads the markup. For an input, you want <code>.value</code>, not <code>.textContent</code>.</li><li><code>querySelectorAll</code> returns a <strong>NodeList</strong>, not an Array — it has <code>forEach</code> but not <code>map</code>. Use <code>[...nodeList].map(...)</code> or <code>Array.from(nodeList)</code> if you need array methods.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A DOM reading and writing drill</h3>
+
+<ol>
+<li>Create a page with a <code>&lt;h1&gt;</code> that has an id, a paragraph, a
+<code>&lt;ul&gt;</code> with three items, and a button.</li>
+<li>Write JS that reads the heading's text and logs it.</li>
+<li>Change the heading's text to <code>"Hello, " + name</code> where <code>name</code>
+comes from a prompt.</li>
+<li>Add two new list items from JavaScript (create elements, don't set
+<code>innerHTML</code>).</li>
+<li>Change the third item's colour by adding a class — and define that class in a
+<code>&lt;style&gt;</code> block, not inline.</li>
+<li>Log <code>document.querySelectorAll("li").length</code> before and after your
+additions.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li><code>document.createElement("li")</code> then <code>list.appendChild(li)</code>.</li><li>To style via a class, add the class in your <code>&lt;style&gt;</code> block and use <code>li.classList.add("highlight")</code> — this keeps styling out of JavaScript.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-12-the-dom.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-13-events">4.13 — Events</h2>
+
+<p class="lede">Make the page respond — and understand bubbling, which explains 80% of event bugs.</p>
+
+
+<pre class="code"><code>const btn = document.querySelector("#save");
+
+btn.addEventListener("click", function (event) {
+  console.log("clicked!", event.type);
+});
+
+// Arrow version (preferred)
+btn.addEventListener("click", (event) =&gt; {
+  console.log("clicked!", event.target);
+});
+</code></pre>
+
+<h3>Common event types</h3>
+<table>
+<tr><th>Event</th><th>Fires when</th></tr>
+<tr><td><code>click</code></td><td>an element is clicked</td></tr>
+<tr><td><code>input</code></td><td>the value of an input changes (every keystroke)</td></tr>
+<tr><td><code>change</code></td><td>the value is committed (blur for text, immediately for checkboxes)</td></tr>
+<tr><td><code>submit</code></td><td>a form is submitted</td></tr>
+<tr><td><code>keydown</code> / <code>keyup</code></td><td>a key is pressed / released</td></tr>
+<tr><td><code>focus</code> / <code>blur</code></td><td>an element gains / loses focus</td></tr>
+<tr><td><code>scroll</code></td><td>the page or a container scrolls</td></tr>
+<tr><td><code>mouseenter</code> / <code>mouseleave</code></td><td>the pointer enters / leaves (doesn't bubble)</td></tr>
+</table>
+
+<h3>The event object</h3>
+<pre class="code"><code>btn.addEventListener("click", (event) =&gt; {
+  event.target        // the element that was clicked
+  event.currentTarget // the element the listener is attached to
+  event.type          // "click"
+  event.key           // for keyboard events: "Enter", "a", "Escape"
+  event.preventDefault()   // stop the default browser behaviour
+  event.stopPropagation()  // stop the event bubbling further up
+});
+</code></pre>
+
+<h3>Bubbling — the mental model that matters</h3>
+<p>When an event fires on an element, it doesn't stop there. It <strong>bubbles up</strong>
+through every ancestor, and each ancestor's listener for that event type fires too.</p>
+
+<pre class="code"><code>&lt;div id="outer"&gt;
+  &lt;button id="inner"&gt;Click me&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+<p>Clicking the button fires: button's listener → div's listener → body's listener →
+document's listener → window's. That's bubbling.</p>
+
+<div class="note">
+<p><strong>Event delegation</strong> is the payoff: instead of attaching a listener to
+100 list items, attach ONE to the parent and check what was clicked.</p>
+<pre class="code"><code>list.addEventListener("click", (event) =&gt; {
+  const item = event.target.closest("li");
+  if (!item) return;                 // clicked the list, not an item
+  console.log("clicked item:", item.textContent);
+});</code></pre>
+<p>This is how every framework handles events, and it means you can add items to a list
+later and they just work.</p>
+</div>
+
+<h3>Preventing default behaviour</h3>
+<pre class="code"><code>form.addEventListener("submit", (event) =&gt; {
+  event.preventDefault();     // stop the browser navigating/reloading
+  // now handle it with fetch() instead
+});</code></pre>
+
+<p>This is how every modern form works: intercept the submit, do a
+<code>fetch()</code>, and never reload the page.</p>
+
+<div class="py">
+<p><strong>Python brain:</strong> the DOM event system is a <em>publish-subscribe</em>
+system. <code>addEventListener</code> ≈ subscribing to a topic;
+<code>event.target</code> ≈ the message payload; bubbling ≈ the message being relayed
+up the tree. You already know the pattern from any pub/sub library.</p>
+</div>
+
+
+<h4 class="cap">Bubbling and delegation</h4>
+<pre class="code"><code class="lang-js">const outer = document.querySelector("#demo-outer");
+const inner = document.querySelector("#demo-inner");
+
+inner.addEventListener("click", () =&gt; console.log("1. button listener"));
+outer.addEventListener("click", () =&gt; console.log("2. parent listener (bubbled)"));
+document.addEventListener("click", () =&gt; console.log("3. document listener (bubbled)"));
+
+inner.addEventListener("click", (e) =&gt; {
+  e.stopPropagation();
+  console.log("stopPropagation called - 2 and 3 will NOT run");
+});</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>event.target</code> is the deepest element clicked; <code>event.currentTarget</code> is the element with the listener. They differ when an event bubbles — use <code>currentTarget</code> inside the handler.</li><li>Use <code>event.preventDefault()</code> on <code>submit</code>, on <code>click</code> on links you handle yourself, and on checkbox/radio clicks you want to intercept.</li><li><code>keydown</code> fires for every key; check <code>event.key === "Enter"</code> rather than assuming.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A delegated todo list</h3>
+
+<p>Build a small list where clicking any item toggles a
+"done" class on it — using <strong>event delegation</strong> (one listener on the
+<code>&lt;ul&gt;</code>, not one per item).</p>
+<ol>
+<li>Create the HTML: a <code>&lt;ul&gt;</code> with 4 items and a button "Add item".</li>
+<li>Attach <strong>one</strong> <code>click</code> listener to the <code>&lt;ul&gt;</code>
+that toggles a <code>done</code> class on the clicked item.</li>
+<li>Define <code>.done</code> in a <code>&lt;style&gt;</code> block (e.g. line-through
+and greyed out).</li>
+<li>Make the "Add item" button append a new <code>&lt;li&gt;</code> — and notice that
+<strong>the new item works immediately</strong>, with no extra listener. That's the
+power of delegation. Comment this in your code.</li>
+<li>Bonus: handle clicks on a <em>child element</em> inside the <code>&lt;li&gt;</code>
+(a delete <code>&lt;button&gt;</code>) and use <code>closest()</code> to find the
+right <code>&lt;li&gt;</code>.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li><code>event.target.closest("li")</code> walks up from the clicked element to the nearest matching ancestor — essential when the click lands on a child.</li><li>If <code>closest()</code> returns <code>null</code>, the click was on the <code>&lt;ul&gt;</code> itself. Return early.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-13-events.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-14-modules-npm">4.14 — Modules &amp; npm</h2>
+
+<p class="lede">Split code into files, import what you need, and understand what npm actually is.</p>
+
+
+<h3>ES modules</h3>
+<pre class="code"><code>// math.js
+export function add(a, b) { return a + b; }
+export const PI = 3.14159;
+export default class Calculator { }
+
+// app.js
+import Calculator, { add, PI } from "./math.js";
+import * as math from "./math.js";
+</code></pre>
+
+<ul>
+<li><code>export</code> — make things available to other files.</li>
+<li><code>export default</code> — one per file, imported without braces.</li>
+<li><code>import { x, y } from "./file.js"</code> — named imports.</li>
+<li><code>import x from "./file.js"</code> — default import.</li>
+<li><code>import * as everything from "./file.js"</code> — namespace import.</li>
+</ul>
+
+<div class="note">
+<p><strong>Modules require a server.</strong> If you open an <code>index.html</code>
+via <code>file://</code>, <code>import</code> fails with a CORS error. You need
+<em>some</em> HTTP server. Options:</p>
+<ul>
+<li>VS Code's <strong>Live Server</strong> extension (right-click → Open with Live
+Server) — easiest, zero setup.</li>
+<li><code>npx serve .</code> in the terminal.</li>
+<li>Python's built-in: <code>python3 -m http.server 8000</code> then open
+<code>http://localhost:8000</code>.</li>
+</ul>
+<p>This is the moment to switch from "double-click the file" to "serve the folder". Get
+used to it now — the React part of the course requires it.</p>
+</div>
+
+<h3>What npm actually is</h3>
+<p>npm is three things:</p>
+<ol>
+<li><strong>A package registry</strong> — a massive public database of code packages.</li>
+<li><strong>A package manager</strong> — <code>npm install</code> downloads them.</li>
+<li><strong>A tool runner</strong> — <code>npm run build</code> runs scripts from
+<code>package.json</code>.</li>
+</ol>
+
+<pre class="code"><code>npm init -y           # create package.json
+npm install lodash  # add a dependency
+npm install -D vite # add a dev dependency
+npm run dev         # run the "dev" script</code></pre>
+
+<p>Key idea: <code>node_modules</code> is a folder of downloaded code you never edit.
+<code>package.json</code> lists what you depend on. <code>package-lock.json</code>
+records the exact versions so everyone gets the same tree.</p>
+
+<div class="py">
+<p><strong>Python brain:</strong> npm ≈ <code>pip</code> + <code>venv</code> +
+<code>requirements.txt</code>, and <code>package.json</code> ≈ <code>pyproject.toml</code>.
+The big difference: in Python you import by module name and the import happens at
+runtime; in JS bundlers <em>statically analyse</em> your imports and bundle only what
+you actually use. That static analysis is why <code>import</code> paths must be
+literal strings — the same rule you hit with Tailwind's class names.</p>
+</div>
+
+<h3>Module scripts are strict mode</h3>
+<p><code>&lt;script type="module"&gt;</code> code is always strict mode, has its own
+scope, and is deferred by default (like <code>defer</code>). That means:</p>
+<ul>
+<li>No accidental globals.</li>
+<li><code>this</code> at the top level is <code>undefined</code>, not
+<code>window</code>.</li>
+<li>You must use the full file path with the extension:
+<code>"./math.js"</code>.</li>
+</ul>
+
+
+<h4 class="cap">Two files, one page</h4>
+<pre class="code"><code class="lang-html">&amp;lt;!-- index.html --&amp;gt;
+&amp;lt;script type="module" src="./app.js"&amp;gt;&amp;lt;/script&amp;gt;
+
+&amp;lt;!-- app.js --&amp;gt;
+import { greet } from "./greet.js";
+console.log(greet("Ana"));</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>The extension is required in the import path: <code>"./math.js"</code>, not <code>"./math"</code>. Node.js also requires the extension.</li><li>Named exports are better for utilities; default exports are better for a file's main thing. Both can coexist in one file.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Split your code into modules</h3>
+
+<ol>
+<li>Create a folder with <code>index.html</code>, <code>app.js</code> and
+<code>utils.js</code>.</li>
+<li>Put three functions in <code>utils.js</code> (e.g. <code>formatDate</code>,
+<code>clamp</code>, <code>slugify</code>) and export them.</li>
+<li>Import them in <code>app.js</code> and call them.</li>
+<li>Serve the folder (Live Server or <code>python3 -m http.server</code>) and open it.
+<strong>What error do you get if you try it with <code>file://</code>?</strong></li>
+<li>Add a <code>package.json</code> with <code>npm init -y</code>, and a
+<code>"scripts": { "dev": "..." }</code> entry. Figure out what command should go
+there.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>The <code>file://</code> error mentions CORS or "origin null" — that's the browser applying its web security rules to local files.</li><li><code>"dev": "npx serve ."</code> is a perfectly reasonable first script. Or just use the Live Server extension and skip npm for now.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-14-modules-npm.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-15-errors-try-catch-throw">4.15 — Errors: try / catch / throw</h2>
+
+<p class="lede">Handle failure properly — and stop letting one bad response kill your whole app.</p>
+
+
+<h3>Three keywords</h3>
+<pre class="code"><code>try {
+  riskyThing();
+} catch (error) {
+  console.error("Something went wrong:", error.message);
+} finally {
+  cleanup();          // always runs, even after an error
+}
+</code></pre>
+
+<p>You can also <strong>throw</strong> your own errors:</p>
+<pre class="code"><code>if (age &lt; 0) {
+  throw new RangeError("Age cannot be negative");
+}
+</code></pre>
+
+<h3>Built-in error types</h3>
+<table>
+<tr><th>Type</th><th>When</th></tr>
+<tr><td><code>Error</code></td><td>the generic one</td></tr>
+<tr><td><code>TypeError</code></td><td>wrong type or undefined property</td></tr>
+<tr><td><code>RangeError</code></td><td>value out of range</td></tr>
+<tr><td><code>ReferenceError</code></td><td>variable doesn't exist / TDZ</td></tr>
+<tr><td><code>SyntaxError</code></td><td>the code can't be parsed</td></tr>
+</table>
+
+<p>JS has no <code>except</code> clause like Python — you check the error's
+<code>name</code> or <code>instanceof</code> instead:</p>
+<pre class="code"><code>try {
+  JSON.parse(badJson);
+} catch (error) {
+  if (error instanceof SyntaxError) {
+    // handle parse failure
+  } else {
+    throw error;      // re-throw anything you didn't expect
+  }
+}
+</code></pre>
+
+<h3>Custom error classes</h3>
+<pre class="code"><code>class ApiError extends Error {
+  constructor(message, status) {
+    super(message);              // must call super() before using `this`
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+try {
+  throw new ApiError("Not found", 404);
+} catch (error) {
+  console.log(error.name, error.status, error.message);
+}
+</code></pre>
+
+<h3>The most important error-handling pattern in the front end</h3>
+<pre class="code"><code>async function loadUser(id) {
+  try {
+    const response = await fetch(`/api/users/${id}`);
+    if (!response.ok) {                 // fetch does NOT throw on 404 or 500!
+      throw new Error(`HTTP ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Could not load user:", error.message);
+    return null;                        // or re-throw, or show a UI error
+  }
+}
+</code></pre>
+
+<div class="warn">
+<p><strong>The single most common async bug in JavaScript:</strong>
+<code>fetch()</code> only rejects on <em>network</em> failure. An HTTP 404 or 500 is a
+<em>successful</em> fetch — <code>response.ok</code> is <code>false</code>, but nothing
+throws. If you don't check <code>response.ok</code>, you'll try to parse an error page as
+JSON and get a confusing "Unexpected token &lt; in JSON" error.</p>
+<p><strong>Always check <code>response.ok</code>.</strong></p>
+</div>
+
+<div class="py">
+<p><strong>Python brain:</strong> <code>try/catch/finally</code> is exactly Python's
+<code>try/except/finally</code> — but JS has no <code>except SomeError:</code>
+syntax, so you check <code>error.name</code> or <code>error instanceof</code>. And
+Python's <code>raise</code> is JS's <code>throw</code>.</p>
+</div>
+
+
+<h4 class="cap">try / catch / finally in action</h4>
+<pre class="code"><code class="lang-js">function risky(shouldFail) {
+  if (shouldFail) throw new TypeError("simulated failure");
+  return "ok";
+}
+
+try {
+  console.log(risky(false));
+  console.log(risky(true));
+} catch (error) {
+  console.log("caught:", error.name, "-", error.message);
+} finally {
+  console.log("finally always runs");
+}
+
+class AppError extends Error {
+  constructor(message, code) {
+    super(message);
+    this.name = "AppError";
+    this.code = code;
+  }
+}
+try {
+  throw new AppError("Something specific broke", "E42");
+} catch (error) {
+  console.log(error.name, error.code, error.message);
+}</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li><code>error.message</code> is the human-readable string; <code>error.name</code> is the type; <code>error.stack</code> is the full trace with file and line.</li><li>In a <code>catch</code> block, if you don't handle a case, re-throw it. Swallowing every error is how bugs become invisible.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — A safe JSON parser and a custom error</h3>
+
+<ol>
+<li>Write <code>safeParse(jsonString)</code> that returns the parsed object, or
+<code>null</code> on failure — never throws.</li>
+<li>Write a <code>ValidationError</code> class extending <code>Error</code> with a
+<code>field</code> property.</li>
+<li>Write <code>validateUser(user)</code> that throws a <code>ValidationError</code>
+when <code>name</code> is missing or <code>age</code> isn't a positive number, and
+returns the user otherwise.</li>
+<li>Call it in a <code>try/catch</code> and log a friendly message for a
+<code>ValidationError</code> and a generic one for anything else — <strong>and re-throw
+unknown errors</strong>.</li>
+<li>Bonus: make the catch block show the error in the page (an element with
+<code>#errors</code>), using <code>textContent</code> — not <code>innerHTML</code>.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>Custom error classes must call <code>super(message)</code> before setting <code>this</code>, or you get "must call super constructor".</li><li><code>error instanceof ValidationError</code> works because of the prototype chain — you'll understand why properly in the next step.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-15-errors-try-catch-throw.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-16-classes-prototypes-code-this-code">4.16 — Classes, Prototypes &amp; &lt;code&gt;this&lt;/code&gt;</h2>
+
+<p class="lede">Understand the object model underneath JavaScript's class syntax.</p>
+
+
+<p>JavaScript's object model is <strong>prototype-based</strong>. Every object has a
+hidden link to another object (its prototype), from which it inherits properties.</p>
+
+<pre class="code"><code>const animal = {
+  speaks: true,
+  speak() { return "..."; },
+};
+
+const dog = Object.create(animal);   // dog inherits from animal
+dog.bark = function () { return "Woof"; };
+
+dog.speak();   // works - inherited
+dog.bark();    // works - own
+</code></pre>
+
+<h3>Classes are syntax over prototypes</h3>
+<pre class="code"><code>class Animal {
+  constructor(name) {
+    this.name = name;          // this = the new object
+  }
+  speak() {
+    return `${this.name} makes a sound`;
+  }
+}
+
+class Dog extends Animal {
+  constructor(name, breed) {
+    super(name);               // MUST call super() before using `this`
+    this.breed = breed;
+  }
+  speak() {
+    return super.speak() + " (woof)";
+  }
+}
+
+const rex = new Dog("Rex", "Collie");
+rex.speak();
+</code></pre>
+
+<div class="py">
+<p><strong>Python brain:</strong> this is the biggest conceptual difference between the
+two languages, and it runs in the opposite direction from Python:</p>
+<ul>
+<li>Python: the <strong>class</strong> owns the behaviour, and instances have a
+<code>__dict__</code>. <code>Dog</code> and <code>Animal</code> are separate objects
+with a class hierarchy.</li>
+<li>JavaScript: the <strong>instance</strong> owns the behaviour via its prototype
+chain. <code>rex</code> doesn't "contain" <code>Dog.prototype</code>; it points to it.
+<code>class</code> is a convenient way to write that chain.</li>
+</ul>
+<p>Python's <code>self</code> is explicitly the first argument. JavaScript's
+<code>this</code> is <em>implicit</em> and determined at call time — that's the next
+section.</p>
+</div>
+
+<h3>How <code>this</code> is determined</h3>
+<p>In order of priority:</p>
+<ol>
+<li><strong>Explicit:</strong> <code>fn.call(obj)</code>, <code>fn.apply(obj)</code>,
+<code>fn.bind(obj)</code> — you set it yourself.</li>
+<li><strong>As a method:</strong> <code>obj.fn()</code> — <code>this</code> is
+<code>obj</code>.</li>
+<li><strong>As a constructor:</strong> <code>new Fn()</code> — <code>this</code> is the
+freshly created object.</li>
+<li><strong>Plain call:</strong> <code>fn()</code> — <code>this</code> is
+<code>undefined</code> in strict mode (or the global object in sloppy mode).</li>
+</ol>
+
+<pre class="code"><code>function say() { return this?.name; }
+
+const obj = { name: "Ana", say };
+obj.say();        // "Ana"     (method call)
+const detached = obj.say;
+detached();       // undefined  (plain call - this is lost)
+obj.say.call({ name: "Bruno" });  // "Bruno"  (explicit)
+</code></pre>
+
+<div class="note">
+<p><strong>Why arrow functions exist:</strong> an arrow function has no
+<code>this</code> of its own — it inherits the <code>this</code> of the scope where it
+was <em>defined</em>. That makes it immune to the "detached method" problem above,
+which is why callbacks are almost always arrows.</p>
+</div>
+
+<h3>Extending built-ins</h3>
+<pre class="code"><code>class MyError extends Error {
+  constructor(msg, code) {
+    super(msg);
+    this.name = "MyError";
+    this.code = code;
+  }
+}
+console.log(new MyError("x", 1) instanceof Error);   // true
+</code></pre>
+
+<p>Extending <code>Array</code> or <code>String</code> is possible but usually a bad
+idea — it breaks assumptions everywhere. Extend your own classes instead.</p>
+
+
+<h4 class="cap">this, four ways</h4>
+<pre class="code"><code class="lang-js">function say() { return this &amp;&amp; this.name; }
+
+const obj = { name: "Ana", say };
+console.log("method call :", obj.say());
+
+const detached = obj.say;
+console.log("plain call  :", detached());
+
+console.log("call()      :", obj.say.call({ name: "Bruno" }));
+console.log("bind()      :", obj.say.bind({ name: "Carla" })());
+
+function Point(x, y) { this.x = x; this.y = y; }
+console.log("new         :", new Point(1, 2));
+
+class Animal {
+  constructor(name) { this.name = name; }
+  speak() { return `${this.name} makes a sound`; }
+}
+class Dog extends Animal {
+  constructor(name, breed) { super(name); this.breed = breed; }
+  speak() { return super.speak() + " (woof)"; }
+}
+console.log("class       :", new Dog("Rex", "Collie").speak());
+console.log("instanceof  :", new Dog("Rex") instanceof Animal);</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>In a class method, <code>this</code> is the instance. In a <code>static</code> method, <code>this</code> is the class itself.</li><li><code>Object.create(animal)</code> creates an object inheriting from <code>animal</code> without calling any constructor — the raw prototype mechanism underneath <code>class</code>.</li><li>Methods defined in a class body are non-enumerable, which is why <code>Object.keys(instance)</code> doesn't include them.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — Model something real</h3>
+
+<ol>
+<li>Create a <code>class Task</code> with <code>title</code>, <code>done</code>,
+<code>id</code> and a method <code>toggle()</code>.</li>
+<li>Add a <code>class TaskList</code> that holds an array of tasks, with
+<code>add</code>, <code>remove</code>, <code>toggle</code> and <code>pendingCount</code>.</li>
+<li>Make <code>TaskList</code> generate ids automatically (a static counter is perfect).</li>
+<li>Demonstrate the prototype chain: log
+<code>Object.getPrototypeOf(task) === Task.prototype</code> and show that
+<code>"toggle" in task</code> is <code>true</code> even though it's not an own
+property.</li>
+<li>Show what <code>this</code> does when a method is detached — and explain it in one
+sentence.</li>
+</ol>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>A static counter: <code>static nextId = 1;</code> then <code>this.id = Task.nextId++;</code>.</li><li><code>Object.getPrototypeOf(x)</code> is the raw version of the <code>class</code> inheritance chain.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-16-classes-prototypes-code-this-code.html">▶ Open the runnable file for this step</a></p>
+
+<h2 id="step-4-17-the-event-loop">4.17 — The Event Loop</h2>
+
+<p class="lede">Predict the exact order your code runs in — the skill that separates fluent JavaScript developers from confused ones.</p>
+
+
+<p>JavaScript is <strong>single-threaded</strong>: one call stack, one thing running at
+a time. The event loop is what lets it wait for slow things (network, timers) without
+freezing.</p>
+
+<h3>The three parts</h3>
+<ul>
+<li><strong>Call stack</strong> — the functions currently executing. LIFO.</li>
+<li><strong>Web APIs</strong> — browser-provided async machinery
+(<code>setTimeout</code>, <code>fetch</code>, event listeners). They run outside
+JavaScript and schedule a callback when done.</li>
+<li><strong>Queues</strong> — where callbacks wait. There are two, and the difference
+is the whole story.</li>
+</ul>
+
+<h3>The rule</h3>
+<ol>
+<li>Run the current task until the call stack is empty.</li>
+<li>Take <strong>all</strong> the microtasks (and keep going until the microtask queue
+is empty).</li>
+<li>Take <strong>one</strong> macrotask.</li>
+<li>Render (if needed).</li>
+<li>Go to 1.</li>
+</ol>
+
+<table>
+<tr><th>Microtasks (high priority)</th><th>Macrotasks (low priority)</th></tr>
+<tr><td><code>Promise.then()</code> / <code>.catch()</code></td><td><code>setTimeout</code></td></tr>
+<tr><td><code>queueMicrotask()</code></td><td><code>setInterval</code></td></tr>
+<tr><td><code>MutationObserver</code> callbacks</td><td>user events (click, scroll)</td></tr>
+<tr><td><code>await</code> continuations</td><td>I/O callbacks</td></tr>
+</table>
+
+<div class="py">
+<p><strong>Python brain:</strong> JavaScript's event loop is like Python's
+<code>asyncio</code> event loop, with one important difference. In asyncio, awaiting
+yields control and other tasks run. In JS, <strong>awaiting also yields to the
+microtask queue</strong> — and microtasks always run before the next macrotask, no
+matter how many are queued.</p>
+</div>
+
+<h3>The classic prediction exercise</h3>
+<pre class="code"><code>console.log("1");
+
+setTimeout(() =&gt; console.log("2"), 0);
+
+Promise.resolve().then(() =&gt; console.log("3"));
+
+console.log("4");
+
+// Output: 1, 4, 3, 2
+</code></pre>
+
+<p>Why: <code>1</code> and <code>4</code> are synchronous (they run immediately, in
+order). Then the stack empties, so the microtask <code>3</code> runs before the
+macrotask <code>2</code> — <strong>even though the timeout was scheduled
+first</strong>.</p>
+
+<pre class="code"><code>async function main() {
+  console.log("A");
+  await null;                    // even awaiting null yields!
+  console.log("B");
+}
+main();
+console.log("C");
+setTimeout(() =&gt; console.log("D"), 0);
+Promise.resolve().then(() =&gt; console.log("E"));
+
+// Output: A, C, B, E, D
+</code></pre>
+
+<p><code>await</code> always resumes in a <strong>microtask</strong>, never
+synchronously. That's why <code>B</code> comes after <code>C</code>.</p>
+
+<h3>Blocking</h3>
+<p>Because there's one thread, a long synchronous loop freezes the page — no clicks, no
+scrolling, no rendering. That's why Act 6 has Web Workers.</p>
+
+<div class="note">
+<p><strong>The practical takeaway:</strong> never write a long synchronous loop over
+thousands of items on the main thread. Chunk it, or move it to a Web Worker. And
+remember that <code>await</code> yields to the event loop, so code after an
+<code>await</code> runs later than code after it looks.</p>
+</div>
+
+
+<h4 class="cap">Predict, then run</h4>
+<pre class="code"><code class="lang-js">console.log("1 - sync");
+setTimeout(() =&gt; console.log("5 - macrotask (timeout)"), 0);
+Promise.resolve().then(() =&gt; console.log("4 - microtask (promise)"));
+console.log("2 - sync");
+
+(async () =&gt; {
+  console.log("3 - async body starts sync");
+  await null;
+  console.log("6 - after await (microtask)");
+})();
+
+console.log("Expected order: 1, 2, 3, 4, 5, 6");</code></pre>
+
+<div class="notice"><h3>What to notice</h3><ul><li>A <code>setTimeout(fn, 0)</code> is not "immediate" — it's "as soon as possible after the current task and all microtasks". The delay is a minimum, not a guarantee.</li><li><code>await</code> on a non-promise value still yields — it waits one microtask tick. That's why <code>await null</code> changes the ordering.</li></ul></div>
+
+<div class="challenge"><h3>Challenge — The ordering challenge</h3>
+
+<p>For <strong>each</strong> of these, write the exact output order
+<em>before</em> you run it:</p>
+<ol>
+<li><code>console.log(1); setTimeout(() => console.log(2)); console.log(3);</code></li>
+<li><code>console.log(1); Promise.resolve().then(() => console.log(2)); console.log(3);</code></li>
+<li><code>setTimeout(() => console.log("t")); Promise.resolve().then(() => console.log("p")); console.log("s");</code></li>
+<li>An <code>async</code> function that logs <code>"a"</code>, awaits, then logs
+<code>"b"</code> — called before a <code>console.log("c")</code>.</li>
+<li>Two nested awaits in a row.</li>
+</ol>
+<p>Then run all five and check yourself. Getting these right is genuinely worth the
+effort — it's how you reason about React state updates and <code>useEffect</code>
+timing later.</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li>All synchronous code runs first, in order. Then ALL microtasks (in the order they were queued). Then ONE macrotask. Then repeat.</li><li>Each <code>await</code> adds one microtask tick — two awaits means two turns through the microtask queue.</li></ul></details>
+
+</div>
+
+<p class="runbtn"><a href="steps/4-17-the-event-loop.html">▶ Open the runnable file for this step</a></p>
+
+<hr>
+
+<div class="ok"><strong>Act 4 checkpoint</strong>
+<p>You now know the JavaScript language: values, types, functions, scope, closures,
+objects, the DOM, events, modules, errors, classes, and the event loop.</p>
+<p><strong>Before Act 5, try this:</strong> write a script from scratch that reads a
+list of items from the DOM, filters and sorts them, and re-renders the list. If that
+feels comfortable, you're ready for projects.</p>
+</div>
+
+<div class="stepnav"><a href="../03-tailwind-css/lesson.html">← Act 3</a><a href="../05-your-five-projects/lesson.html">Act 5 →</a></div>
+</body>
+</html>

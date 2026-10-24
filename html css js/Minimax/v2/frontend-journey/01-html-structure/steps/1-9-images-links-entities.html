@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1.9 Images, Links &amp; Entities — Act 1: HTML — Structure</title>
+<style>
+:root{
+  --ink:#15151d; --mut:#5b5b74; --line:#e7e7f1; --acc:#6366f1; --acc-bg:#f4f4ff;
+  --warn:#b45309; --warn-bg:#fffaf0; --ok:#047857; --ok-bg:#f1fdf7; --code:#f7f7fc;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.68;
+  color:var(--ink);max-width:880px;margin:0 auto;padding:40px 22px 80px;background:#fff}
+h1{font-size:2.05rem;line-height:1.18;margin:6px 0 10px;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:52px 0 10px;padding-top:16px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1.1rem;margin:30px 0 6px}
+h4.cap{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
+  margin:22px 0 0;font-weight:700}
+p{margin:12px 0}
+a{color:var(--acc)}
+code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.9em;
+  font-family:var(--mono);border:1px solid var(--line)}
+pre.code{background:var(--code);border:1px solid var(--line);padding:14px 16px;
+  border-radius:10px;overflow-x:auto;margin:0 0 8px}
+pre.code code{background:none;border:0;padding:0;font-size:.86em;line-height:1.55}
+.tag{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc);font-weight:800}
+.lede{color:var(--mut);font-size:1.06rem;margin-top:0}
+.meta{color:var(--mut);font-size:.88rem;margin:0 0 24px}
+.toc{background:#fbfbfe;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:6px 0 0;padding-left:22px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.note,.warn,.ok,.py{border-radius:0 10px 10px 0;padding:12px 16px;margin:18px 0}
+.note{border-left:4px solid var(--acc);background:var(--acc-bg)}
+.warn{border-left:4px solid var(--warn);background:var(--warn-bg)}
+.ok{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.py{border-left:4px solid var(--ok);background:var(--ok-bg)}
+.note p:first-child,.warn p:first-child,.ok p:first-child,.py p:first-child{margin-top:0}
+.note p:last-child,.warn p:last-child,.ok p:last-child,.py p:last-child{margin-bottom:0}
+.py strong:first-child{color:var(--ok)}
+.challenge{border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:22px 0;background:#fbfbff}
+.challenge h3{margin:0 0 6px;font-size:1.02rem}
+.challenge ol,.challenge ul{margin:8px 0;padding-left:22px}
+.challenge li{margin:5px 0}
+.hints{font-size:.93rem;color:var(--mut);margin-top:12px}
+.hints summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.hints ul{margin:6px 0 0}
+.notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0}
+.notice h3{margin:0 0 4px;font-size:.98rem}
+.notice ul{margin:6px 0;padding-left:22px}
+.notice li{margin:4px 0}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+.stepnav{display:flex;gap:12px;flex-wrap:wrap;margin:34px 0 0;font-size:.92rem}
+.stepnav a{border:1px solid var(--line);border-radius:8px;padding:7px 13px;text-decoration:none;background:#fbfbfe}
+.stepnav a:hover{border-color:var(--acc)}
+.runbtn{display:inline-block;margin:14px 0 4px}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f7f7fc;font-weight:700}
+#out{background:#101019;color:#d6ffd6;border-radius:10px;padding:14px 16px;
+  font-family:var(--mono);font-size:.84em;line-height:1.5;white-space:pre-wrap;
+  min-height:20px;overflow-x:auto;margin:10px 0}
+.outlabel{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-top:26px}
+</style>
+
+</head>
+<body>
+<span class="tag">Act 1 · Step 1.9</span>
+
+<h1>Images, Links &amp; Entities</h1>
+
+<p class="lede">Write accessible images and links, and handle special characters correctly.</p>
+
+<div class="notice"><h3>What to notice</h3><ul><li>An <code>&lt;img&gt;</code> is a void element — no closing tag.</li><li><code>src</code> can be relative (<code>cat.jpg</code>), absolute (<code>/assets/cat.jpg</code>), or a full URL. Relative paths are resolved against the <em>page's</em> URL, not the CSS file's.</li></ul></div>
+
+
+<div class="demo" style="border:1px dashed #c9c9dd;border-radius:10px;padding:14px 16px">
+<h3>Live demo</h3>
+<p><a href="#">A normal link</a> &nbsp;·&nbsp;
+<a href="https://example.com" target="_blank" rel="noopener">A new-tab link (with noopener)</a></p>
+<p>Entities: 5 &lt; 6 &amp;&amp; 7 &gt; 6 &nbsp;&nbsp;© 2026 &nbsp;·&nbsp; 5&times;5</p>
+<p><img src="https://placehold.co/300x120/e0e0ee/555/&text=placeholder" alt="A placeholder rectangle used as a stand-in image" width="300" height="120" loading="lazy"></p>
+</div>
+
+
+<div class="challenge"><h3>Challenge — Accessible media page</h3>
+
+<p>Build a short article page:</p>
+<ol>
+<li>One <code>&lt;figure&gt;</code> containing an <code>&lt;img&gt;</code> and a
+<code>&lt;figcaption&gt;</code></li>
+<li>The image needs a meaningful <code>alt</code>, plus explicit <code>width</code> and
+<code>height</code> attributes</li>
+<li>One link to an external site with <code>target="_blank"</code> and
+<code>rel="noopener"</code></li>
+<li>One link with <code>href="#"</code> as a placeholder</li>
+<li>A paragraph containing <code>&amp;</code>, <code>&lt;</code> and <code>&gt;</code> as
+real characters (not as <code>&amp;amp;</code>)</li>
+</ol>
+<p>Then verify: does the <code>alt</code> read naturally when spoken aloud? (Screen
+readers sometimes say "image of" for you — if yours does, don't start the alt with
+"image of".)</p>
+
+<details class="hints"><summary>Stuck? Open the hints</summary><ul><li><code>&lt;figure&gt;</code> is the container; <code>&lt;figcaption&gt;</code> goes inside it and is automatically associated with the image.</li><li>The browser converts <code>&amp;amp;</code> to <code>&amp;</code> in the rendered page. If you want a literal ampersand character on screen, write <code>&amp;amp;</code> in the source.</li></ul></details>
+
+</div>
+
+<div class="stepnav"><a href="../lesson.html">← Full Act 1 lesson</a><a href="../../02-css-presentation/lesson.html">Next act →</a></div>
+</body>
+</html>
