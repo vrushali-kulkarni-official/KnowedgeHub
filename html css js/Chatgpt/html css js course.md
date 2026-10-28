@@ -457,8 +457,6 @@ Tailwind CSS
 
 +1
 
-
-
 ## 14. Traditional CSS versus Tailwind
 
 Traditional CSS:
@@ -630,72 +628,7 @@ For example, given an array of API results, you might filter it and then render 
 
 These features are used frequently in React and other modern JavaScript code.
 
-### Destructuring
-
-```
-const user = { name: "Alex", role: "admin" };
-
-const { name, role } = user;
-```
-
-### Spread
-
-```
-const oldMessages = ["Hello"];
-const newMessages = [...oldMessages, "Hi again"];
-```
-
-For an object:
-
-```
-const updatedUser = { ...user, role: "editor" };
-```
-
-These patterns are useful when creating updated data rather than mutating existing arrays and objects.
-
-### Rest parameters
-
-```
-function sum(...numbers) {
-  return numbers.reduce((total, n) => total + n, 0);
-}
-```
-
-### Optional chaining
-
-```
-const city = user.address?.city;
-```
-
-If `address` is `null` or `undefined`, the expression evaluates safely to `undefined` rather than throwing an error at that point.
-
-### Nullish coalescing
-
-```
-const displayName = user.name ?? "Guest";
-```
-
-`??` uses the fallback for `null` or `undefined`. Unlike `||`, it preserves values such as `0`, `false`, and `""`.
-
-### Modules
-
-File `helpers.js`:
-
-```
-export function formatName(name) {
-  return name.trim();
-}
-```
-
-File `app.js`:
-
-```
-import { formatName } from "./helpers.js";
-
-console.log(formatName(" Alex "));
-```
-
-Modules let you split application code into logical, reusable files. In a browser, load an entry point with `<script type="module">`.
+### 
 
 # Part 6 — The DOM and event handling
 
@@ -967,8 +900,6 @@ The Fetch API is the browser's standard interface for making these requests. It 
 [image](https://www.google.com/s2/favicons?domain=https://developer.mozilla.org\&sz=32)
 
 MDN
-
-
 
 ## 27. `fetch()`, promises, and `async/await`
 
@@ -1242,8 +1173,6 @@ When sending a `FormData` object, let the browser set `multipart/form-data` and 
 
 GitHub
 
-
-
 3\. Browser checks do not make file uploads safe.
 
 The `accept` attribute is a user-interface hint, not a security boundary. Your FastAPI backend should enforce size limits, validate the actual file type and content, generate safe storage names, and apply appropriate malware or content inspection for your use case.
@@ -1443,8 +1372,6 @@ Two browser options are important:
 [image](https://www.google.com/s2/favicons?domain=https://developer.mozilla.org\&sz=32)
 
 MDN
-
-
 
 ## 38. SSE in plain language
 
@@ -1691,8 +1618,6 @@ MDN
 
 +1
 
-
-
 ## 44. Microtasks versus tasks
 
 Run this in your browser console:
@@ -1734,8 +1659,6 @@ Browsers process microtasks after a task's JavaScript finishes and before moving
 [image](https://www.google.com/s2/favicons?domain=https://developer.mozilla.org\&sz=32)
 
 MDN
-
-
 
 Do not memorize only the output. Understand how the work was scheduled.
 
@@ -2125,8 +2048,6 @@ This is called the Critical Rendering Path. The details can vary with browser im
 MDN
 
 +1
-
-
 
 ## 56. DOM versus CSSOM versus render tree
 
@@ -2602,8 +2523,6 @@ OWASP Cheat Sheet Series
 
 +1
 
-
-
 Choose an architecture based on your threat model:
 
 | Approach                                         | Considerations                                                                                |
@@ -2920,8 +2839,6 @@ React's recommended approach is to break an interface into components, render a 
 
 React
 
-
-
 ## 88. Fetch data in React
 
 A basic example of loading data inside a component is:
@@ -3207,8 +3124,6 @@ Use these as references while you practice:
   [image](https://www.google.com/s2/favicons?domain=https://cheatsheetseries.owasp.org\&sz=32)
 
   OWASP Cheat Sheet Series
-
-
 
 # The five mental models to remember
 

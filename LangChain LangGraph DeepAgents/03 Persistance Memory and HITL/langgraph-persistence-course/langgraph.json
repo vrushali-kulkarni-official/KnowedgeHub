@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "approval_flow": "./examples/graphs.py:approval_flow"
+  },
+  "env": ".env"
+}

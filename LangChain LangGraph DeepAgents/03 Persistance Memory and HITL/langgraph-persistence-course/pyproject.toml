@@ -1,0 +1,25 @@
+[project]
+name = "langgraph-persistence-course"
+version = "1.0.0"
+description = "Phase 8 - Persistence, Memory & Human-in-the-Loop for LangChain/LangGraph"
+readme = "README.md"
+requires-python = ">=3.10"
+
+# Exact versions this course was verified against.
+dependencies = [
+    "langgraph==1.2.18",
+    "langchain==1.4.7",
+    "langgraph-checkpoint-postgres==3.2.0",
+    "langchain-postgres==0.0.19",
+    "langmem==0.0.30",
+    "psycopg[binary,pool]==3.3.6",
+    "langfuse==5.0.4",
+    "langchain-google-genai==4.4.2",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+redis = ["langgraph-checkpoint-redis==0.5.2"]
+
+[tool.uv]
+package = false

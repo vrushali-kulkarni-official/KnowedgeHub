@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lists and dictionaries (arrays and objects) &middot; JavaScript basics for the DOM</title>
+<style>
+:root{
+  --bg:#0f1115; --panel:#171a21; --panel2:#1d212a; --line:#2a2f3a;
+  --text:#e7e9ee; --muted:#9aa3b2; --accent:#7dd3fc; --accent2:#a78bfa;
+  --green:#4ade80; --amber:#fbbf24; --red:#fb7185; --pink:#f472b6;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code,pre,textarea{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+/* top bar */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(15,17,21,.92);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:980px;margin:0 auto;padding:10px 18px;display:flex;
+  align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-weight:700;letter-spacing:.2px}
+.brand span{color:var(--accent)}
+.crumb{color:var(--muted);font-size:14px}
+.spacer{flex:1}
+.pill{font-size:12px;color:var(--muted);border:1px solid var(--line);
+  border-radius:999px;padding:3px 10px}
+
+/* layout */
+.wrap{max-width:980px;margin:0 auto;padding:26px 18px 90px}
+h1{font-size:clamp(28px,4vw,40px);line-height:1.15;margin:.2em 0 .35em}
+h2{font-size:22px;margin:0 0 .6em}
+h3{font-size:17px;margin:0 0 .7em;color:var(--accent2);
+  letter-spacing:.2px;text-transform:none}
+p{margin:.6em 0}
+.lede{font-size:18px;color:var(--muted);margin:0 0 1.4em}
+.muted{color:var(--muted)}
+.eyebrow{color:var(--accent);font-size:13px;letter-spacing:.12em;
+  text-transform:uppercase;margin:0}
+
+/* cards */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:18px 20px;margin:16px 0}
+.card.idea{border-left:4px solid var(--accent)}
+.card.note{border-left:4px solid var(--amber)}
+.card.bridge{border-left:4px solid var(--green)}
+.card.demo{border-left:4px solid var(--pink)}
+.card.lab{border-left:4px solid var(--accent2)}
+.card.try{border-left:4px solid var(--amber);background:#1a1a16}
+.card.checkpoint{border-left:4px solid var(--green);background:#151d18}
+.card ul,.card ol{padding-left:1.2em}
+.card li{margin:.3em 0}
+
+/* code */
+pre.code{background:#0b0d11;border:1px solid var(--line);border-radius:10px;
+  padding:13px 15px;overflow:auto;font-size:13.5px;line-height:1.6;margin:.6em 0}
+pre.code code{white-space:pre}
+.tok-kw{color:#c792ea}
+.tok-str{color:#c3e88d}
+.tok-num{color:#f78c6c}
+.tok-com{color:#5f6b7a;font-style:italic}
+.tok-fn{color:#82aaff}
+.tok-cls{color:#ffcb6b}
+
+/* bridge */
+.bridge-row{display:grid;grid-template-columns:1fr 34px 1fr;gap:8px;
+  align-items:center;margin:.8em 0}
+.bridge-col{min-width:0}
+.bridge-head{font-size:12px;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--muted);margin-bottom:4px}
+.bridge-head.py{color:var(--green)}
+.bridge-head.js{color:var(--amber)}
+.bridge-arrow{text-align:center;color:var(--muted)}
+@media(max-width:640px){
+  .bridge-row{grid-template-columns:1fr}
+  .bridge-arrow{transform:rotate(90deg)}
+}
+
+/* demo stage */
+.demo-stage{background:#0b0d11;border:1px dashed var(--line);border-radius:10px;
+  padding:14px;margin-top:.6em}
+.demo-stage button{font:inherit;background:var(--panel2);color:var(--text);
+  border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+.demo-stage button:hover{border-color:var(--accent)}
+.demo-stage input{font:inherit;background:#0f1115;color:var(--text);
+  border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.demo-stage ul{margin:.4em 0;padding-left:1.2em}
+.demo-stage li.done{text-decoration:line-through;opacity:.55}
+.demo-stage .del{margin-left:.5em;padding:1px 7px;line-height:1.2}
+.demo-stage .todo-foot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  margin-top:10px}
+.demo-stage .ghostbtn{background:transparent}
+.demo-stage .label{cursor:pointer}
+
+/* lab */
+.lab-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:12px;margin-top:.6em}
+@media(max-width:760px){.lab-grid{grid-template-columns:1fr}}
+textarea#lab, .lab-grid textarea{width:100%;min-height:210px;background:#0b0d11;
+  color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;
+  font-size:13.5px;line-height:1.6;resize:vertical}
+.lab-side{display:flex;flex-direction:column;gap:8px}
+.lab-buttons{display:flex;gap:8px}
+.btn{font:inherit;background:var(--accent);color:#06222e;border:0;border-radius:8px;
+  padding:8px 14px;font-weight:600;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:500}
+pre.out{background:#0b0d11;border:1px solid var(--line);border-radius:10px;
+  padding:12px;margin:0;flex:1;min-height:210px;overflow:auto;font-size:13px;
+  white-space:pre-wrap;word-break:break-word}
+pre.out:empty::after{content:"(output shows up here)";color:#4b5563}
+.hints{margin-top:10px}
+details.hint{border:1px solid var(--line);border-radius:9px;padding:8px 12px;margin:6px 0;
+  background:var(--panel2)}
+details.hint summary{cursor:pointer;color:var(--accent);font-size:14px}
+details.hint p{margin:.5em 0 0;color:var(--muted)}
+.checks li{list-style:none;position:relative;padding-left:26px}
+.checks li::before{content:"±0";position:absolute;left:0;color:var(--muted)}
+
+/* nav */
+.stepnav{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;
+  margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+.btn-nav{display:inline-block;background:var(--panel2);border:1px solid var(--line);
+  color:var(--text);border-radius:10px;padding:10px 14px;font-size:14px}
+.btn-nav:hover{border-color:var(--accent);text-decoration:none}
+.done{margin-top:18px;display:flex;align-items:center;gap:10px;color:var(--muted);
+  font-size:14px}
+.done input{width:18px;height:18px;accent-color:var(--green)}
+
+/* index */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.act{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.act h3{margin:0 0 6px;font-size:18px;color:var(--text)}
+.act .n{font-size:12px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase}
+.act ol{margin:.6em 0 0;padding-left:1.2em}
+.act li{margin:.25em 0}
+.act li a{font-size:14.5px}
+.done-mark{color:var(--green);font-weight:700;margin-left:6px}
+.bar{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--green))}
+.small{font-size:13px;color:var(--muted)}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="topbar-in">
+  <div class="brand">frontend<span>.journey</span></div>
+  <div class="crumb">JavaScript basics for the DOM &middot; Step 3 of 6</div>
+  <div class="spacer"></div>
+  <span class="pill">No frameworks. Vanilla JS + DOM.</span>
+  <a class="pill" href="../../index.html">Map</a>
+</div></div>
+
+<div class="wrap">
+  <p class="eyebrow">JavaScript basics for the DOM &middot; Step 3</p>
+  <h1>Lists and dictionaries (arrays and objects)</h1>
+  <p class="lede">You need two containers before you touch the DOM: a list of things, and a thing with named properties. In Python you call them list and dict. In JavaScript: array and object.</p>
+
+  <section class="card idea"><h3>The idea</h3><p>Two shapes you will use constantly:</p><pre class="code"><code>// array = an ordered list
+const fruits = ["apple", "mango", "kiwi"];
+
+// object = a set of named properties
+const user = { name: "Ada", age: 36, admin: true };</code></pre><p>Reading from them:</p><pre class="code"><code>fruits[0]        // "apple"   (index starts at 0)
+fruits.length    // 3
+user.name        // "Ada"
+user["age"]    // 36</code></pre><p>JavaScript lets you use dot notation for objects (<code>user.name</code>) as long as the key is a normal word with no spaces. If the key has a dash or a space you must use square brackets: <code>user["first-name"]</code>.</p></section><section class="card bridge"><h3>Python &amp;#8594; JavaScript</h3><p>Your brain already has this model. Just rename the boxes.</p><div class="bridge-row"><div class="bridge-col"><div class="bridge-head py">Python</div><pre class="code"><code>fruits = [<span class="tok-str">&quot;apple&quot;</span>, <span class="tok-str">&quot;mango&quot;</span>, <span class="tok-str">&quot;kiwi&quot;</span>]
+length = <span class="tok-fn">len</span>(fruits)
+first = fruits[<span class="tok-num">0</span>]</code></pre></div><div class="bridge-arrow">&#8594;</div><div class="bridge-col"><div class="bridge-head js">JavaScript</div><pre class="code"><code><span class="tok-kw">const</span> fruits = [<span class="tok-str">&quot;apple&quot;</span>, <span class="tok-str">&quot;mango&quot;</span>, <span class="tok-str">&quot;kiwi&quot;</span>];
+<span class="tok-kw">const</span> length = fruits.length;
+<span class="tok-kw">const</span> first = fruits[<span class="tok-num">0</span>];</code></pre></div></div><div class="bridge-row"><div class="bridge-col"><div class="bridge-head py">Python dict</div><pre class="code"><code>user = {<span class="tok-str">&quot;name&quot;</span>: <span class="tok-str">&quot;Ada&quot;</span>, <span class="tok-str">&quot;age&quot;</span>: <span class="tok-num">36</span>}</code></pre></div><div class="bridge-arrow">&#8594;</div><div class="bridge-col"><div class="bridge-head js">JavaScript object</div><pre class="code"><code><span class="tok-kw">const</span> user = { name: <span class="tok-str">&quot;Ada&quot;</span>, age: <span class="tok-num">36</span> };</code></pre></div></div><div class="bridge-row"><div class="bridge-col"><div class="bridge-head py">Python loop</div><pre class="code"><code><span class="tok-kw">for</span> f <span class="tok-kw">in</span> fruits:
+    <span class="tok-kw">print</span>(f)</code></pre></div><div class="bridge-arrow">&#8594;</div><div class="bridge-col"><div class="bridge-head js">JavaScript forEach</div><pre class="code"><code>fruits.<span class="tok-fn">forEach</span>(<span class="tok-kw">function</span> (f) {
+  console.<span class="tok-fn">log</span>(f);
+});</code></pre></div></div><div class="bridge-row"><div class="bridge-col"><div class="bridge-head py">Python list comprehension</div><pre class="code"><code>big = [f.<span class="tok-fn">upper</span>() <span class="tok-kw">for</span> f <span class="tok-kw">in</span> fruits]</code></pre></div><div class="bridge-arrow">&#8594;</div><div class="bridge-col"><div class="bridge-head js">JavaScript map</div><pre class="code"><code><span class="tok-kw">const</span> big = fruits.<span class="tok-fn">map</span>(<span class="tok-kw">function</span> (f) {
+  <span class="tok-kw">return</span> f.<span class="tok-fn">toUpperCase</span>();
+});</code></pre></div></div></section><section class="card note"><h3>Three array methods that will do most of the work</h3><p>These three replace almost every loop you would write in Python:</p><pre class="code"><code>const nums = [1, 2, 3, 4, 5];
+
+// forEach: do something with each item (no return needed)
+nums.forEach(n => console.log(n * 2));
+
+// map: build a NEW array from each item
+const doubled = nums.map(n => n * 2);   // [2,4,6,8,10]
+
+// filter: keep only the items that pass a test
+const big = nums.filter(n => n > 3);     // [4,5]</code></pre><p>Mental model: <code>map</code> and <code>filter</code> always give you a <strong>new array</strong>. They never change the original. That is why you usually write <code>const doubled = nums.map(...)</code> and use <code>doubled</code> afterwards.</p><p>One important difference from Python: <code>map</code> and <code>filter</code> need a <strong>function</strong> as their argument. In Python you write <code>f.upper</code>, in JavaScript you write <code>f =&gt; f.toUpperCase()</code> (note the arrow).</p></section><section class="card lab"><h3>&#9998; Your turn: Lists of objects</h3><p>This is the shape you will meet constantly in the DOM: a list of objects, one object per row in a list.</p><div class="lab-grid"><textarea id="js-arrays-lab-code" spellcheck="false" aria-label="Your code"></textarea><div class="lab-side"><div class="lab-buttons"><button class="btn" data-run="js-arrays-lab">Run &#9654;</button><button class="btn ghost" data-clear="js-arrays-lab">Clear output</button></div><pre class="out" id="js-arrays-lab-out" aria-live="polite"></pre></div></div><div class="hints"><details class="hint"><summary>Hint 1</summary><p>Inside <code>forEach</code> or <code>map</code>, the arrow function's parameter (<code>u</code>) is one item from the array.</p></details><details class="hint"><summary>Hint 2</summary><p><code>u.name</code> gets the <code>name</code> property off that item.</p></details><details class="hint"><summary>Hint 3</summary><p>You can chain: <code>users.filter(...).map(...)</code>.</p></details></div></section><section class="card try"><h3>&#127919; Tiny challenge</h3><p>Using the same <code>users</code> array:</p><ul class="checks"><li>Print <code>"Ada is 36"</code> for every user using <code>forEach</code> and a template literal.</li><li>Build a new array of numbers: <code>[36, 41, 45]</code> using <code>map</code>.</li><li>Find the total age with <code>reduce</code> or by adding up a <code>map</code> result. If <code>reduce</code> is new, do it with a plain <code>let total = 0</code> and <code>forEach</code>.</li></ul></section><section class="card checkpoint"><h3>&#9989; Checkpoint &mdash; you now know</h3><ul><li>Array = list, Object = dict.</li><li><code>arr.length</code> replaces <code>len(arr)</code>.</li><li><code>forEach</code> (do), <code>map</code> (transform), <code>filter</code> (select).</li><li><code>map</code> and <code>filter</code> return a <strong>new</strong> array.</li></ul></section>
+
+  <label class="done">
+    <input type="checkbox" data-step="js-arrays-objects">
+    <span>I finished this step &mdash; tick me off</span>
+  </label>
+
+  <div class="stepnav">
+    <a class="btn-nav" href="02-js-functions.html">&#8592; Functions: a named box of steps</a>
+    <a class="btn-nav" href="../lesson.html">&#9776; JavaScript basics for the DOM overview</a>
+    <a class="btn-nav" href="04-js-dom-tree.html">The DOM: your HTML, alive in memory &#8594;</a>
+  </div>
+
+  <p class="footer">Stuck? Re-read the idea block, then peek at one hint.
+  Everything here is plain HTML + CSS + JavaScript. Open the file in your browser.</p>
+</div>
+
+<script>
+// progress tracking
+(function () {
+  var KEY = 'fj-progress';
+  function get() {
+    try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+    catch (e) { return []; }
+  }
+  function set(a) { localStorage.setItem(KEY, JSON.stringify(a)); }
+  function mark(id, on) {
+    var a = get();
+    var i = a.indexOf(id);
+    if (on && i === -1) a.push(id);
+    if (!on && i !== -1) a.splice(i, 1);
+    set(a);
+    paint();
+  }
+  function paint() {
+    var a = get();
+    document.querySelectorAll('[data-step]').forEach(function (el) {
+      var on = a.indexOf(el.getAttribute('data-step')) !== -1;
+      el.classList.toggle('is-done', on);
+      var m = el.querySelector('.done-mark');
+      if (m) m.textContent = on ? '\u2714' : '';
+    });
+    document.querySelectorAll('[data-progress]').forEach(function (el) {
+      var act = el.getAttribute('data-progress');
+      var steps = document.querySelectorAll('[data-act="' + act + '"]');
+      var done = 0;
+      steps.forEach(function (s) {
+        if (a.indexOf(s.getAttribute('data-step')) !== -1) done++;
+      });
+      var pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
+      var bar = el.querySelector('.bar i');
+      if (bar) bar.style.width = pct + '%';
+      var lbl = el.querySelector('.pct');
+      if (lbl) lbl.textContent = pct + '%';
+    });
+  }
+  window.fjPaint = paint;
+
+  // done checkbox on step pages
+  var box = document.querySelector('.done input[type=checkbox]');
+  if (box) {
+    box.checked = get().indexOf(box.getAttribute('data-step')) !== -1;
+    box.addEventListener('change', function () {
+      mark(box.getAttribute('data-step'), box.checked);
+    });
+  }
+
+  // lab runner (a tiny REPL, like python >>> )
+  function runCode(code, outEl) {
+    var logs = [];
+    var origLog = console.log;
+    console.log = function () {
+      logs.push(Array.prototype.map.call(arguments, function (x) {
+        if (typeof x === 'string') return x;
+        try { return JSON.stringify(x); } catch (e) { return String(x); }
+      }).join(' '));
+    };
+    try {
+      var fn = new Function('"use strict";\n' + code + '\n//# sourceURL=lab.js');
+      fn();
+    } catch (err) {
+      logs.push('Error: ' + err.message);
+    } finally {
+      console.log = origLog;
+    }
+    outEl.textContent = logs.join('\n');
+  }
+
+  document.querySelectorAll('textarea[id$="-code"]').forEach(function (ta) {
+    var id = ta.id.replace(/-code$/, '');
+    var out = document.getElementById(id + '-out');
+    var runBtn = document.querySelector('[data-run="' + id + '"]');
+    var clearBtn = document.querySelector('[data-clear="' + id + '"]');
+    if (runBtn) runBtn.addEventListener('click', function () {
+      runCode(ta.value, out);
+    });
+    if (clearBtn) clearBtn.addEventListener('click', function () {
+      out.textContent = '';
+    });
+    ta.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        runCode(ta.value, out);
+      }
+    });
+  });
+
+  // copy buttons on code blocks
+  document.querySelectorAll('pre.code').forEach(function (pre) {
+    var b = document.createElement('button');
+    b.className = 'copy';
+    b.textContent = 'copy';
+    b.style.cssText = 'position:absolute;right:8px;top:8px;font-size:11px;' +
+      'background:#1d212a;color:#9aa3b2;border:1px solid #2a2f3a;border-radius:6px;' +
+      'padding:2px 7px;cursor:pointer;opacity:0;transition:opacity .12s';
+    pre.addEventListener("mouseenter", function () { b.style.opacity = '.55'; });
+    pre.addEventListener("mouseleave", function () {
+      if (b.textContent !== 'copied') b.style.opacity = '0';
+    });
+    b.addEventListener('click', function () {
+      var code = pre.querySelector('code').innerText;
+      navigator.clipboard && navigator.clipboard.writeText(code);
+      b.textContent = 'copied';
+      setTimeout(function () { b.textContent = 'copy'; }, 1200);
+    });
+    pre.style.position = 'relative';
+    pre.appendChild(b);
+  });
+
+  paint();
+})();
+</script>
+<script>
+(function(){
+var ta=document.getElementById('js-arrays-lab-code');
+var out=document.getElementById('js-arrays-lab-out');
+if(ta&&!ta.value){ta.value="const users = [\n  { name: \"Ada\", age: 36 },\n  { name: \"Alan\", age: 41 },\n  { name: \"Grace\", age: 45 },\n];\n\n// 1. print each name\nusers.forEach(u => console.log(u.name));\n\n// 2. build a new array of just the names\nconst names = users.map(u => u.name);\nconsole.log(names);\n\n// 3. keep only the ones over 40\nconst seniors = users.filter(u => u.age > 40);\nconsole.log(seniors.map(u => u.name));";}
+if(ta&&out){
+var logs=[];var orig=console.log;
+console.log=function(){logs.push(Array.prototype.slice.call(arguments)
+.map(function(x){if(typeof x==='string')return x;try{return JSON.stringify(x)}catch(e){return String(x)}}).join(' '))};
+try{new Function('"use strict";\n'+ta.value+'\n//# sourceURL=starter.js')();}
+catch(e){logs.push('Error: '+e.message)}
+console.log=orig;out.textContent=logs.join('\n');}
+})();
+</script>
+</body>
+</html>

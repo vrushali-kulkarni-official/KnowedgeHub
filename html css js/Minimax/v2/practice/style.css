@@ -1,0 +1,91 @@
+body {
+    background-color: rgb(247, 247, 247);
+}
+
+#first-div {
+    background-color: brown;
+}
+
+.my-divs {
+    background-color: aqua;
+}
+
+.text-element {
+    color: black;
+}
+
+.text-element:hover {
+    color: red;
+}
+
+.text-element:active {
+    background-color: #2980b9;
+}
+
+.card {
+    width: 300px;
+    border: 10px solid gray;
+
+    padding: 20px;
+
+
+    margin: 16px;
+
+}
+
+.row-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.empty-div:hover {
+
+
+    border: 0px solid rgb(9, 219, 243);
+    background-color: aqua;
+    padding: 20px;
+    margin: 16px;
+    
+}
+
+.empty-div {
+
+
+
+    border: 0px solid rgb(9, 191, 212);
+    background-color: rgb(3, 173, 173);
+    padding: 20px;
+    margin: 16px;
+}
+
+.grid-display {
+    display: grid;
+    grid-template-columns: repeat(3);
+    grid-template-columns: 1fr 3fr 1fr;
+}
+
+
+.outer-div {
+    align-items: center;
+    margin-left: 10%;
+    margin-right: 10%;
+    background-color: antiquewhite;
+}
+
+
+.body-text {
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+
+.pink-class{
+    color: palevioletred;
+}

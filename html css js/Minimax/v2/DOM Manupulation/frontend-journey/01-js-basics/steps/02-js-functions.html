@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Functions: a named box of steps &middot; JavaScript basics for the DOM</title>
+<style>
+:root{
+  --bg:#0f1115; --panel:#171a21; --panel2:#1d212a; --line:#2a2f3a;
+  --text:#e7e9ee; --muted:#9aa3b2; --accent:#7dd3fc; --accent2:#a78bfa;
+  --green:#4ade80; --amber:#fbbf24; --red:#fb7185; --pink:#f472b6;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code,pre,textarea{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+/* top bar */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(15,17,21,.92);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:980px;margin:0 auto;padding:10px 18px;display:flex;
+  align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-weight:700;letter-spacing:.2px}
+.brand span{color:var(--accent)}
+.crumb{color:var(--muted);font-size:14px}
+.spacer{flex:1}
+.pill{font-size:12px;color:var(--muted);border:1px solid var(--line);
+  border-radius:999px;padding:3px 10px}
+
+/* layout */
+.wrap{max-width:980px;margin:0 auto;padding:26px 18px 90px}
+h1{font-size:clamp(28px,4vw,40px);line-height:1.15;margin:.2em 0 .35em}
+h2{font-size:22px;margin:0 0 .6em}
+h3{font-size:17px;margin:0 0 .7em;color:var(--accent2);
+  letter-spacing:.2px;text-transform:none}
+p{margin:.6em 0}
+.lede{font-size:18px;color:var(--muted);margin:0 0 1.4em}
+.muted{color:var(--muted)}
+.eyebrow{color:var(--accent);font-size:13px;letter-spacing:.12em;
+  text-transform:uppercase;margin:0}
+
+/* cards */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:18px 20px;margin:16px 0}
+.card.idea{border-left:4px solid var(--accent)}
+.card.note{border-left:4px solid var(--amber)}
+.card.bridge{border-left:4px solid var(--green)}
+.card.demo{border-left:4px solid var(--pink)}
+.card.lab{border-left:4px solid var(--accent2)}
+.card.try{border-left:4px solid var(--amber);background:#1a1a16}
+.card.checkpoint{border-left:4px solid var(--green);background:#151d18}
+.card ul,.card ol{padding-left:1.2em}
+.card li{margin:.3em 0}
+
+/* code */
+pre.code{background:#0b0d11;border:1px solid var(--line);border-radius:10px;
+  padding:13px 15px;overflow:auto;font-size:13.5px;line-height:1.6;margin:.6em 0}
+pre.code code{white-space:pre}
+.tok-kw{color:#c792ea}
+.tok-str{color:#c3e88d}
+.tok-num{color:#f78c6c}
+.tok-com{color:#5f6b7a;font-style:italic}
+.tok-fn{color:#82aaff}
+.tok-cls{color:#ffcb6b}
+
+/* bridge */
+.bridge-row{display:grid;grid-template-columns:1fr 34px 1fr;gap:8px;
+  align-items:center;margin:.8em 0}
+.bridge-col{min-width:0}
+.bridge-head{font-size:12px;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--muted);margin-bottom:4px}
+.bridge-head.py{color:var(--green)}
+.bridge-head.js{color:var(--amber)}
+.bridge-arrow{text-align:center;color:var(--muted)}
+@media(max-width:640px){
+  .bridge-row{grid-template-columns:1fr}
+  .bridge-arrow{transform:rotate(90deg)}
+}
+
+/* demo stage */
+.demo-stage{background:#0b0d11;border:1px dashed var(--line);border-radius:10px;
+  padding:14px;margin-top:.6em}
+.demo-stage button{font:inherit;background:var(--panel2);color:var(--text);
+  border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+.demo-stage button:hover{border-color:var(--accent)}
+.demo-stage input{font:inherit;background:#0f1115;color:var(--text);
+  border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.demo-stage ul{margin:.4em 0;padding-left:1.2em}
+.demo-stage li.done{text-decoration:line-through;opacity:.55}
+.demo-stage .del{margin-left:.5em;padding:1px 7px;line-height:1.2}
+.demo-stage .todo-foot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  margin-top:10px}
+.demo-stage .ghostbtn{background:transparent}
+.demo-stage .label{cursor:pointer}
+
+/* lab */
+.lab-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:12px;margin-top:.6em}
+@media(max-width:760px){.lab-grid{grid-template-columns:1fr}}
+textarea#lab, .lab-grid textarea{width:100%;min-height:210px;background:#0b0d11;
+  color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;
+  font-size:13.5px;line-height:1.6;resize:vertical}
+.lab-side{display:flex;flex-direction:column;gap:8px}
+.lab-buttons{display:flex;gap:8px}
+.btn{font:inherit;background:var(--accent);color:#06222e;border:0;border-radius:8px;
+  padding:8px 14px;font-weight:600;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:500}
+pre.out{background:#0b0d11;border:1px solid var(--line);border-radius:10px;
+  padding:12px;margin:0;flex:1;min-height:210px;overflow:auto;font-size:13px;
+  white-space:pre-wrap;word-break:break-word}
+pre.out:empty::after{content:"(output shows up here)";color:#4b5563}
+.hints{margin-top:10px}
+details.hint{border:1px solid var(--line);border-radius:9px;padding:8px 12px;margin:6px 0;
+  background:var(--panel2)}
+details.hint summary{cursor:pointer;color:var(--accent);font-size:14px}
+details.hint p{margin:.5em 0 0;color:var(--muted)}
+.checks li{list-style:none;position:relative;padding-left:26px}
+.checks li::before{content:"±0";position:absolute;left:0;color:var(--muted)}
+
+/* nav */
+.stepnav{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;
+  margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+.btn-nav{display:inline-block;background:var(--panel2);border:1px solid var(--line);
+  color:var(--text);border-radius:10px;padding:10px 14px;font-size:14px}
+.btn-nav:hover{border-color:var(--accent);text-decoration:none}
+.done{margin-top:18px;display:flex;align-items:center;gap:10px;color:var(--muted);
+  font-size:14px}
+.done input{width:18px;height:18px;accent-color:var(--green)}
+
+/* index */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.act{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.act h3{margin:0 0 6px;font-size:18px;color:var(--text)}
+.act .n{font-size:12px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase}
+.act ol{margin:.6em 0 0;padding-left:1.2em}
+.act li{margin:.25em 0}
+.act li a{font-size:14.5px}
+.done-mark{color:var(--green);font-weight:700;margin-left:6px}
+.bar{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--green))}
+.small{font-size:13px;color:var(--muted)}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="topbar-in">
+  <div class="brand">frontend<span>.journey</span></div>
+  <div class="crumb">JavaScript basics for the DOM &middot; Step 2 of 6</div>
+  <div class="spacer"></div>
+  <span class="pill">No frameworks. Vanilla JS + DOM.</span>
+  <a class="pill" href="../../index.html">Map</a>
+</div></div>
+
+<div class="wrap">
+  <p class="eyebrow">JavaScript basics for the DOM &middot; Step 2</p>
+  <h1>Functions: a named box of steps</h1>
+  <p class="lede">A function is a piece of code you give a name, so you can run it whenever you want, as many times as you want. You already know this from Python.</p>
+
+  <section class="card idea"><h3>The idea</h3><p>You will write the same three lines over and over if you have no functions. A function lets you write them once and call them by name.</p><pre class="code"><code>function greet(name) {
+  return "Hi " + name + "!";
+}
+
+console.log(greet("Ada"));   // Hi Ada!
+console.log(greet("Alan"));  // Hi Alan!</code></pre><p>Three parts, exactly like Python:</p><ul><li><code>function</code> + name + <code>(</code>parameters<code>)</code> = the <strong>header</strong>.</li><li>the <code>{ }</code> block = the <strong>body</strong> (Python uses indentation instead of braces).</li><li><code>return</code> = hand a value back out. If a function has no <code>return</code>, it gives back <code>undefined</code> &mdash; which is JavaScript's version of Python's <code>None</code>.</li></ul><p>You call it by writing its name with parentheses: <code>greet("Ada")</code>. The values you pass in are <strong>arguments</strong>.</p></section><section class="card bridge"><h3>Python &amp;#8594; JavaScript</h3><p>Literally the same thing.</p><div class="bridge-row"><div class="bridge-col"><div class="bridge-head py">Python</div><pre class="code"><code><span class="tok-kw">def</span> <span class="tok-fn">greet</span>(name):
+    <span class="tok-kw">return</span> <span class="tok-str">&quot;Hi &quot;</span> + name + <span class="tok-str">&quot;!&quot;</span></code></pre></div><div class="bridge-arrow">&#8594;</div><div class="bridge-col"><div class="bridge-head js">JavaScript</div><pre class="code"><code><span class="tok-kw">function</span> <span class="tok-fn">greet</span>(name) {
+  <span class="tok-kw">return</span> <span class="tok-str">`Hi ${name}!`</span>;
+}</code></pre></div></div><div class="bridge-row"><div class="bridge-col"><div class="bridge-head py">Python (one-liner style)</div><pre class="code"><code>greet = <span class="tok-kw">lambda</span> name: <span class="tok-str">&quot;Hi &quot;</span> + name + <span class="tok-str">&quot;!&quot;</span></code></pre></div><div class="bridge-arrow">&#8594;</div><div class="bridge-col"><div class="bridge-head js">JavaScript (arrow function)</div><pre class="code"><code><span class="tok-kw">const</span> greet = (name) =&gt; <span class="tok-str">`Hi ${name}!`</span>;</code></pre></div></div><div class="bridge-row"><div class="bridge-col"><div class="bridge-head py">Python default arg</div><pre class="code"><code><span class="tok-kw">def</span> <span class="tok-fn">greet</span>(name=<span class="tok-str">&quot;friend&quot;</span>):
+    <span class="tok-kw">return</span> <span class="tok-str">&quot;Hi &quot;</span> + name</code></pre></div><div class="bridge-arrow">&#8594;</div><div class="bridge-col"><div class="bridge-head js">JavaScript default arg</div><pre class="code"><code><span class="tok-kw">function</span> <span class="tok-fn">greet</span>(name = <span class="tok-str">&quot;friend&quot;</span>) {
+  <span class="tok-kw">return</span> <span class="tok-str">`Hi ${name}`</span>;
+}</code></pre></div></div></section><section class="card note"><h3>Arrow functions: the short form you will see everywhere</h3><p>JavaScript has a second way to write functions, called an <strong>arrow function</strong>. It is shorter and it behaves slightly differently (you will meet that difference in Step 6).</p><pre class="code"><code>const add = (a, b) => a + b;          // one-line body
+const add = (a, b) => {
+  return a + b;
+};               // block body
+const shout = s => s.toUpperCase();                     // one arg, no parens needed</code></pre><p>Rule of thumb: <code>function</code> for named functions you define yourself, arrow functions for short inline callbacks. Both are 100% interchangeable for everything we do in this course &mdash; except one case we will hit in Step 6.</p></section><section class="card idea"><h3>Why functions matter for the DOM</h3><p>Two reasons, and both are about staying organised:</p><ul><li><strong>Naming a behaviour.</strong> A function called <code>addTodo(text)</code> tells you what it does without you reading the body.</li><li><strong>One job, one place.</strong> When a button is clicked you will often need the same three lines of code in two different places. Put them in a function, call it twice.</li></ul></section><section class="card lab"><h3>&#9998; Your turn: Write a function</h3><p>Finish the function so it works, then press Run.</p><div class="lab-grid"><textarea id="js-functions-lab-code" spellcheck="false" aria-label="Your code"></textarea><div class="lab-side"><div class="lab-buttons"><button class="btn" data-run="js-functions-lab">Run &#9654;</button><button class="btn ghost" data-clear="js-functions-lab">Clear output</button></div><pre class="out" id="js-functions-lab-out" aria-live="polite"></pre></div></div><div class="hints"><details class="hint"><summary>Hint 1</summary><p>A function only sends a value back if it says <code>return</code>.</p></details><details class="hint"><summary>Hint 2</summary><p>Make sure you <code>return a + b;</code> &mdash; if you only write <code>a + b;</code> without <code>return</code>, the function gives back <code>undefined</code>.</p></details><details class="hint"><summary>Hint 3</summary><p>You can also write it as <code>const add = (a, b) =&gt; a + b;</code>.</p></details></div></section><section class="card try"><h3>&#127919; Tiny challenge</h3><p>Write a function <code>isEven(n)</code> that returns <code>true</code> if <code>n</code> is even and <code>false</code> otherwise. Test it with <code>isEven(4)</code> and <code>isEven(7)</code>.</p><ul class="checks"><li>The function returns the boolean <code>true</code> / <code>false</code>, not the string <code>"true"</code>.</li><li>Bonus: check <code>isEven(0)</code> too. (It is even. Do not overthink it.)</li></ul></section><section class="card checkpoint"><h3>&#9989; Checkpoint &mdash; you now know</h3><ul><li>A function = a named, reusable box of steps.</li><li>Parameters go in the parentheses; <code>return</code> sends a value back out.</li><li>No <code>return</code> means the function hands back <code>undefined</code> (like Python's <code>None</code>).</li><li>Arrow functions are the short form: <code>(a) =&gt; a * 2</code>.</li></ul></section>
+
+  <label class="done">
+    <input type="checkbox" data-step="js-functions">
+    <span>I finished this step &mdash; tick me off</span>
+  </label>
+
+  <div class="stepnav">
+    <a class="btn-nav" href="01-js-variables.html">&#8592; Variables: giving names to things</a>
+    <a class="btn-nav" href="../lesson.html">&#9776; JavaScript basics for the DOM overview</a>
+    <a class="btn-nav" href="03-js-arrays-objects.html">Lists and dictionaries (arrays and objects) &#8594;</a>
+  </div>
+
+  <p class="footer">Stuck? Re-read the idea block, then peek at one hint.
+  Everything here is plain HTML + CSS + JavaScript. Open the file in your browser.</p>
+</div>
+
+<script>
+// progress tracking
+(function () {
+  var KEY = 'fj-progress';
+  function get() {
+    try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+    catch (e) { return []; }
+  }
+  function set(a) { localStorage.setItem(KEY, JSON.stringify(a)); }
+  function mark(id, on) {
+    var a = get();
+    var i = a.indexOf(id);
+    if (on && i === -1) a.push(id);
+    if (!on && i !== -1) a.splice(i, 1);
+    set(a);
+    paint();
+  }
+  function paint() {
+    var a = get();
+    document.querySelectorAll('[data-step]').forEach(function (el) {
+      var on = a.indexOf(el.getAttribute('data-step')) !== -1;
+      el.classList.toggle('is-done', on);
+      var m = el.querySelector('.done-mark');
+      if (m) m.textContent = on ? '\u2714' : '';
+    });
+    document.querySelectorAll('[data-progress]').forEach(function (el) {
+      var act = el.getAttribute('data-progress');
+      var steps = document.querySelectorAll('[data-act="' + act + '"]');
+      var done = 0;
+      steps.forEach(function (s) {
+        if (a.indexOf(s.getAttribute('data-step')) !== -1) done++;
+      });
+      var pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
+      var bar = el.querySelector('.bar i');
+      if (bar) bar.style.width = pct + '%';
+      var lbl = el.querySelector('.pct');
+      if (lbl) lbl.textContent = pct + '%';
+    });
+  }
+  window.fjPaint = paint;
+
+  // done checkbox on step pages
+  var box = document.querySelector('.done input[type=checkbox]');
+  if (box) {
+    box.checked = get().indexOf(box.getAttribute('data-step')) !== -1;
+    box.addEventListener('change', function () {
+      mark(box.getAttribute('data-step'), box.checked);
+    });
+  }
+
+  // lab runner (a tiny REPL, like python >>> )
+  function runCode(code, outEl) {
+    var logs = [];
+    var origLog = console.log;
+    console.log = function () {
+      logs.push(Array.prototype.map.call(arguments, function (x) {
+        if (typeof x === 'string') return x;
+        try { return JSON.stringify(x); } catch (e) { return String(x); }
+      }).join(' '));
+    };
+    try {
+      var fn = new Function('"use strict";\n' + code + '\n//# sourceURL=lab.js');
+      fn();
+    } catch (err) {
+      logs.push('Error: ' + err.message);
+    } finally {
+      console.log = origLog;
+    }
+    outEl.textContent = logs.join('\n');
+  }
+
+  document.querySelectorAll('textarea[id$="-code"]').forEach(function (ta) {
+    var id = ta.id.replace(/-code$/, '');
+    var out = document.getElementById(id + '-out');
+    var runBtn = document.querySelector('[data-run="' + id + '"]');
+    var clearBtn = document.querySelector('[data-clear="' + id + '"]');
+    if (runBtn) runBtn.addEventListener('click', function () {
+      runCode(ta.value, out);
+    });
+    if (clearBtn) clearBtn.addEventListener('click', function () {
+      out.textContent = '';
+    });
+    ta.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        runCode(ta.value, out);
+      }
+    });
+  });
+
+  // copy buttons on code blocks
+  document.querySelectorAll('pre.code').forEach(function (pre) {
+    var b = document.createElement('button');
+    b.className = 'copy';
+    b.textContent = 'copy';
+    b.style.cssText = 'position:absolute;right:8px;top:8px;font-size:11px;' +
+      'background:#1d212a;color:#9aa3b2;border:1px solid #2a2f3a;border-radius:6px;' +
+      'padding:2px 7px;cursor:pointer;opacity:0;transition:opacity .12s';
+    pre.addEventListener("mouseenter", function () { b.style.opacity = '.55'; });
+    pre.addEventListener("mouseleave", function () {
+      if (b.textContent !== 'copied') b.style.opacity = '0';
+    });
+    b.addEventListener('click', function () {
+      var code = pre.querySelector('code').innerText;
+      navigator.clipboard && navigator.clipboard.writeText(code);
+      b.textContent = 'copied';
+      setTimeout(function () { b.textContent = 'copy'; }, 1200);
+    });
+    pre.style.position = 'relative';
+    pre.appendChild(b);
+  });
+
+  paint();
+})();
+</script>
+<script>
+(function(){
+var ta=document.getElementById('js-functions-lab-code');
+var out=document.getElementById('js-functions-lab-out');
+if(ta&&!ta.value){ta.value="function add(a, b) {\n  return a + b;\n}\n\nconsole.log(add(2, 3));      // prints 5\nconsole.log(add(10, 0.5));    // prints 10.5\n\n// now break it on purpose: delete the `return` and run it again.\n// what does the function return now?";}
+if(ta&&out){
+var logs=[];var orig=console.log;
+console.log=function(){logs.push(Array.prototype.slice.call(arguments)
+.map(function(x){if(typeof x==='string')return x;try{return JSON.stringify(x)}catch(e){return String(x)}}).join(' '))};
+try{new Function('"use strict";\n'+ta.value+'\n//# sourceURL=starter.js')();}
+catch(e){logs.push('Error: '+e.message)}
+console.log=orig;out.textContent=logs.join('\n');}
+})();
+</script>
+</body>
+</html>

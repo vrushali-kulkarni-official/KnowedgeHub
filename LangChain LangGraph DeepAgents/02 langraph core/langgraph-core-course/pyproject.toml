@@ -1,0 +1,45 @@
+[project]
+name = "langgraph-core-course"
+version = "0.1.0"
+description = "Phase 7 - LangGraph Core: a hands-on, from-scratch course"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # --- Core LangGraph stack (versions verified 2026-10-26) ---
+    "langgraph>=1.2,<2",              # 1.2.17  - StateGraph, runtime, checkpointers
+    "langgraph-checkpoint>=4.3,<5",   # 4.3.0   - checkpointer base classes
+    "langgraph-prebuilt>=1.1,<2",     # 1.1.1   - ToolNode, tools_condition, create_react_agent
+    "langchain>=1.4,<2",              # 1.4.7   - create_agent, middleware
+    "langchain-core>=1.7,<2",         # 1.7.0   - messages, runnables
+    "langchain-google-genai>=4.4,<5", # 4.4.2   - ChatGoogleGenerativeAI (Gemini)
+    "langfuse>=5.0,<6",               # 5.0.4   - open-source observability
+    "pydantic>=2.7",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+# Local dev server + LangSmith Studio (M53)
+dev = [
+    "langgraph-cli[inmem]>=0.4,<1",   # 0.4.38  - `langgraph dev`
+    "langgraph-sdk>=0.4,<1",          # 0.4.9   - talk to a running Agent Server
+]
+# Persistent (file-backed) checkpointing - recommended over InMemorySaver
+sqlite = [
+    "langgraph-checkpoint-sqlite>=2.0,<4",
+]
+# Postgres checkpointing for production
+postgres = [
+    "langgraph-checkpoint-postgres>=2.0,<4",
+    "psycopg[binary]>=3.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lgc"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
