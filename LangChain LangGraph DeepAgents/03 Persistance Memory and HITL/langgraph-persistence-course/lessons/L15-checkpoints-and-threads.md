@@ -17,13 +17,13 @@ write a graph's state somewhere, and read it back later.**
 
 Without it you cannot:
 
-| You want to…                                | Needs a checkpointer |
-|----------------------------------------------|----------------------|
-| Remember what the user said 3 turns ago      | ✅ short-term memory |
-| Pause a workflow for a human to approve it   | ✅ HITL              |
-| Resume a workflow after your process crashed | ✅ crash recovery    |
-| Re-run a production thread to debug it       | ✅ time travel       |
-| Ask "what exactly happened in step 7?"       | ✅ observability     |
+| You want to…                                 | Needs a checkpointer |
+| -------------------------------------------- | -------------------- |
+| Remember what the user said 3 turns ago      | ✅ short-term memory  |
+| Pause a workflow for a human to approve it   | ✅ HITL               |
+| Resume a workflow after your process crashed | ✅ crash recovery     |
+| Re-run a production thread to debug it       | ✅ time travel        |
+| Ask "what exactly happened in step 7?"       | ✅ observability      |
 
 So let's build the mental model first, then the Postgres specifics.
 
@@ -161,18 +161,31 @@ next_nodes = [k.replace("branch:to:", "")
 { "source": "loop", "step": 3, "parents": {} }
 ```
 
-`source` tells you **how this checkpoint came to exist**. You will meet these
-values in L16:
 
-| `source`   | Meaning                                                  |
-|------------|----------------------------------------------------------|
-| `"input"`  | the very first checkpoint, created from your input        |
-| `"loop"`   | a normal step of the graph                                 |
-| `"update"` | created by `update_state()`                                |
-| `"fork"`   | a branch created by re-running from an older checkpoint    |
 
-`step` is the superstep counter. `parents` holds the parent ids (relevant for
-subgraphs / parallel branches).
+| `source`   | Meaning                                                 |
+| ---------- | ------------------------------------------------------- |
+| `"input"`  | the very first checkpoint, created from your input      |
+| `"loop"`   | a normal step of the graph                              |
+| `"update"` | created by `update_state()`                             |
+| `"fork"`   | a branch created by re-running from an older checkpoint |
+
+`step` is the superstep counter. 
+
+`parents` holds the parent ids (relevant for subgraphs / parallel branches).
+
+`source` tells you **how this checkpoint came to exist**. 
+
+
+
+Source values:
+
+| `source`   | Meaning                                                 |
+| ---------- | ------------------------------------------------------- |
+| `"input"`  | the very first checkpoint, created from your input      |
+| `"loop"`   | a normal step of the graph                              |
+| `"update"` | created by `update_state()`                             |
+| `"fork"`   | a branch created by re-running from an older checkpoint |
 
 ### 2.4 `pending_writes`
 
@@ -218,12 +231,12 @@ duplicate it.
 
 ### 3.2 Thread id design
 
-| Purpose                     | Thread id                | Notes                                |
-|-----------------------------|--------------------------|--------------------------------------|
-| One chat per user           | `f"{tenant}:{user}"`     | one conversation per user             |
-| Many chats per user         | `f"{tenant}:{user}:{conv}"` | one per conversation                |
-| Workflow run                | `f"run:{uuid4()}"`       | one-shot, disposable                  |
-| Per-tenant isolation        | `f"{tenant}:{user}"`     | see L22 — isolation is structural     |
+| Purpose              | Thread id                   | Notes                             |
+| -------------------- | --------------------------- | --------------------------------- |
+| One chat per user    | `f"{tenant}:{user}"`        | one conversation per user         |
+| Many chats per user  | `f"{tenant}:{user}:{conv}"` | one per conversation              |
+| Workflow run         | `f"run:{uuid4()}"`          | one-shot, disposable              |
+| Per-tenant isolation | `f"{tenant}:{user}"`        | see L22 — isolation is structural |
 
 > **Never** use a bare user id as a thread id if users can collide across
 > tenants. Prefix it. L22 shows why.
@@ -258,13 +271,13 @@ rest when you are building admin tooling.
 
 ## 5. Choosing a backend
 
-| Backend | Import | Survives restart | Semantic search | TTL | Best for |
-|---|---|---|---|---|---|
-| `InMemorySaver` | `langgraph.checkpoint.memory` | ❌ | ❌ | ❌ | tests, notebooks, throwaway |
-| `PostgresSaver` | `langgraph.checkpoint.postgres` | ✅ | ❌ | ❌ (sweep it) | **production default** |
-| `AsyncPostgresSaver` | `langgraph.checkpoint.postgres.aio` | ✅ | ❌ | ❌ | async services (FastAPI) |
-| `SqliteSaver` | `langgraph.checkpoint.sqlite` | ✅ | ❌ | ❌ | local dev, single-node |
-| `RedisSaver` (community) | `langgraph.checkpoint.redis` | ✅ | ❌ | ✅ native | high-throughput, ephemeral |
+| Backend                  | Import                              | Survives restart | Semantic search | TTL          | Best for                    |
+| ------------------------ | ----------------------------------- | ---------------- | --------------- | ------------ | --------------------------- |
+| `InMemorySaver`          | `langgraph.checkpoint.memory`       | ❌                | ❌               | ❌            | tests, notebooks, throwaway |
+| `PostgresSaver`          | `langgraph.checkpoint.postgres`     | ✅                | ❌               | ❌ (sweep it) | **production default**      |
+| `AsyncPostgresSaver`     | `langgraph.checkpoint.postgres.aio` | ✅                | ❌               | ❌            | async services (FastAPI)    |
+| `SqliteSaver`            | `langgraph.checkpoint.sqlite`       | ✅                | ❌               | ❌            | local dev, single-node      |
+| `RedisSaver` (community) | `langgraph.checkpoint.redis`        | ✅                | ❌               | ✅ native     | high-throughput, ephemeral  |
 
 > ⚠️ **`langgraph.checkpoint` and `langgraph.store` have EMPTY top-level
 > namespaces.** `from langgraph.checkpoint import PostgresSaver` **fails**.
@@ -436,14 +449,14 @@ crashing.
 
 ### 7.2 When would you want it?
 
-| | Postgres | Redis Stack |
-|---|---|---|
-| Read latency | ~1ms+ | ~0.1ms |
-| Built-in TTL | ❌ (you sweep) | ✅ `ttl={"default_ttl": 60}` |
-| SQL / JOIN your tables | ✅ | ❌ |
-| Straightforward backup | ✅ (`pg_dump`) | ⚠️ RDB/AOF |
-| Durability guarantee | strong | depends on your persistence config |
-| Extra infra | none | Redis Stack modules |
+|                        | Postgres      | Redis Stack                        |
+| ---------------------- | ------------- | ---------------------------------- |
+| Read latency           | ~1ms+         | ~0.1ms                             |
+| Built-in TTL           | ❌ (you sweep) | ✅ `ttl={"default_ttl": 60}`        |
+| SQL / JOIN your tables | ✅             | ❌                                  |
+| Straightforward backup | ✅ (`pg_dump`) | ⚠️ RDB/AOF                          |
+| Durability guarantee   | strong        | depends on your persistence config |
+| Extra infra            | none          | Redis Stack modules                |
 
 **The common production pattern:** Postgres for durable, long-lived,
 queryable conversations; Redis for ephemeral, high-volume, short-lived ones.
@@ -495,15 +508,15 @@ Without a checkpointer that prompt would contain only `'And in Tokyo?'`.
 
 ## 9. Common mistakes
 
-| Mistake | Symptom | Fix |
-|---|---|---|
-| Forgetting `thread_id` | `ValueError: checkpointer requires a thread_id` | always pass `configurable.thread_id` |
-| New saver per request | connection exhaustion | create once at startup |
-| Forgetting `setup()` | `relation "checkpoints" does not exist` | call `setup()` at boot |
-| Passing full state on every turn | duplicated history | pass only the *delta* |
-| Same thread id for two users | state leaks between users | scope the thread id |
-| `import from langgraph.checkpoint` | `ImportError` | use the full sub-path |
-| Using `InMemorySaver` in prod | state vanishes on deploy | `PostgresSaver` |
+| Mistake                            | Symptom                                         | Fix                                  |
+| ---------------------------------- | ----------------------------------------------- | ------------------------------------ |
+| Forgetting `thread_id`             | `ValueError: checkpointer requires a thread_id` | always pass `configurable.thread_id` |
+| New saver per request              | connection exhaustion                           | create once at startup               |
+| Forgetting `setup()`               | `relation "checkpoints" does not exist`         | call `setup()` at boot               |
+| Passing full state on every turn   | duplicated history                              | pass only the *delta*                |
+| Same thread id for two users       | state leaks between users                       | scope the thread id                  |
+| `import from langgraph.checkpoint` | `ImportError`                                   | use the full sub-path                |
+| Using `InMemorySaver` in prod      | state vanishes on deploy                        | `PostgresSaver`                      |
 
 ---
 

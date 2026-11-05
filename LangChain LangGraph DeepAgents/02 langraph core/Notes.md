@@ -159,8 +159,7 @@ graph = builder.compile(
 ```
 
  
-`compile()` returns a `CompiledStateGraph`, which is a **Runnable**. That
-means it composes with the rest of LangChain:
+`compile()` returns a `CompiledStateGraph`, which is a **Runnable**. That means it composes with the rest of LangChain:
 
 ```python
 from langchain_core.runnables import RunnableLambda
@@ -350,8 +349,7 @@ def reset_events(state):
     return {"events": Overwrite([])}
 ```
 
-`Overwrite` tells LangGraph: "ignore the reducer for this write, set the
-channel to exactly this."
+`Overwrite` tells LangGraph: "ignore the reducer for this write, set the channel to exactly this."
 
 
 ## Most Common errors

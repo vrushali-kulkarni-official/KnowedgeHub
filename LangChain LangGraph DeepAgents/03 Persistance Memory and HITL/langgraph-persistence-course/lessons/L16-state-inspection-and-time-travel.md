@@ -51,16 +51,16 @@ StateSnapshot._fields
 #  'tasks', 'interrupts')
 ```
 
-| Field | What it means |
-|---|---|
-| `values` | the state values at that point |
-| `next` | **tuple of node names still to run** |
-| `config` | the config that addresses this checkpoint |
-| `metadata` | `step`, `source`, `parents` |
-| `created_at` | timestamp |
-| `parent_config` | config of the previous checkpoint |
-| `tasks` | the pending tasks in this step (with their interrupts) |
-| `interrupts` | pending interrupts waiting for an answer |
+| Field           | What it means                                          |
+| --------------- | ------------------------------------------------------ |
+| `values`        | the state values at that point                         |
+| `next`          | **tuple of node names still to run**                   |
+| `config`        | the config that addresses this checkpoint              |
+| `metadata`      | `step`, `source`, `parents`                            |
+| `created_at`    | timestamp                                              |
+| `parent_config` | config of the previous checkpoint                      |
+| `tasks`         | the pending tasks in this step (with their interrupts) |
+| `interrupts`    | pending interrupts waiting for an answer               |
 
 `next` is the field you'll use most in a HITL API:
 
@@ -120,12 +120,12 @@ graph.get_state_history(cfg, filter={"source": "update"})  # only manual updates
 This is the field that tells you *how* a checkpoint came to be. It is your
 best debugging tool:
 
-| `source` | Meaning | Typical cause |
-|---|---|---|
-| `"input"` | created from your input | the start of a run |
-| `"loop"` | a normal graph step | the graph advanced |
+| `source`   | Meaning                     | Typical cause        |
+| ---------- | --------------------------- | -------------------- |
+| `"input"`  | created from your input     | the start of a run   |
+| `"loop"`   | a normal graph step         | the graph advanced   |
 | `"update"` | created by `update_state()` | someone edited state |
-| `"fork"` | a branch from a replay | you time-travelled |
+| `"fork"`   | a branch from a replay      | you time-travelled   |
 
 ---
 
@@ -221,13 +221,14 @@ This is the caveat that matters most:
 
 Time travel rewinds *LangGraph's state*, not the world.
 
-| Replay path | What re-runs | Practical meaning |
-|---|---|---|
-| `invoke(None, old_cfg)` | every node from that point | all their side effects repeat |
-| `update_state(old_cfg, ...)` then run | nodes after the edit point | same |
-| code *above* `interrupt()` in a node | that code | runs again on resume (L18) |
+| Replay path                           | What re-runs               | Practical meaning             |
+| ------------------------------------- | -------------------------- | ----------------------------- |
+| `invoke(None, old_cfg)`               | every node from that point | all their side effects repeat |
+| `update_state(old_cfg, ...)` then run | nodes after the edit point | same                          |
+| code *above* `interrupt()` in a node  | that code                  | runs again on resume (L18)    |
 
 Mitigations:
+
 - Use idempotent nodes (L17 has the full pattern).
 - Replay against a **sandbox thread** with stubbed side effects.
 - Never replay a thread that charges money without an idempotency key.
@@ -245,12 +246,12 @@ Mitigations:
 
 From `ex05`:
 
-| Situation | `source` |
-|---|---|
-| first checkpoint of a run | `input` |
-| normal advance | `loop` |
+| Situation                 | `source` |
+| ------------------------- | -------- |
+| first checkpoint of a run | `input`  |
+| normal advance            | `loop`   |
 | you called `update_state` | `update` |
-| you replayed / forked | `fork` |
+| you replayed / forked     | `fork`   |
 
 When you look at a production thread and see `source: fork`, someone (or a
 script) ran a time-travel experiment on that thread. That is worth knowing.
@@ -273,12 +274,12 @@ The safest debugging workflow:
 declared in `langgraph.checkpoint.base` — but on **langgraph-checkpoint 4.3.1**
 it raises `NotImplementedError` in every shipped saver:
 
-| Saver | Implements `copy_thread`? |
-|---|---|
-| `PostgresSaver` | ❌ |
-| `AsyncPostgresSaver` | ❌ |
-| `InMemorySaver` | ❌ |
-| `RedisSaver` | ❌ |
+| Saver                | Implements `copy_thread`? |
+| -------------------- | ------------------------- |
+| `PostgresSaver`      | ❌                         |
+| `AsyncPostgresSaver` | ❌                         |
+| `InMemorySaver`      | ❌                         |
+| `RedisSaver`         | ❌                         |
 
 So you do it yourself. `ex06` shows the SQL, which doubles as a lesson in the
 schema:
@@ -389,14 +390,14 @@ button you want in your admin panel, not a script you rewrite every time.
 
 ## 10. Common mistakes
 
-| Mistake | What happens | Fix |
-|---|---|---|
-| Expecting `update_state` to be a free edit | it writes a checkpoint | that's fine — just know |
-| Forking on the live thread | the head moves to your branch | clone to a scratch thread first |
-| Replaying a thread with real side effects | duplicate emails/charges | idempotent nodes (L17) |
-| `s.next` on a `CheckpointTuple` | `AttributeError` | use `graph.get_state()` |
-| Assuming history is unlimited | DB grows forever | `prune(strategy="keep_latest")` |
-| Assuming `copy_thread` works | `NotImplementedError` | do the SQL copy yourself |
+| Mistake                                    | What happens                  | Fix                             |
+| ------------------------------------------ | ----------------------------- | ------------------------------- |
+| Expecting `update_state` to be a free edit | it writes a checkpoint        | that's fine — just know         |
+| Forking on the live thread                 | the head moves to your branch | clone to a scratch thread first |
+| Replaying a thread with real side effects  | duplicate emails/charges      | idempotent nodes (L17)          |
+| `s.next` on a `CheckpointTuple`            | `AttributeError`              | use `graph.get_state()`         |
+| Assuming history is unlimited              | DB grows forever              | `prune(strategy="keep_latest")` |
+| Assuming `copy_thread` works               | `NotImplementedError`         | do the SQL copy yourself        |
 
 ---
 
