@@ -22,13 +22,13 @@ async def chat(req: ChatRequest):
 It works. It is also wrong in five ways, and each wrongness becomes a
 production incident:
 
-| # | Problem | Consequence |
-|---|---|---|
-| 1 | Only tokens are forwarded | The frontend cannot show "calling tool X", cannot render an approval prompt, cannot distinguish *thinking* from *answering* |
-| 2 | No sequence numbers | A dropped connection loses events forever; the client cannot resume |
-| 3 | No terminal event | The client does not know when to stop listening, or whether the run finished or is waiting for a human |
-| 4 | Raw LangGraph shape leaks | When LangGraph 1.1 changed the multi-mode output format, your frontend broke |
-| 5 | No error event | A mid-stream failure hangs the client forever |
+| #   | Problem                   | Consequence                                                                                                                 |
+| --- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Only tokens are forwarded | The frontend cannot show "calling tool X", cannot render an approval prompt, cannot distinguish *thinking* from *answering* |
+| 2   | No sequence numbers       | A dropped connection loses events forever; the client cannot resume                                                         |
+| 3   | No terminal event         | The client does not know when to stop listening, or whether the run finished or is waiting for a human                      |
+| 4   | Raw LangGraph shape leaks | When LangGraph 1.1 changed the multi-mode output format, your frontend broke                                                |
+| 5   | No error event            | A mid-stream failure hangs the client forever                                                                               |
 
 M62 fixes all five by introducing **one thing**: a *contract*.
 
@@ -79,15 +79,15 @@ EVENT_SPECS: dict[EventType, EventSpec] = {
 `graph.stream()` / `graph.astream()` accept `stream_mode` as a single mode or a
 **list** of modes. The full set in LangGraph 1.2:
 
-| Mode | Payload shape (v2) | What it is for |
-|---|---|---|
-| `values` | full state dict | Snapshots of state after each step. **Large.** |
-| `updates` | `{node_name: state_delta}` | What changed, per node. The bread and butter. |
-| `messages` | `(message_chunk, metadata)` | LLM tokens + tool-call chunks + reasoning deltas |
-| `custom` | whatever you wrote | Your own events, from inside nodes |
-| `checkpoints` | checkpoint envelope | Branching, time travel |
-| `tasks` | task descriptors | Pregel task creation/results (debugging) |
-| `debug` | detailed step records | Very verbose; debugging only |
+| Mode          | Payload shape (v2)          | What it is for                                   |
+| ------------- | --------------------------- | ------------------------------------------------ |
+| `values`      | full state dict             | Snapshots of state after each step. **Large.**   |
+| `updates`     | `{node_name: state_delta}`  | What changed, per node. The bread and butter.    |
+| `messages`    | `(message_chunk, metadata)` | LLM tokens + tool-call chunks + reasoning deltas |
+| `custom`      | whatever you wrote          | Your own events, from inside nodes               |
+| `checkpoints` | checkpoint envelope         | Branching, time travel                           |
+| `tasks`       | task descriptors            | Pregel task creation/results (debugging)         |
+| `debug`       | detailed step records       | Very verbose; debugging only                     |
 
 Let me see each one for real.
 
@@ -178,14 +178,14 @@ for chunk in graph.stream({"topic": "x"}, stream_mode="messages", version="v2"):
 
 The `metadata` dict is where the useful bits live:
 
-| Key | Meaning |
-|---|---|
-| `langgraph_node` | Which node produced this |
-| `langgraph_step` | Which superstep |
-| `langgraph_triggers` | What triggered the node |
-| `langgraph_path` | Path through the graph |
-| `tags` | Tags passed to the model (`model.bind_tools(..., tags=["joke"])`) |
-| `ls_model_name` | Which model |
+| Key                  | Meaning                                                           |
+| -------------------- | ----------------------------------------------------------------- |
+| `langgraph_node`     | Which node produced this                                          |
+| `langgraph_step`     | Which superstep                                                   |
+| `langgraph_triggers` | What triggered the node                                           |
+| `langgraph_path`     | Path through the graph                                            |
+| `tags`               | Tags passed to the model (`model.bind_tools(..., tags=["joke"])`) |
+| `ls_model_name`      | Which model                                                       |
 
 The `tags` trick is genuinely useful: it lets you filter tokens by *which
 logical call* produced them when a node makes several model calls.
@@ -197,7 +197,10 @@ double-counts. Our translator flags this:
 
 ```python
 is_chunk = isinstance(chunk, AIMessageChunk)
-self.emit("token", {"text": content, "node": node, "complete": not is_chunk})
+self.emit("token", 
+        {"text": content, 
+         "node": node, 
+         "complete": not is_chunk})
 ```
 
 So the frontend can `append` when `complete` is false and `replace` when it
@@ -547,8 +550,17 @@ SSE frames are trivial but the details matter:
 ```
 event: token
 id: 13
-data: {"event":"token","seq":13,"run_id":"run-1","thread_id":"th-1","ts":"2026-11-04T10:18:37.107198+00:00","data":{"text":"Restart ","node":"route","complete":false}}
-
+data: {
+       "event":"token",
+       "seq":13,
+       "run_id":"run-1",
+       "thread_id":"th-1",
+       "ts":"2026-11-04T10:18:37.107198+00:00",
+       "data":{"text":"Restart",
+               "node":"route",
+               "complete":false
+               }
+      }
 ```
 
 * `event:` — the browser's `EventSource` dispatches on this.
@@ -644,17 +656,17 @@ Before you ship a streaming endpoint, confirm every line:
 
 ## 11. Traps
 
-| Trap | Symptom | Fix |
-|---|---|---|
-| Forgetting `stream_mode="custom"` | Your custom events silently vanish | Include `"custom"` in the list |
-| `get_stream_writer()` outside a graph | `RuntimeError` | Only call it inside a node/tool |
-| v1 multi-mode tuples | `ValueError: too many values to unpack` | `version="v2"` |
-| Treating whole messages as tokens | Duplicated text in the UI | Check `complete` |
-| Reporting `done` on a pause | The run hangs in `paused` forever | Use `final_status_for()` |
-| Matching on the full namespace | Breaks when the runtime id changes | Match the name before the `:` |
-| Serialising a non-JSON object | The whole stream 500s | `default=str` |
-| No `seq` | Cannot resume after a disconnect | Always emit it |
-| Assuming `EventSource` retries | It does not; you must implement resume | `?after_seq=` + persisted events |
+| Trap                                  | Symptom                                 | Fix                              |
+| ------------------------------------- | --------------------------------------- | -------------------------------- |
+| Forgetting `stream_mode="custom"`     | Your custom events silently vanish      | Include `"custom"` in the list   |
+| `get_stream_writer()` outside a graph | `RuntimeError`                          | Only call it inside a node/tool  |
+| v1 multi-mode tuples                  | `ValueError: too many values to unpack` | `version="v2"`                   |
+| Treating whole messages as tokens     | Duplicated text in the UI               | Check `complete`                 |
+| Reporting `done` on a pause           | The run hangs in `paused` forever       | Use `final_status_for()`         |
+| Matching on the full namespace        | Breaks when the runtime id changes      | Match the name before the `:`    |
+| Serialising a non-JSON object         | The whole stream 500s                   | `default=str`                    |
+| No `seq`                              | Cannot resume after a disconnect        | Always emit it                   |
+| Assuming `EventSource` retries        | It does not; you must implement resume  | `?after_seq=` + persisted events |
 
 ---
 

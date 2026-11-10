@@ -1,0 +1,24 @@
+# Phase 10 - Multi-Agent Systems
+#
+# Pinned to the versions verified on 2026-11-05.
+#   pip install -r requirements.txt
+#   (or: uv pip install -r requirements.txt)
+
+langgraph==1.2.20
+langchain==1.4.9
+langchain-core==1.7.6
+langgraph-prebuilt==1.1.1
+
+# Observability (MIT licensed, self-hostable)
+langfuse==5.1.0
+
+# Gemini, via the LangChain ecosystem
+langchain-google-genai==4.4.3
+google-genai==2.34.0
+
+# Optional: for the deep-agents follow-on (Phase 11)
+# deepagents==0.7.32
+
+# Optional: Postgres checkpointer + store (Phase 8 / production)
+# langgraph-checkpoint-postgres==3.2.0
+# psycopg[binary,pool]==3.3.6
