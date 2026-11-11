@@ -55,9 +55,9 @@ out.interrupts       # (Interrupt(value={...}, id='...', response_schema=None),)
 
 `GraphOutput` is a typed container:
 
-| Attribute | Meaning |
-|---|---|
-| `.value` | the graph state so far |
+| Attribute     | Meaning                              |
+| ------------- | ------------------------------------ |
+| `.value`      | the graph state so far               |
 | `.interrupts` | tuple of pending `Interrupt` objects |
 
 ### 1.2 The legacy shape: `__interrupt__`
@@ -80,11 +80,11 @@ see `version="v2"` used consistently.)
 Interrupt(value=..., id=..., response_schema=...)
 ```
 
-| Field | Meaning |
-|---|---|
-| `value` | the payload you passed to `interrupt()` — show this to the human |
-| `id` | a stable id for *this* interrupt; use it to answer precisely |
-| `response_schema` | JSON Schema of the expected answer (if you set one) |
+| Field             | Meaning                                                          |
+|:-----------------:| ---------------------------------------------------------------- |
+| `value`           | the payload you passed to `interrupt()` — show this to the human |
+| `id`              | a stable id for *this* interrupt; use it to answer precisely     |
+| `response_schema` | JSON Schema of the expected answer (if you set one)              |
 
 ### 1.4 The paused thread from the outside
 
@@ -115,10 +115,10 @@ graph.invoke(Command(resume="approve"), config, version="v2")
 
 ### 2.2 Answer by ID or by order
 
-| Resume value | Matching |
-|---|---|
-| a bare value (`"approve"`) | **by order** — the next waiting interrupt gets it |
-| a dict (`{interrupt_id: value}`) | **by ID** — precise, use this in production |
+| Resume value                     | Matching                                          |
+| -------------------------------- | ------------------------------------------------- |
+| a bare value (`"approve"`)       | **by order** — the next waiting interrupt gets it |
+| a dict (`{interrupt_id: value}`) | **by ID** — precise, use this in production       |
 
 ```python
 ids = [i.id for i in out.interrupts]
@@ -261,10 +261,10 @@ def workflow(x: str) -> str:
 
 ### 4.1 ⚠️ A subtle but important difference
 
-| | `StateGraph` node | Functional API |
-|---|---|---|
-| The function containing `interrupt()` re-runs from the top | ✅ yes | ✅ yes (the `@entrypoint` body re-runs) |
-| A completed `@task` re-runs | ✅ yes | ❌ **no** — its result is replayed from the checkpoint |
+|                                                            | `StateGraph` node | Functional API                                        |
+| ---------------------------------------------------------- | ----------------- | ----------------------------------------------------- |
+| The function containing `interrupt()` re-runs from the top | ✅ yes             | ✅ yes (the `@entrypoint` body re-runs)                |
+| A completed `@task` re-runs                                | ✅ yes             | ❌ **no** — its result is replayed from the checkpoint |
 
 Verified in `ex10`:
 
@@ -302,13 +302,13 @@ paused before 'b':
   next      : ('b',)
 ```
 
-| | `interrupt()` (dynamic) | `interrupt_before` (static) |
-|---|---|---|
-| Carries a payload | ✅ | ❌ |
-| A human answers it | ✅ `Command(resume=...)` | ❌ you just resume |
-| Fires on every run | only where you placed it | ✅ always at that node |
-| Declared at | run time, inside the node | compile time |
-| Use for | **production HITL** | **local debugging** |
+|                    | `interrupt()` (dynamic)   | `interrupt_before` (static) |
+| ------------------ | ------------------------- | --------------------------- |
+| Carries a payload  | ✅                         | ❌                           |
+| A human answers it | ✅ `Command(resume=...)`   | ❌ you just resume           |
+| Fires on every run | only where you placed it  | ✅ always at that node       |
+| Declared at        | run time, inside the node | compile time                |
+| Use for            | **production HITL**       | **local debugging**         |
 
 `interrupt_after=["b"]` behaves the same, stopping once `b` has run.
 
@@ -344,13 +344,13 @@ Also internal — never raise these yourself:
 
 ### 6.1 Current vs. deprecated summary
 
-| Old | Current | Notes |
-|---|---|---|
-| `raise NodeInterrupt(value)` | `interrupt(value)` | `NodeInterrupt` deprecated since 1.0 |
-| `out["__interrupt__"]` | `out.interrupts` with `version="v2"` | legacy shape still works |
-| `interrupt_before`/`interrupt_after` for HITL | `interrupt()` | static ones = debugging only |
-| `graph.get_state(cfg).next` | unchanged | ✅ current |
-| `update_state(cfg, values)` | unchanged | ✅ current |
+| Old                                           | Current                              | Notes                                |
+| --------------------------------------------- | ------------------------------------ | ------------------------------------ |
+| `raise NodeInterrupt(value)`                  | `interrupt(value)`                   | `NodeInterrupt` deprecated since 1.0 |
+| `out["__interrupt__"]`                        | `out.interrupts` with `version="v2"` | legacy shape still works             |
+| `interrupt_before`/`interrupt_after` for HITL | `interrupt()`                        | static ones = debugging only         |
+| `graph.get_state(cfg).next`                   | unchanged                            | ✅ current                            |
+| `update_state(cfg, values)`                   | unchanged                            | ✅ current                            |
 
 ---
 
@@ -379,10 +379,10 @@ agent = create_agent(
 
 ### 7.1 The two modes
 
-| Mode | Interrupt value | How to answer |
-|---|---|---|
+| Mode                  | Interrupt value                                    | How to answer                                                              |
+| --------------------- | -------------------------------------------------- | -------------------------------------------------------------------------- |
 | `"batched"` (default) | `HITLRequest` — lists every gated call in the turn | `Command(resume={"decisions": [...]})`, one decision per call **in order** |
-| `"per_call"` | `ToolApprovalRequest` — one call per interrupt | `Command(resume={interrupt_id: decision})` |
+| `"per_call"`          | `ToolApprovalRequest` — one call per interrupt     | `Command(resume={interrupt_id: decision})`                                 |
 
 ⚠️ `"per_call"` is **planned to become the default in the next major
 release** — so prefer it for new code if you can.
@@ -471,15 +471,15 @@ and an audit trail.
 
 ## 9. Common mistakes
 
-| Mistake | Symptom | Fix |
-|---|---|---|
-| Side effect above `interrupt()` | it runs twice | move it below, or make it idempotent |
-| No checkpointer | nothing to resume from | always compile with one |
-| Reading `out["__interrupt__"]` in new code | legacy shape | use `version="v2"` → `out.interrupts` |
-| Answering by order when there are 2 interrupts | wrong branch gets it | answer by `interrupt_id` |
-| Expecting the interrupt value to reflect a later `update_state` | stale question | re-render after the edit |
-| Raising `NodeInterrupt` | deprecation warning | use `interrupt()` |
-| Using static breakpoints for HITL | no payload, no answer | use `interrupt()` |
+| Mistake                                                         | Symptom                | Fix                                   |
+| --------------------------------------------------------------- | ---------------------- | ------------------------------------- |
+| Side effect above `interrupt()`                                 | it runs twice          | move it below, or make it idempotent  |
+| No checkpointer                                                 | nothing to resume from | always compile with one               |
+| Reading `out["__interrupt__"]` in new code                      | legacy shape           | use `version="v2"` → `out.interrupts` |
+| Answering by order when there are 2 interrupts                  | wrong branch gets it   | answer by `interrupt_id`              |
+| Expecting the interrupt value to reflect a later `update_state` | stale question         | re-render after the edit              |
+| Raising `NodeInterrupt`                                         | deprecation warning    | use `interrupt()`                     |
+| Using static breakpoints for HITL                               | no payload, no answer  | use `interrupt()`                     |
 
 ---
 
@@ -487,11 +487,11 @@ and an audit trail.
 
 - [ ] I can write the `interrupt()` / `Command(resume=...)` pair from memory.
 - [ ] I know the difference between `out.value`/`out.interrupts` (v2) and
-      `out["__interrupt__"]`.
+  `out["__interrupt__"]`.
 - [ ] I know that the node restarts from the top on resume.
 - [ ] I know that multiple interrupts pause one at a time.
 - [ ] I know `response_schema` gives me a JSON Schema for the frontend.
 - [ ] I know `NodeInterrupt` is deprecated and static breakpoints are for
-      debugging.
+  debugging.
 
 **Next → [L19: HITL part 2 — production approval flows](./L19-hitl-production-approval-flows.md)**

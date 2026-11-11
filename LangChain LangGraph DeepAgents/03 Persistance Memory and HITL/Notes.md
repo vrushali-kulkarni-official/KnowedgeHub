@@ -1,6 +1,6 @@
 # L15 · Checkpointers & Threads
 
-A checkpoint is a **versioned snapshot of the graph's state,** saved after every step, tagged with a **thread id** that says *which conversation it belongs to.
+A checkpoint is a **versioned snapshot of the graph's state,** saved after every step, tagged with a **thread id** that says which conversation it belongs to.
 
 ## Attaching a checkpointer to an AGENT
 
@@ -407,11 +407,721 @@ two important capabilities:
 > writes to your DB, or calls a third-party API — **it does it again.**
 
 
+---
+
+# L17 Durability - Retries and Crash Recovery
+
+
+## Durability modes
+- `sync`: checkpoint is written **before** the next step starts.
+
+- `async`: checkpoint is written in the **background** while the next step runs
+
+- `exit`: checkpoint is written once, when the run ends (success, error, or interrupt)
+
+
+## RetryPolicy
+- initial_interval: seconds before the first retry
+- backoff_factor: each wait = previous * factor    
+- max_interval: cap on the wait
+- max_attempts: total attempts (1 = no retry)
+- jitter: randomise to avoid thundering herds
+- retry_on=default_retry_on: which exceptions are retryable
+
+```python
+from langgraph.types import RetryPolicy
+
+builder.add_node(
+    "flaky",
+    flaky,
+    retry_policy=RetryPolicy(
+        initial_interval=0.5,     # seconds before the first retry
+        backoff_factor=2.0,       # each wait = previous * factor
+        max_interval=128.0,       # cap on the wait
+        max_attempts=3,           # total attempts (1 = no retry)
+        jitter=True,              # randomise to avoid thundering herds
+        retry_on=default_retry_on, # which exceptions are retryable
+    ),
+)
+```
+
+
+### Re-execution Paths:
+
+- `Crash / failure recovery`: re-execure the failed node from the top(start of the node function)
+- `interrupt()`: re-execure the node containing interrupt() from the top
+- replay / fork from an old checkpoint: re-execure every node after that point 
+
+### Idempotency on retry:
+use idempotency keys + UNIQUE constraint on Database
 
 
 
+---
+
+
+# L18 Human-in-the-Loop - Interrupts
+
+Step 1: State function that has interrupt:
+
+```python
+from langgraph.types import interrupt, Command
+
+def node(state):
+   
+# first call: raises, pauses the run, hands `answer` to the caller
+ answer = interrupt({"question": "Approve this refund?",
+                        "amount": state["amount"]})
+    
+    # after resume: `answer` IS the human's response
+    return {"decision": answer}
+```
+
+
+Step 2: Calling before and after the interupt:
+
+```python
+config = {"configurable": {"thread_id": "t1"}}
+
+# First call
+out = graph.invoke({"amount": 250}, config, version="v2")
+
+# Secord call
+graph.invoke(Command(resume="approve"), config, version="v2")
+```
+
+#### `GraphOutput` can be checked using:
+
+- `.value`: The graph state so far
+- `.interrupts`: Tuple of pending `Interrupt` objects
+
+for example:
+```python
+out = graph.invoke({"amount": 250}, config, version="v2")
+
+type(out)            # <class 'langgraph.types.GraphOutput'>
+out.value            # {'log': ['prepare:validated'], 'amount': 250}
+out.interrupts       # (Interrupt(value={...}, id='...', response_schema=None),)
+```
 
 
 
+#### `Interrupt` Fields:
+
+- `value`: the payload you passed to `interrupt()` — show this to the human
+- `id`: a stable id for *this* interrupt; use it to answer precisely
+- `response_schema`: JSON Schema of the expected answer (if you set one)
 
 
+```python
+Interrupt(value=..., id=..., response_schema=...)
+```
+
+
+
+## Resuming
+
+Command(resume=...)
+
+```python
+from langgraph.types import Command
+
+graph.invoke(Command(resume="approve"), config, version="v2")
+```
+
+**Note: The node restarts from the top, so keep everything above the `interrupt()` call idempotent.**
+
+```python
+# ❌ charges twice
+def charge_node(state):
+    charge_customer(state["customer_id"])          # runs again on resume!
+    decision = interrupt("approve?")
+    ...
+
+# ✅ the effect is guarded by an idempotency key (L17)
+def charge_node(state):
+    if not already_charged(state["op_key"]):
+        charge_customer(state["customer_id"])
+    decision = interrupt("approve?")
+    ...
+```
+
+
+## Structured answers: `response_schema`
+
+The interrupt exposes the JSON Schema, so your frontend can render a form.
+
+State function calling interrupt with `response_schema`:
+```python
+from pydantic import BaseModel
+
+class Decision(BaseModel):
+    approve: bool
+    reason: str
+
+def gate(state):
+    d = interrupt({"question": "Approve?"}, response_schema=Decision)
+    # d is a Decision instance
+    return {"decision": str(d.approve)}
+```
+
+The data/structure of the `response_schema`:
+```
+interrupt: {'question': 'Approve?'}
+response_schema: {'properties': {'approve': {...}, 'reason': {...}},
+                  'required': ['approve', 'reason'], 'title': 'Decision',
+                  'type': 'object'}
+```
+
+
+## Editing state before resuming
+
+Sometimes the human wants to *change* something, not just answer a question.
+
+```python
+graph.update_state(cfg, {"amount": 10})     # lower the amount
+graph.invoke(Command(resume="approve"), cfg, version="v2")
+```
+
+```
+before  : {'log': ['prepare:validated'], 'amount': 500}
+after   : {'log': ['prepare:validated'], 'amount': 10}
+final   : {'log': ['prepare:validated', 'gate:approve', 'execute:approve'],
+           'decision': 'approve', 'amount': 10}
+```
+
+
+##  Static breakpoints
+
+you can add breakpoints using:
+- interrupt_before
+- interrupt_after
+
+```python
+graph = builder.compile(checkpointer=saver, interrupt_before=["b"])
+```
+
+same effect as:
+```
+paused before 'b':
+  value     : {'log': ['a']}
+  interrupts: ()      <- NO payload. There is nothing to answer.
+  next      : ('b',)
+```
+
+These are **debugging breakpoints**, not a HITL mechanism
+
+
+## HITL Middleware
+
+using `interrupt()` in middleware instead of agent state call
+
+```python
+from langchain.agents import create_agent
+from langchain.agents.middleware import HumanInTheLoopMiddleware
+
+agent = create_agent(
+    model=model,
+    tools=[send_email, delete_file],
+    middleware=[
+        HumanInTheLoopMiddleware(
+            interrupt_on={"send_email": True, "delete_file": True},
+            interrupt_mode="batched",     # or "per_call"
+        )
+    ],
+    checkpointer=InMemorySaver(),
+)
+```
+
+#### Two modes:
+- `batched`: lists every gated call in the turn and expects one decision per call **in order**. 
+Eg: all the code the AI edited is send to front end together as a batch and then the ui shown them one by one and then the human approves.
+
+- `per_call`: one call per interrupt. 
+Eg: sudden interpurtion for tool calls till the human approves or rejects
+
+#### Four decision types:
+- `approve`: run the tool as-is
+- `reject`: don't run it; tell the model why
+- `edit`: run it with different args
+- `respond`: answer AS the tool; it never runs
+
+#### Finding paused agents from your API
+
+The `next` value tells you it is a *tool approval* pause (the middleware node) rather than a custom node pause.
+
+```python
+snap = agent.get_state(cfg)
+snap.next        # ('HumanInTheLoopMiddleware.after_model',)
+snap.interrupts  # the pending HITLRequest
+```
+
+
+---
+
+
+# L19 · Human-in-the-Loop Part 2 — Production Approval Flows
+
+
+#### Approval Status
+- pending
+- approved
+- denied
+- timed_out
+- cancelled
+
+The client should receive:
+```json
+{
+    "status": "pending",
+    "approval_id": "approval-1001",
+    "thread_id": "thread-abc-123",
+    "action": "refund_customer"
+}
+```
+
+
+
+## Authorization rules
+
+Before accepting the decision check for:
+- Authentication
+- Tenant isolation
+- Reviewer authorization
+- Separation of duties
+- Request validity
+- Payload integrity
+
+
+## Audit trail
+You should audit all activities (before and after approval)
+
+An approval system should be able to answer:
+- Who requested this operation?
+- Who approved or rejected it?
+- When was it approved?
+- What exact operation was approved?
+- What were its original parameters?
+- Were the parameters modified?
+- Why did the reviewer make the decision?
+- Did the graph execute successfully?
+- Was the action retried?
+- Was the operation ultimately completed?
+
+Example:
+```json
+{
+    "approval_id": "approval-1001",
+    "event": "APPROVAL_GRANTED",
+    "actor": "manager-123",
+    "timestamp": "2026-11-02T10:30:00Z"
+}
+```
+
+Then separately:
+```json
+{
+    "approval_id": "approval-1001",
+    "event": "REFUND_EXECUTED",
+    "actor": "refund-service",
+    "timestamp": "2026-11-02T10:31:10Z"
+}
+```
+
+
+---
+
+
+# Short-Term Memory
+
+## context-window
+
+System prompt + Conversation messages + Tool definitions + 
+Tool results + Retrieved documents + Memory + Other instructions
+
+
+### If maximum context capacity is reached
+
+#### Technique 1: trim_messages
+
+```python
+from langchain_core.messages import trim_messages
+
+trimmed_messages = trim_messages(
+    messages,
+    max_tokens=2000,
+    token_counter=model,
+    strategy="last",
+    include_system=True,
+    allow_partial=False,
+    start_on="human",
+)
+```
+
+
+#### Technique 2: ContextEditingMiddleware
+
+`ClearToolUsesEdit`: middleware can clear older tool results when the input context becomes too large.
+
+```python
+agent = create_agent(
+    model=model,
+    tools=tools,
+    middleware=[
+        ContextEditingMiddleware(
+            edits=[
+                ClearToolUsesEdit(
+                    trigger=4000,
+                    keep=3,
+                    exclude_tools=["important_database_query"],
+                )
+            ],
+            token_count_method="approximate",
+        )
+    ],
+)
+```
+
+The context is counted using the following technique:
+- `approximate`: Estimate token usage
+- `model`: Use the model's token-counting capability when supported
+
+`Exclude_tools` dont not clear the context of the imp tools
+
+
+#### Technique 3: SummarizationMiddleware
+
+summarization tries to preserve the important information in a much smaller representation
+
+```python
+from langchain.agents.middleware import (
+    SummarizationMiddleware,
+)
+
+agent = create_agent(
+    model=model,
+    tools=tools,
+    middleware=[
+        SummarizationMiddleware(
+            model=summarization_model,
+            trigger=[("tokens", 8000),("messages", 30),],
+            keep=("messages", 20),
+        )
+    ],
+)
+```
+
+
+`trigger`: means summarization happens when the context reaches the configured threshold.
+
+OR logic:
+```python
+trigger=[
+    ("tokens", 8000),
+    ("messages", 30),
+]
+```
+
+AND logic:
+```python
+trigger={
+    "tokens": 8000,
+    "messages": 30,
+}
+```
+
+
+---
+
+
+# L21 — Long-Term Memory: Store and LangMem
+
+
+A namespace is how you organize stored information.
+
+```python
+namespace = (
+    "memories",
+    "tenant-001",
+    "user-123",
+)
+```
+
+
+```
+memories
+   |
+   +-- tenant-001
+          |
+          +-- user-123
+```
+
+
+## Store
+
+LangGraph offers a generic storage interface.
+
+```python
+from langgraph.store.base import BaseStore
+```
+
+A store can be accessed using the Runtime object.
+```python
+runtime.store
+```
+
+
+#### Search
+```python
+store.search(
+    ("memories", "tenant-001")
+)
+```
+
+#### Put Items
+
+An item is an individual record inside a namespace.
+
+it has:
+- `Namespace`: Where the item belongs
+- `Key`: Unique item identifier within that namespace
+- `Value`: Stored JSON-compatible mapping
+- `created_at`
+- `updated_at`
+
+```python
+store.put(
+    namespace,
+    "preference-001",
+    {
+        "category": "programming",
+        "value": "Prefers Python",
+    },
+)
+```
+
+
+#### Retrieve(get) Items
+
+```python
+item = store.get(
+    namespace,
+    "preference-001",
+)
+
+print(item.value)
+```
+
+
+#### Delete
+
+```python
+store.delete(
+    namespace,
+    "preference-001",
+)
+```
+
+
+#### normal search	vs semantic search
+
+A normal key lookup retrieves an item by identifier.
+```python
+results = store.search(
+    namespace,
+)
+```
+
+A semantic search finds items related to a natural-language query.
+```python
+results = store.search(
+    namespace,
+    query="What programming language does the user prefer?",
+)
+```
+
+### Metadata filtering
+
+Semantic similarity alone is not enough.
+
+Namespace isolation should be the primary boundary, with metadata filters providing additional selection.
+
+### Store Durability 
+
+`InMemoryStore`: Development
+`PostgresStore`: Production
+
+The PostgresStore manages its own persistence schema.
+
+```python
+await store.setup()
+```
+
+
+## LangMem — automatic memory
+
+LangMem is a higher-level library that sits on top of LangGraph’s Store
+
+
+#### When to use what:
+
+- **Use only the Store when:**
+    * You want full control over what gets written and how.
+    * You are writing custom tools or nodes that just put/get/search.
+    * Your memory needs are simple
+
+- **Use LangMem (on top of a Store) when:**:
+    * You want the agent to automatically extract useful facts, preferences, episodic summaries, etc.
+    * You want the agent to be able to call manage_memory / search_memory tools itself **(“hot path”).**
+    * You want procedural memory / prompt self-improvement.
+
+
+### 2 ways to use LangMem:
+
+1. **Tool-based / Hot-path :** 
+	* `create_manage_memory_tool` + `create_search_memory_tool`
+	* Agent can decide during the conversation to save/search memories.
+	* **Pros:**
+		* Immediate: the memory is available in the next turn of the same conversation.
+		* Agent has full control
+	* **Cons:**
+	    * Adds latency to every response
+	    * Higher token cost
+	* **Best for:**
+		* Explicit “remember this” / “forget this” moments
+		* Critical facts that must be available immediately 
+	
+2. **Background / store managers:** 
+	* `create_memory_store_manager` (or the lower-level `create_memory_manager`)
+	* Automatically extract, update, consolidate memories after (or outside) the conversation.
+	* **Pros:**
+		* Zero extra latency for the user.
+		* Agent stays simple — it just chats.
+		* Better extraction quality
+		* Cheaper in the long run
+	* **Cons:**
+		* Memories appear with a delay
+		* Not ideal if the user says “Remember X” and expects it to work in the very next message.
+	* **Best for:**
+		* Most production usecases
+		* High-traffic applications where latency and cost matter.
+
+
+### Approach 1 — Tool-based (Hot-path)
+The agent can use tools to:
+- Create memories.
+- Update memories.
+- Delete memories.
+- Search existing memories
+
+example:
+```python
+from langmem import (
+    create_manage_memory_tool,
+    create_search_memory_tool,
+)
+
+model = init_chat_model(
+    "google_genai:<supported-gemini-model>"
+)
+
+store = InMemoryStore()
+
+tools = [
+    create_manage_memory_tool(
+        namespace=("memories", "{langgraph_user_id}"),
+    ),
+    create_search_memory_tool(
+        namespace=("memories", "{langgraph_user_id}"),
+    ),
+]
+
+agent = create_agent(
+    model=model,
+    tools=tools,
+    store=store,
+)
+```
+
+The user says: Remember that I prefer Python.
+and the agent can call manage_memory.
+
+
+### Approach B — Manager-based (automatic)
+
+Instead of asking the active agent to manage memory through explicit tool calls, you can use a memory manager.
+
+**create_memory_manager** 
+- it is the core stateless memory extractor module
+- it can be used with any AI agent memory 
+- it can be used with Langgraph memory store or other tools like:
+	- Mem0: Fact extraction + vector (+ optional graph)
+	- Zep (Graphiti)
+	- Letta (formerly MemGPT): OS-style tiered memory
+	- Supermemory: Memory API + context engine
+- it can be used with Vector Databases and do memory search yourself.
+
+**create_memory_store_manager**
+- A higher-level wrapper that uses create_memory_manager internally
+- It is specifically designed to work smoothly with LangGraph’s Store
+- It automatically:
+	- searches the Store for existing memories,
+	- calls the underlying create_memory_manager,
+	- writes the results back to the Store
+```python
+from langmem import create_memory_store_manager
+
+store_manager = create_memory_store_manager(
+    "anthropic:claude-3-5-sonnet-latest",
+    namespace=("memories", "{user_id}"),   # supports templates
+    store=store,                          # optional if using graph context
+    schemas=[YourSchema],
+    instructions="...",
+    enable_inserts=True,
+    enable_deletes=False,
+    query_limit=5,                        # how many existing memories to fetch
+)
+
+# Just pass the conversation — it does everything
+store_manager.invoke(
+    {"messages": conversation},
+    config={"configurable": {"user_id": "user_123"}}
+)
+```
+
+#### Create_memory_manager vs Create_memory_store_manager
+
+```
+create_memory_manager          ← pure extraction engine (stateless)
+         ↑
+         │ used by
+         │
+create_memory_store_manager    ← convenient wrapper that adds Store I/O
+```
+
+
+## Memory design
+
+### Three kinds of memory
+1. Semantic memory
+    - Facts and knowledge.
+    - Examples:
+    	``` 
+    	- User works with Python.
+	    - User uses PostgreSQL.
+	    ```
+2. Episodic memory
+    - Information about specific past events.
+    - Examples:
+        ```
+        - On November 1, the user approved a deployment.
+        - Last week, the user requested a database migration review.
+        ```
+3. Procedural memory
+	- Information about how tasks should be performed.
+	- Examples:
+	```
+		- Always produce Python examples.
+		- Prefer open-source frameworks.
+		- Follow the organization's coding standards.
+	```
